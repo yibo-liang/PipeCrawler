@@ -7,46 +7,52 @@ package pcc.core;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import ppc.bufferclass.LockedQueueBuffer;
 import ppc.dynamic.BlockAnalyser;
+import ppc.interfaceclass.Buffer;
 import ppc.interfaceclass.Worker;
 
 /**
  *
- * @author yl9
+ * @author Yibo
  */
 public class Pipeblock implements Runnable {
 
-    private LockedQueueBuffer inputBuffer;
-    private LockedQueueBuffer outputBuffer;
-    private BlockManager manager;
+    private final Buffer inputBuffer;
+    private final Buffer outputBuffer;
+    private SectionManager manager;
     private BlockAnalyser analyser;
 
     private Worker worker;
 
-    private boolean isPausing = false;
-    private boolean isRunning = true;
+    private boolean Pausing = false;
+    private boolean Running = true;
 
     private long worktimer;
 
-    public boolean isIsPausing() {
-        return isPausing;
+    public boolean isPausing() {
+        return Pausing;
     }
 
-    public void setIsPausing(boolean isPausing) {
-        this.isPausing = isPausing;
+    public void setPausing(boolean isPausing) {
+        this.Pausing = isPausing;
     }
 
-    public boolean isIsRunning() {
-        return isRunning;
+    public boolean isRunning() {
+        return Running;
     }
 
-    public void setIsRunning(boolean isRunning) {
-        this.isRunning = isRunning;
+    public void setRunning(boolean isRunning) {
+        this.Running = isRunning;
     }
 
     public synchronized void setWorker(Worker worker) {
         this.worker = worker;
+    }
+
+    public Pipeblock(Worker worker, Buffer InputBuffer, Buffer OutputBuffer) {
+        this.inputBuffer = InputBuffer;
+        this.outputBuffer = OutputBuffer;
+        
     }
 
     @Override
@@ -56,10 +62,10 @@ public class Pipeblock implements Runnable {
             if (analyser != null) {
                 analyser.BlockStart();
             }
-            while (manager == null || isRunning) {
+            while (manager == null || Running) {
                 // handle pause
                 // pause can only happen before a work, not while it is working
-                if (isPausing) {
+                if (Pausing) {
                     try {
                         wait();
                     } catch (InterruptedException ex) {
@@ -67,7 +73,7 @@ public class Pipeblock implements Runnable {
                     }
                 }
                 WorkStart();
-                this.worker.work();
+                this.worker.work(this.inputBuffer, this.outputBuffer);
                 WorkFinish();
             }
         }
@@ -80,8 +86,8 @@ public class Pipeblock implements Runnable {
 
     private void WorkFinish() {
         long latency = System.nanoTime() - worktimer;
-        if (analyser!=null){
-            analyser.addSingleWorkLatency(latency);
+        if (analyser != null) {
+            analyser.workdone(latency);
         }
     }
 }

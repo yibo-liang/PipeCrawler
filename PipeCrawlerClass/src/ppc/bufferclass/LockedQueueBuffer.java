@@ -9,54 +9,62 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import ppc.interfaceclass.Buffer;
 
 /**
  *
- * @author yl9
+ * @author Yibo
+ * @param <T>
  */
-public class LockedQueueBuffer {
+public class LockedQueueBuffer<T> implements Buffer {
 
-    private final Queue<Object> queue = new LinkedList<>();
+    private final Queue<T> queue = new LinkedList<>();
     private int maxsize = 0;
 
-    public synchronized int push(Object obj) {
+    @Override
+    public synchronized void push(Object obj) {
+
         if (maxsize > 0) {
             if (queue.size() < maxsize) {
-                queue.add(obj);
-                return 1;
-            } else {
-                return 0;
+                queue.add((T) obj);
             }
         } else {
-            queue.add(obj);
-            return 1;
+            queue.add((T) obj);
+
         }
-    }
-
-    public int getMaxsize() {
-        return maxsize;
-    }
-
-    public void setMaxsize(int maxsize) {
-        this.maxsize = maxsize;
-    }
-
-    public synchronized Object peek() {
-        return queue.peek();
 
     }
 
-    public synchronized Object poll() {
+    @Override
+    public synchronized T poll() {
         return queue.poll();
     }
 
-    public synchronized List<Object> pollAll() {
-        List<Object> result = new ArrayList<>(queue);
+    @Override
+    public synchronized T peek() {
+         return queue.peek();
+    }
+
+    @Override
+    public synchronized void clear() {
+        queue.clear();
+    }
+
+    @Override
+    public synchronized int getMaxsize() {
+        return this.maxsize;
+    }
+
+    @Override
+    public synchronized void setMaxsize(int maxsize) {
+         this.maxsize = maxsize;
+    }
+
+    @Override
+    public synchronized List<T> pollAll() {
+        List<T> result = new ArrayList<>(queue);
         queue.clear();
         return result;
     }
 
-    public synchronized void clear() {
-        queue.clear();
-    }
 }

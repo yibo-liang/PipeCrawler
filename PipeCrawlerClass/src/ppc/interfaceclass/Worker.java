@@ -7,8 +7,8 @@ package ppc.interfaceclass;
 
 /**
  *
- * @author yl9
+ * @author Yibo
  */
-public abstract class Worker {
-    public abstract void work();
+public interface Worker {
+    public abstract void work(Buffer InputBuffer, Buffer OutBuffer);
 }
