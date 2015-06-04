@@ -19,15 +19,16 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * THE SOFTWARE.3
  */
 package pcc.core;
 
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import pcc.dynamic.Analysis.BlockAnalyser;
-import pcc.interfaceclass.Buffer;
-import pcc.interfaceclass.Worker;
+import pcc.interfaceclass.BufferInterface;
+import pcc.interfaceclass.WorkerInterface;
 
 /**
  *
@@ -35,12 +36,11 @@ import pcc.interfaceclass.Worker;
  */
 public class Pipeblock implements Runnable {
 
-    private final Buffer inputBuffer;
-    private final Buffer outputBuffer;
+    private Collection<BufferInterface> buffers;
     private SectionManager manager;
     private BlockAnalyser analyser;
 
-    private Worker worker;
+    private WorkerInterface worker;
 
     private boolean Pausing = false;
     private boolean Running = true;
@@ -63,14 +63,12 @@ public class Pipeblock implements Runnable {
         this.Running = isRunning;
     }
 
-    public synchronized void setWorker(Worker worker) {
+    public synchronized void setWorker(WorkerInterface worker) {
         this.worker = worker;
     }
 
-    public Pipeblock(Worker worker, Buffer InputBuffer, Buffer OutputBuffer) {
-        this.inputBuffer = InputBuffer;
-        this.outputBuffer = OutputBuffer;
-        
+    public Pipeblock(WorkerInterface worker, Collection<BufferInterface> buffers) {
+        this.buffers=buffers;
     }
 
     @Override
@@ -91,7 +89,7 @@ public class Pipeblock implements Runnable {
                     }
                 }
                 WorkStart();
-                this.worker.work(this.inputBuffer, this.outputBuffer);
+                this.worker.work(this.buffers);
                 WorkFinish();
             }
         }

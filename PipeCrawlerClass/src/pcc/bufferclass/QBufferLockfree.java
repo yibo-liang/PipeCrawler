@@ -25,7 +25,7 @@ package pcc.bufferclass;
 
 import java.lang.reflect.Array;
 import java.util.List;
-import pcc.interfaceclass.Buffer;
+import pcc.abstractclass.TPBuffer;
 
 /**
  * This class implements a Queue buffer in a lock free manner To use this buffer
@@ -38,7 +38,7 @@ import pcc.interfaceclass.Buffer;
  * @author Yibo
  * @param <T>
  */
-public class LockfreeBuffer<T> implements Buffer {
+public class QBufferLockfree<T> extends TPBuffer {
 
     T[] buffer;
     int buffersize;
@@ -46,15 +46,16 @@ public class LockfreeBuffer<T> implements Buffer {
     private int head = 0;
 
     private int tail = 0;
-
-    public LockfreeBuffer(Class<T> c, int size) {
+     
+    
+    public QBufferLockfree(Class<T> c, int size) {
 
         final T[] tempbuffer = (T[]) Array.newInstance(c, size);
         this.buffer = tempbuffer;
 
     }
 
-    public LockfreeBuffer(Class<T> c) {
+    public QBufferLockfree(Class<T> c) {
 
         final T[] tempbuffer = (T[]) Array.newInstance(c, 20);
         this.buffer = tempbuffer;

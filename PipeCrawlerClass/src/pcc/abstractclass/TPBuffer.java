@@ -21,12 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.interfaceclass;
+package pcc.abstractclass;
+
+import java.util.List;
+import pcc.interfaceclass.BufferInterface;
 
 /**
+ * This is a buffer used for task parallelism
  *
  * @author Yibo
+ * @param <T>
  */
-public interface Worker {
-    public abstract void work(Buffer InputBuffer, Buffer OutBuffer);
+public abstract class TPBuffer<T> implements BufferInterface {
+    
+    public abstract boolean push(T obj);
+
+    public abstract T poll();
+
+    public abstract T peek();
+
+    public abstract void clear();
+
+    public abstract int getMaxsize();
+
+    public abstract boolean setMaxsize(int maxsize);
+    
+    public abstract  List<T> pollAll() ;
 }

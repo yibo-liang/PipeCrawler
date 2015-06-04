@@ -23,26 +23,12 @@
  */
 package pcc.interfaceclass;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  *
  * @author Yibo
- * @param <T>
  */
-public interface Buffer<T> {
-    
-    public abstract boolean push(T obj);
-
-    public abstract T poll();
-
-    public abstract T peek();
-
-    public abstract void clear();
-
-    public abstract int getMaxsize();
-
-    public abstract boolean setMaxsize(int maxsize);
-    
-    public abstract  List<T> pollAll() ;
+public interface WorkerInterface {
+    public abstract void work(Collection<BufferInterface> buffers);
 }

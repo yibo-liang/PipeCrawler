@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import pcc.interfaceclass.Buffer;
+import pcc.abstractclass.TPBuffer;
 
 /**
  * This class is a locked implementation of buffer queue It has a maximum size
@@ -39,18 +39,18 @@ import pcc.interfaceclass.Buffer;
  * @author Yibo
  * @param <T>
  */
-public class LockedQueueBuffer<T> implements Buffer {
+public class QBufferLocked<T> extends TPBuffer {
 
     private final Queue<T> queue;
     private int maxsize = 0;
     private int count = 0;
 
-    public LockedQueueBuffer() {
+    public QBufferLocked() {
         this.maxsize = 10;
         queue = new LinkedList<>();
     }
 
-    public LockedQueueBuffer(Class<T> c, int maxsize) {
+    public QBufferLocked(Class<T> c, int maxsize) {
         this.maxsize = maxsize;
         queue = new LinkedList<>();
     }

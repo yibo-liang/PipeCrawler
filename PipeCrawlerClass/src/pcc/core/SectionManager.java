@@ -34,8 +34,8 @@ import java.util.logging.Logger;
 import pcc.dynamic.Analysis.BlockAnalyser;
 import pcc.dynamic.Analysis.BlockAnalysisResult;
 import pcc.dynamic.Analysis.SectionAnalysisResult;
-import pcc.interfaceclass.Buffer;
-import pcc.interfaceclass.Worker;
+import pcc.abstractclass.TPBuffer;
+import pcc.interfaceclass.WorkerInterface;
 
 /**
  *
@@ -43,8 +43,8 @@ import pcc.interfaceclass.Worker;
  */
 public class SectionManager {
 
-    private final Buffer InputBuffer;
-    private final Buffer OutputBuffer;
+    private final TPBuffer InputBuffer;
+    private final TPBuffer OutputBuffer;
     private final Class workerclass;
     private final Class pipeblockclass;
 
@@ -82,7 +82,7 @@ public class SectionManager {
         this.keepAliveTime = keepAliveTime;
     }
 
-    public SectionManager(Class pipeblockclass, Class workerclass, Buffer InputBuffer, Buffer OutBuffer) {
+    public SectionManager(Class pipeblockclass, Class workerclass, TPBuffer InputBuffer, TPBuffer OutBuffer) {
         this.pipeblocks = new HashMap<>();
         this.analysers = new HashMap<>();
         this.InputBuffer = InputBuffer;
@@ -117,11 +117,11 @@ public class SectionManager {
             //pipeline block is then executed in the threadpool
             BlockAnalyser a = new BlockAnalyser();
             analysers.put(index, a);
-            Constructor workerConstructor = workerclass.getConstructor(Buffer.class, Buffer.class);
-            Worker w = (Worker) workerConstructor.newInstance(InputBuffer, OutputBuffer);
+            Constructor workerConstructor = workerclass.getConstructor(TPBuffer.class, TPBuffer.class);
+            WorkerInterface w = (WorkerInterface) workerConstructor.newInstance(InputBuffer, OutputBuffer);
 
             Constructor pbConstructor;
-            pbConstructor = pipeblockclass.getConstructor(Worker.class, Buffer.class, Buffer.class);
+            pbConstructor = pipeblockclass.getConstructor(WorkerInterface.class, TPBuffer.class, TPBuffer.class);
             Pipeblock pb;
             pb = (Pipeblock) pbConstructor.newInstance(w, InputBuffer, OutputBuffer);
             pipeblocks.put(index, pb);
