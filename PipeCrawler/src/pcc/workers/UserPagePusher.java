@@ -28,24 +28,29 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jpipe.abstractclass.Worker;
-import jpipe.bufferclass.QBufferLocked;
+import jpipe.abstractclass.TPBuffer;
+import jpipe.abstractclass.DefaultWorker;
+import jpipe.buffer.QBufferLocked;
+import jpipe.buffer.util.TPBufferStore;
 import jpipe.interfaceclass.IBUffer;
 import jpipe.util.Triplet;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import pcc.core.CrawlerSetting;
 import pcc.http.CrawlerClient;
 import pcc.http.UserAgentHelper;
+import pcc.http.entity.Proxy;
 
 /**
  *
  * @author yl9
  */
-public class UserPagePusher extends Worker {
+public class UserPagePusher extends DefaultWorker {
 
     private HashMap<String, Boolean> subassignments;
     private int assignNum;
     private int workDone;
+    private Proxy proxy = null;
 
     private boolean AllDone() {
         if (workDone != assignNum) {
@@ -69,23 +74,20 @@ public class UserPagePusher extends Worker {
         }
     }
 
-    @SuppressWarnings("empty-statement")
-    private void blockedpush(QBufferLocked bf, Object item) {
-        while (!bf.push(item)) {
-
-        };
-    }
-
     @Override
     @SuppressWarnings("empty-statement")
     public boolean work(IBUffer[] buffers) {
-        QBufferLocked<String> inputbuffer = (QBufferLocked<String>) buffers[0];
-        QBufferLocked<String> outputbuffer = (QBufferLocked<String>) buffers[1];
+        TPBuffer<String> inputbuffer = (TPBuffer) TPBufferStore.use("containerid");
+        TPBuffer<String> failbuffer = (TPBuffer) TPBufferStore.use("failedcontainerid");
+        
+        
+        TPBuffer<Triplet> outputbuffer = (TPBuffer) TPBufferStore.use("pagelist");
+
         subassignments = new HashMap<>();
         assignNum = 0;
         workDone = 0;
 
-        String containerid = null;
+        String containerid = failbuffer.peek();
         while (containerid == null) {
             containerid = inputbuffer.poll();
         }
@@ -95,8 +97,24 @@ public class UserPagePusher extends Worker {
         client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
         client.addHeader("X-Requested-With", "XMLHttpRequest");
         client.addHeader(UserAgentHelper.iphone6plusAgent());
-        String json1="";
-        String json2="";
+        if (CrawlerSetting.USE_PROXY) {
+            if (this.proxy == null) {
+                System.out.println("poolllllllling");
+
+                TPBuffer<Proxy> proxybuffer = (TPBuffer<Proxy>) TPBufferStore.use("proxys");
+
+                this.proxy = proxybuffer.poll();
+                while (this.proxy  == null) {
+                    this.proxy  = proxybuffer.poll();
+                }
+            }
+            System.out.println("Connecting using proxy = " + this.proxy);
+            client.setProxy(this.proxy);
+
+        }
+
+        String json1 = "";
+        String json2 = "";
         JSONParser parser = new JSONParser();
         Long fanNum;
         Long followNum;
@@ -113,12 +131,20 @@ public class UserPagePusher extends Worker {
             fanNum = (Long) obj2.get("count") / 10 + 1;
         } catch (Exception ex) {
             Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
-            blockedpush(inputbuffer, containerid);
+            blockedpush(failbuffer, containerid);
+            this.proxy=null;
             System.out.println(json1);
             System.out.println(json2);
             return false;
         }
         System.out.println("pushing");
+
+        for (long i = 1; i <= fanNum; i++) {
+            blockedpush(outputbuffer, new Triplet(this, "fans" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=" + i));
+            System.out.println("Giving out task fans" + i);
+            subassignments.put("fans" + i, false);
+
+        }
         for (long i = 1; i <= followNum; i++) {
 
             blockedpush(outputbuffer, new Triplet(this, "follow" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=" + i));
@@ -126,20 +152,15 @@ public class UserPagePusher extends Worker {
             subassignments.put("follow" + i, false);
 
         }
-
-        for (long i = 1; i <= fanNum; i++) {
-            blockedpush(outputbuffer, new Triplet(this, "fans" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=" + i));
-            System.out.println("Giving out task fans" + i);
-            subassignments.put("follow" + i, false);
-
-        }
-
+        System.out.println("all pushed");
         synchronized (this) {
             while (!AllDone()) {
                 try {
                     wait();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
+                    blockedpush(failbuffer, containerid);
+                    this.proxy=null;
                     return false;
                 }
             }

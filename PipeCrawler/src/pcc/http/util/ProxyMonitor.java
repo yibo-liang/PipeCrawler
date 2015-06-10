@@ -21,69 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.http.entity;
+package pcc.http.util;
 
-import java.io.Serializable;
-import java.util.Objects;
+import jpipe.interfaceclass.IMonitor;
+import jpipe.util.Pair;
+import pcc.http.entity.Proxy;
 
-public class Proxy implements Serializable{
+/**
+ *
+ * @author yl9
+ */
+public class ProxyMonitor implements IMonitor {
 
-    private String host;
-    private String port;
-    private String status = "N";
+    Long minUseInterval;
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Proxy() {
-
+    public ProxyMonitor(int intervalms) {
+        this.minUseInterval = (long)(intervalms * (int) Math.pow(10, 6));
     }
 
     @Override
-    public String toString() {
-        return this.host + ":" + this.port;
+    public boolean InspectIn(Object obj) {
+        return true;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Proxy) {
-            Proxy p = (Proxy) obj;
-            return this.getHost().equals(p.getHost());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 47 * hash + Objects.hashCode(this.host);
-        return hash;
-    }
-
-    public Proxy(String host, String port) {
-        this.host = host;
-        this.port = port;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
+    public boolean InspectOut(Object obj) {
+        Pair<Proxy, Long> pair = (Pair<Proxy, Long>) obj;
+        return System.nanoTime() - pair.getSecond() > this.minUseInterval;
     }
 
 }

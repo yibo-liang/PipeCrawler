@@ -5,14 +5,22 @@
  */
 package pcc.core;
 
-import jpipe.bufferclass.QBufferLocked;
+import jpipe.buffer.MonitoredBufferLocked;
+import jpipe.buffer.QBufferLocked;
+import jpipe.buffer.util.TPBufferStore;
 import jpipe.core.ConcurrentPipes;
 import jpipe.core.DefaultWorkerFactory;
 import jpipe.core.PipeSection;
 import jpipe.interfaceclass.IBUffer;
+import jpipe.interfaceclass.IWorker;
+import jpipe.util.Pair;
+import jpipe.util.Triplet;
+import pcc.http.entity.Proxy;
+import pcc.http.util.ProxyMonitor;
 import pcc.workers.AccountCrawler;
 import pcc.workers.UserPagePusher;
 import pcc.workers.Initialiser;
+import pcc.workers.ProxySupplier;
 
 /**
  *
@@ -59,25 +67,46 @@ public class PipeCrawler {
          int k = 1;
          */
         QBufferLocked<String> initbuffer = new QBufferLocked<>(20);
+        
         QBufferLocked<String> containeridbuffer = new QBufferLocked<>(20);
-        QBufferLocked<String> pagelistbuffer = new QBufferLocked<>(20);
-        QBufferLocked<String> DBInputbuffer = new QBufferLocked<>(20);
+        QBufferLocked<String> Failedcontaineridbuffer = new QBufferLocked<>(20);
+        
+        QBufferLocked<Triplet<IWorker, String, String>> pagelistbuffer = new QBufferLocked<>(20);
+        QBufferLocked<Triplet<IWorker, String, String>> Failedpagelistbuffer = new QBufferLocked<>(20);
+        
+        QBufferLocked<String> usersbuffer = new QBufferLocked<>(500);
+        QBufferLocked<Proxy> proxysbuffer = new QBufferLocked<>(5);
+        MonitoredBufferLocked<Pair> recycleproxysbuffer
+                = new MonitoredBufferLocked<>(100, new ProxyMonitor(120000));
 
-        QBufferLocked[] InitSectBuffers = {initbuffer, containeridbuffer};
-        QBufferLocked[] PusherBuffers = {containeridbuffer, pagelistbuffer};
-        QBufferLocked[] CrawlerBuffers = {pagelistbuffer, DBInputbuffer};
+        TPBufferStore.put("initbuffer", initbuffer);
+        
+        TPBufferStore.put("containerid", containeridbuffer);
+        TPBufferStore.put("failedcontainerid", Failedcontaineridbuffer);
+        
+        TPBufferStore.put("pagelist", pagelistbuffer);
+        TPBufferStore.put("failedpagelist", Failedpagelistbuffer);
+        
+        
+        TPBufferStore.put("users", usersbuffer);
+        TPBufferStore.put("proxys", proxysbuffer);
+        TPBufferStore.put("recycledproxy", recycleproxysbuffer);
 
         DefaultWorkerFactory<Initialiser> factory1 = new DefaultWorkerFactory<>(Initialiser.class);
         DefaultWorkerFactory<UserPagePusher> factory2 = new DefaultWorkerFactory<>(UserPagePusher.class);
         DefaultWorkerFactory<AccountCrawler> factory3 = new DefaultWorkerFactory<>(AccountCrawler.class);
-        
-        ConcurrentPipes cp1=new ConcurrentPipes(factory1, InitSectBuffers, 1);
-        ConcurrentPipes cp2=new ConcurrentPipes(factory2, PusherBuffers, 10);
-        ConcurrentPipes cp3=new ConcurrentPipes(factory3, CrawlerBuffers, 10);
-        
+
+        ConcurrentPipes cp1 = new ConcurrentPipes(factory1, null, 1);
+        ConcurrentPipes cp2 = new ConcurrentPipes(factory2, null, 25);
+        ConcurrentPipes cp3 = new ConcurrentPipes(factory3, null, 25);
+
         cp1.Start();
         cp2.Start();
         cp3.Start();
+        if (CrawlerSetting.USE_PROXY) {
+            PipeSection proxySupplier = new PipeSection(new ProxySupplier(25), null);
+            (new Thread(proxySupplier)).start();
+        }
 
         initbuffer.push("1726604697");
     }

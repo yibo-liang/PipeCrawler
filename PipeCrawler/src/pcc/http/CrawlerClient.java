@@ -39,6 +39,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import pcc.http.entity.Proxy;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.ParseException;
 
 /**
  *
@@ -49,6 +50,7 @@ public class CrawlerClient {
     private HttpHost proxy;// = new HttpHost("127.0.0.1", 80, "http");
 
     private List<Header> headers = new ArrayList<>();
+    private final int CONNECTION_TIMEOUT = 25 * 1000; // timeout in millis
 
     public HttpHost getProxy() {
         return proxy;
@@ -73,16 +75,28 @@ public class CrawlerClient {
 
     public String wget(String url) throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
-        String result;
+        RequestConfig requestConfig;
+        String result = null;
         try {
             HttpGet request = new HttpGet(url);
             if (proxy != null) {
-                RequestConfig config = RequestConfig.custom()
+
+                requestConfig = RequestConfig.custom()
+                        .setConnectionRequestTimeout(CONNECTION_TIMEOUT)
+                        .setConnectTimeout(CONNECTION_TIMEOUT)
+                        .setSocketTimeout(CONNECTION_TIMEOUT)
                         .setProxy(proxy)
                         .build();
 
-                request.setConfig(config);
+            } else {
+                requestConfig = RequestConfig.custom()
+                        .setConnectionRequestTimeout(CONNECTION_TIMEOUT)
+                        .setConnectTimeout(CONNECTION_TIMEOUT)
+                        .setSocketTimeout(CONNECTION_TIMEOUT)
+                        .build();
             }
+
+            request.setConfig(requestConfig);
             for (Iterator<Header> h = headers.iterator(); h.hasNext();) {
                 request.setHeader(h.next());
             }
@@ -96,6 +110,8 @@ public class CrawlerClient {
             } finally {
                 response.close();
             }
+        } catch (IOException | ParseException ex) {
+            throw ex;
         } finally {
             httpclient.close();
         }
@@ -124,10 +140,9 @@ public class CrawlerClient {
                 request.setHeader(h.next());
             }
             System.out.println("Executing request " + request.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(request);
-            result = response.getEntity();
-
-            response.close();
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+                result = response.getEntity();
+            }
         } finally {
             httpclient.close();
         }

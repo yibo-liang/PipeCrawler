@@ -26,8 +26,9 @@ package pcc.workers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.TPBuffer;
-import jpipe.abstractclass.Worker;
-import jpipe.bufferclass.QBufferLocked;
+import jpipe.abstractclass.DefaultWorker;
+import jpipe.buffer.QBufferLocked;
+import jpipe.buffer.util.TPBufferStore;
 import jpipe.interfaceclass.IBUffer;
 import pcc.http.CrawlerClient;
 import pcc.http.UserAgentHelper;
@@ -38,13 +39,13 @@ import pcc.http.UserAgentHelper;
  *
  * @author yl9
  */
-public class Initialiser extends Worker {
+public class Initialiser extends DefaultWorker {
 
     @Override
     @SuppressWarnings("empty-statement")
     public boolean work(IBUffer[] buffers) {
-        TPBuffer<String> inputBuffer = (QBufferLocked<String>) buffers[0];
-        TPBuffer<String> OutputBuffer = (QBufferLocked<String>) buffers[1];
+        TPBuffer<String> inputBuffer = TPBufferStore.use("initbuffer");
+        TPBuffer<String> OutputBuffer = TPBufferStore.use("containerid");
 
         //TPBuffer<Object> outputBuffer = (QBufferLocked<Object>) buffers[1];
         //TPBuffer<String> failBuffer = (QBufferLocked<String>) buffers[2];
