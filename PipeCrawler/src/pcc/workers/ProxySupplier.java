@@ -25,10 +25,10 @@ package pcc.workers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jpipe.abstractclass.DefaultWorker;
-import jpipe.abstractclass.TPBuffer;
-import jpipe.buffer.util.TPBufferStore;
-import jpipe.interfaceclass.IBUffer;
+import jpipe.abstractclass.worker.Worker;
+import jpipe.abstractclass.buffer.Buffer;
+import jpipe.buffer.util.BufferStore;
+import jpipe.interfaceclass.IBuffer;
 import pcc.http.CrawlerClient;
 import pcc.http.entity.Proxy;
 
@@ -36,7 +36,7 @@ import pcc.http.entity.Proxy;
  *
  * @author yl9
  */
-public class ProxySupplier extends DefaultWorker {
+public class ProxySupplier extends Worker {
 
     private int num = 5;
 
@@ -49,30 +49,30 @@ public class ProxySupplier extends DefaultWorker {
     }
 
     @Override
-    public boolean work(IBUffer[] buffers) {
+    public int work() {
 
-        TPBuffer<Proxy> outputBuffer = TPBufferStore.use("proxys");
+        Buffer<Proxy> outputBuffer = this.getBufferStore().use("proxys");
         CrawlerClient client = new CrawlerClient();
         try {
             String temp = client.wget("http://www.tkdaili.com/api/getiplist.aspx?vkey=408521EA3728E9DFBA7C881386734BE7&num=" + num + "&high=1&style=3");
 
             String[] proxyarray = temp.split("\\r?\\n");
             for (String proxyarray1 : proxyarray) {
-                System.out.println("Obtained Proxy = " + proxyarray1);
+                //System.out.println("Obtained Proxy = " + proxyarray1);
                 if (proxyarray1.length() > 8) {
                     String[] temp2 = proxyarray1.split(":");
                     Proxy p = new Proxy(temp2[0], temp2[1]);
-                    System.out.println("p=" + p);
+                    //System.out.println("p=" + p);
                     blockedpush(outputBuffer, p);
                 }
             }
             Thread.sleep(5000);
-            return true;
+            return Worker.SUCCESS;
 
         } catch (Exception ex) {
-            Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
-            ex.printStackTrace();
-            return false;
+           // Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
+            //ex.printStackTrace();
+            return Worker.FAIL;
         }
 
     }

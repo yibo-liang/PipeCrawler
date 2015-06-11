@@ -24,12 +24,11 @@
 package pcc.workers;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jpipe.abstractclass.TPBuffer;
-import jpipe.abstractclass.DefaultWorker;
-import jpipe.buffer.util.TPBufferStore;
-import jpipe.interfaceclass.IBUffer;
+import jpipe.abstractclass.buffer.Buffer;
+import jpipe.abstractclass.worker.Worker;
 import jpipe.util.Triplet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -43,25 +42,28 @@ import pcc.http.entity.Proxy;
  *
  * @author yl9
  */
-public class AccountCrawler extends DefaultWorker {
+public class AccountCrawler extends Worker {
 
     private Proxy proxy;
 
     @Override
     @SuppressWarnings("empty-statement")
-    public boolean work(IBUffer[] buffers) {
-        TPBuffer<Triplet> inputBuffer = (TPBuffer<Triplet>) TPBufferStore.use("pagelist");
-        TPBuffer<Triplet> failbuffer = (TPBuffer) TPBufferStore.use("failedpagelist");
+    public int work() {
+        Buffer<Triplet> inputBuffer = (Buffer<Triplet>) getBufferStore().use("pagelist");
+        Buffer<Triplet> failbuffer = (Buffer) getBufferStore().use("failedpagelist");
 
-        TPBuffer<String> outputBuffer = (TPBuffer<String>) TPBufferStore.use("users");
-        TPBuffer<Proxy> proxybuffer = (TPBuffer<Proxy>) TPBufferStore.use("proxys");
+        Buffer<String> outputBuffer = (Buffer<String>) getBufferStore().use("users");
+        Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
         Triplet<UserPagePusher, String, String> temp;
-        temp = (Triplet<UserPagePusher, String, String>) failbuffer.poll();
+        // System.out.println("Account Crawler: Trying to get from Failed page list first");
+        temp = (Triplet<UserPagePusher, String, String>) failbuffer.poll(this);
         if (temp == null) {
-            temp = (Triplet<UserPagePusher, String, String>) inputBuffer.poll();
+
+            // System.out.println("Account Crawler: Trying to get from page list");
+            temp = (Triplet<UserPagePusher, String, String>) inputBuffer.poll(this);
             if (temp == null) {
-                return false;
+                return Worker.NO_INPUT;
             }
             //System.out.println("polling");
         }
@@ -76,17 +78,18 @@ public class AccountCrawler extends DefaultWorker {
 
         if (CrawlerSetting.USE_PROXY) {
             if (proxy == null) {
-                proxy = proxybuffer.poll();
+                proxy = (Proxy) proxybuffer.poll(this);
                 while (proxy == null) {
-                    proxy = proxybuffer.poll();
+                    proxy = (Proxy) proxybuffer.poll(this);
                 }
+                proxy = new Proxy(proxy.getHost(), proxy.getPort());
             }
             client.setProxy(proxy);
-            System.out.println("Connecting using proxy = " + proxy);
+            //System.out.println("Connecting using proxy = " + proxy);
         }
 
         try {
-            System.out.println(temp.getThird());
+            //System.out.println(temp.getThird());
             String json = client.wget(temp.getThird());
             JSONParser parser = new JSONParser();
 
@@ -97,20 +100,26 @@ public class AccountCrawler extends DefaultWorker {
 
             for (Iterator i = a2.iterator(); i.hasNext();) {
                 JSONObject userObj = (JSONObject) ((JSONObject) i.next()).get("user");
-                System.out.println(userObj.toString());
-                while (!outputBuffer.push(userObj.toString()));
-                temp.getFirst().notifyDone(temp.getSecond());
+                //  System.out.println(userObj.toString());
+                //while (!outputBuffer.push(userObj.toString()));
+              
+                blockedpush(outputBuffer, userObj.get("id").toString());
+
             }
+            temp.getFirst().notifyDone(temp.getSecond());
             Thread.sleep(2000);
 
         } catch (Exception ex) {
-            Logger.getLogger(AccountCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(AccountCrawler.class.getName()).log(Level.SEVERE, null, ex);
             blockedpush(failbuffer, temp);
+
             //temp.getFirst().notifyDone(temp.getSecond());
-            return false;
+            //  System.out.println("Fail work with " + this.proxy);
+            this.proxy = null;
+            return Worker.FAIL;
         }
 
-        return true;
+        return Worker.SUCCESS;
     }
 
 }

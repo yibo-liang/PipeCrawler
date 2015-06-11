@@ -25,11 +25,11 @@ package pcc.workers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jpipe.abstractclass.TPBuffer;
-import jpipe.abstractclass.DefaultWorker;
-import jpipe.buffer.QBufferLocked;
-import jpipe.buffer.util.TPBufferStore;
-import jpipe.interfaceclass.IBUffer;
+import jpipe.abstractclass.buffer.Buffer;
+import jpipe.abstractclass.worker.Worker;
+import jpipe.buffer.LUBuffer;
+import jpipe.buffer.util.BufferStore;
+import jpipe.interfaceclass.IBuffer;
 import pcc.http.CrawlerClient;
 import pcc.http.UserAgentHelper;
 
@@ -39,16 +39,16 @@ import pcc.http.UserAgentHelper;
  *
  * @author yl9
  */
-public class Initialiser extends DefaultWorker {
+public class Initialiser extends Worker {
 
     @Override
     @SuppressWarnings("empty-statement")
-    public boolean work(IBUffer[] buffers) {
-        TPBuffer<String> inputBuffer = TPBufferStore.use("initbuffer");
-        TPBuffer<String> OutputBuffer = TPBufferStore.use("containerid");
+    public int work() {
+        Buffer<String> inputBuffer = this.getBufferStore().use("users");
+        Buffer<String> OutputBuffer = this.getBufferStore().use("containerid");
 
-        //TPBuffer<Object> outputBuffer = (QBufferLocked<Object>) buffers[1];
-        //TPBuffer<String> failBuffer = (QBufferLocked<String>) buffers[2];
+        //TPBuffer<Object> outputBuffer = (LUBuffer<Object>) buffers[1];
+        //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
         CrawlerClient client = new CrawlerClient();
 
         client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
@@ -57,23 +57,27 @@ public class Initialiser extends DefaultWorker {
         client.addHeader(UserAgentHelper.iphone6plusAgent());
 
         String temp = null;
-        while (temp == null) {
-            temp = inputBuffer.poll();
+        if (temp == null) {
+            temp = (String) inputBuffer.poll(this);
         }
+        if (temp == null) {
+            return NO_INPUT;
+        }
+
         try {
             String result = client.wget("http://m.weibo.cn/u/" + temp);
             String identifier = "window.$config={'stage':'page','stageId':'";
             int i = result.indexOf(identifier);
 
             String containerid = result.substring(i + identifier.length(), i + identifier.length() + 16);
-            System.out.println("Done! " + temp + " -> " + containerid);
-            OutputBuffer.push(containerid);
-            return true;
+            //System.out.println("Done! " + temp + " -> " + containerid);
+            this.blockedpush(OutputBuffer, containerid);
+            //System.out.println("Pushed");
+            return Worker.SUCCESS;
         } catch (Exception ex) {
             Logger.getLogger(Initialiser.class.getName()).log(Level.SEVERE, null, ex);
-
-            while (!inputBuffer.push(temp)) ;
-            return false;
+            this.blockedpush(inputBuffer, temp);
+            return Worker.FAIL;
         }
 
     }

@@ -26,13 +26,14 @@ package pcc.workers;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jpipe.abstractclass.TPBuffer;
-import jpipe.abstractclass.DefaultWorker;
-import jpipe.buffer.QBufferLocked;
-import jpipe.buffer.util.TPBufferStore;
-import jpipe.interfaceclass.IBUffer;
+import jpipe.abstractclass.buffer.Buffer;
+import jpipe.abstractclass.worker.Worker;
+import jpipe.buffer.LUBuffer;
+import jpipe.buffer.util.BufferStore;
+import jpipe.interfaceclass.IBuffer;
 import jpipe.util.Triplet;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -45,11 +46,11 @@ import pcc.http.entity.Proxy;
  *
  * @author yl9
  */
-public class UserPagePusher extends DefaultWorker {
+public class UserPagePusher extends Worker {
 
     private HashMap<String, Boolean> subassignments;
-    private int assignNum;
-    private int workDone;
+    private long assignNum;
+    private long workDone;
     private Proxy proxy = null;
 
     private boolean AllDone() {
@@ -59,7 +60,7 @@ public class UserPagePusher extends DefaultWorker {
             Iterator i = subassignments.entrySet().iterator();
             for (; i.hasNext();) {
                 Map.Entry pair = (Map.Entry) i.next();
-                if (Boolean.FALSE == (Boolean) pair.getValue()) {
+                if (!(Boolean) pair.getValue()) {
                     return false;
                 }
             }
@@ -69,27 +70,32 @@ public class UserPagePusher extends DefaultWorker {
 
     public void notifyDone(Object i) {
         synchronized (this) {
-            subassignments.put((String) i, Boolean.TRUE);
+            //System.out.println("User Pusher get notified." + i + ", " + workDone + "/" + assignNum);
+            subassignments.put((String) i, true);
+            workDone++;
             notifyAll();
         }
     }
 
     @Override
     @SuppressWarnings("empty-statement")
-    public boolean work(IBUffer[] buffers) {
-        TPBuffer<String> inputbuffer = (TPBuffer) TPBufferStore.use("containerid");
-        TPBuffer<String> failbuffer = (TPBuffer) TPBufferStore.use("failedcontainerid");
-        
-        
-        TPBuffer<Triplet> outputbuffer = (TPBuffer) TPBufferStore.use("pagelist");
+    public int work() {
+        Buffer<String> inputbuffer = (LUBuffer) this.getBufferStore().use("containerid");
+        Buffer<String> failbuffer = (LUBuffer) this.getBufferStore().use("failedcontainerid");
+
+        Buffer<Triplet> outputbuffer = (LUBuffer) this.getBufferStore().use("pagelist");
 
         subassignments = new HashMap<>();
         assignNum = 0;
         workDone = 0;
-
-        String containerid = failbuffer.peek();
-        while (containerid == null) {
-            containerid = inputbuffer.poll();
+        //System.out.println("USER PAGE PUSHER STarts;");
+        String containerid = (String) failbuffer.poll(this);
+        if (containerid == null) {
+            containerid = (String) inputbuffer.poll(this);
+        }
+        if (containerid == null) {
+            //System.out.println("NOOOOOINN[PUPT");
+            return Worker.NO_INPUT;
         }
 
         CrawlerClient client = new CrawlerClient();
@@ -99,16 +105,16 @@ public class UserPagePusher extends DefaultWorker {
         client.addHeader(UserAgentHelper.iphone6plusAgent());
         if (CrawlerSetting.USE_PROXY) {
             if (this.proxy == null) {
-                System.out.println("poolllllllling");
+               // System.out.println("poolllllllling");
 
-                TPBuffer<Proxy> proxybuffer = (TPBuffer<Proxy>) TPBufferStore.use("proxys");
-
-                this.proxy = proxybuffer.poll();
-                while (this.proxy  == null) {
-                    this.proxy  = proxybuffer.poll();
+                Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
+               // System.out.println(Objects.isNull(proxybuffer));
+                this.proxy = (Proxy) proxybuffer.poll(this);
+                while (this.proxy == null) {
+                    this.proxy = (Proxy) proxybuffer.poll(this);
                 }
             }
-            System.out.println("Connecting using proxy = " + this.proxy);
+           // System.out.println("Connecting using proxy = " + this.proxy);
             client.setProxy(this.proxy);
 
         }
@@ -130,42 +136,41 @@ public class UserPagePusher extends DefaultWorker {
             followNum = (Long) obj1.get("count") / 10 + 1;
             fanNum = (Long) obj2.get("count") / 10 + 1;
         } catch (Exception ex) {
-            Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
             blockedpush(failbuffer, containerid);
-            this.proxy=null;
-            System.out.println(json1);
-            System.out.println(json2);
-            return false;
+            this.proxy = null;
+            //System.out.println("UPP Fails");
+            //System.out.println(json1);
+            //System.out.println(json2);
+            return Worker.FAIL;
         }
-        System.out.println("pushing");
-
-        for (long i = 1; i <= fanNum; i++) {
-            blockedpush(outputbuffer, new Triplet(this, "fans" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=" + i));
-            System.out.println("Giving out task fans" + i);
-            subassignments.put("fans" + i, false);
-
-        }
+        //System.out.println("pushing");
+        assignNum = followNum + fanNum;
         for (long i = 1; i <= followNum; i++) {
 
             blockedpush(outputbuffer, new Triplet(this, "follow" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=" + i));
-            System.out.println("Giving out task follow" + i);
+          //  System.out.println("Giving out task follow" + i);
             subassignments.put("follow" + i, false);
 
         }
-        System.out.println("all pushed");
+        for (long i = 1; i <= fanNum; i++) {
+            blockedpush(outputbuffer, new Triplet(this, "fans" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=" + i));
+           // System.out.println("Giving out task fans" + i);
+            subassignments.put("fans" + i, false);
+
+        }
+        //System.out.println("all pushed");
         synchronized (this) {
             while (!AllDone()) {
                 try {
                     wait();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
-                    blockedpush(failbuffer, containerid);
-                    this.proxy=null;
-                    return false;
+
                 }
             }
             System.out.println("All done!");
-            return true;
+            return Worker.SUCCESS;
         }
 
     }

@@ -50,7 +50,7 @@ public class CrawlerClient {
     private HttpHost proxy;// = new HttpHost("127.0.0.1", 80, "http");
 
     private List<Header> headers = new ArrayList<>();
-    private final int CONNECTION_TIMEOUT = 25 * 1000; // timeout in millis
+    private final int CONNECTION_TIMEOUT = 5 * 1000; // timeout in millis
 
     public HttpHost getProxy() {
         return proxy;
@@ -100,18 +100,16 @@ public class CrawlerClient {
             for (Iterator<Header> h = headers.iterator(); h.hasNext();) {
                 request.setHeader(h.next());
             }
-            System.out.println("Executing request " + request.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(request);
-            HttpEntity entity = response.getEntity();
-            result = entity != null ? EntityUtils.toString(entity) : null;
-            try {
-
+            //System.out.println("Executing request " + request.getRequestLine());
+            try (CloseableHttpResponse response = httpclient.execute(request)) {
+                HttpEntity entity = response.getEntity();
+                result = entity != null ? EntityUtils.toString(entity) : null;
+                
                 EntityUtils.consume(entity);
-            } finally {
-                response.close();
             }
+
         } catch (IOException | ParseException ex) {
-            throw ex;
+            return null;
         } finally {
             httpclient.close();
         }
