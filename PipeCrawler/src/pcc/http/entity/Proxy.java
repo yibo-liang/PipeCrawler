@@ -26,11 +26,20 @@ package pcc.http.entity;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class Proxy implements Serializable{
+public class Proxy implements Serializable {
 
     private String host;
     private String port;
+    private int recycle = 0;
     private String status = "N";
+
+    public int getRecycle() {
+        return recycle;
+    }
+
+    public void setRecycle(int recycle) {
+        this.recycle = recycle;
+    }
 
     public String getStatus() {
         return status;

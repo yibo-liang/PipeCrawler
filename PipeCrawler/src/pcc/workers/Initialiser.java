@@ -23,15 +23,13 @@
  */
 package pcc.workers;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
-import jpipe.buffer.LUBuffer;
-import jpipe.buffer.util.BufferStore;
-import jpipe.interfaceclass.IBuffer;
+import pcc.core.CrawlerSetting;
 import pcc.http.CrawlerClient;
+import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
+import pcc.http.entity.Proxy;
 
 /**
  * This worker takes an user id which is 10 digits long, and turns it to a
@@ -41,21 +39,17 @@ import pcc.http.UserAgentHelper;
  */
 public class Initialiser extends Worker {
 
+    private Proxy proxy = null;
+
     @Override
     @SuppressWarnings("empty-statement")
     public int work() {
         Buffer<String> inputBuffer = this.getBufferStore().use("users");
         Buffer<String> OutputBuffer = this.getBufferStore().use("containerid");
+        Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
         //TPBuffer<Object> outputBuffer = (LUBuffer<Object>) buffers[1];
         //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
-        CrawlerClient client = new CrawlerClient();
-
-        client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
-        client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
-        client.addHeader("X-Requested-With", "XMLHttpRequest");
-        client.addHeader(UserAgentHelper.iphone6plusAgent());
-
         String temp = null;
         if (temp == null) {
             temp = (String) inputBuffer.poll(this);
@@ -64,18 +58,49 @@ public class Initialiser extends Worker {
             return NO_INPUT;
         }
 
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
+        client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
+        client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
+        client.addHeader("X-Requested-With", "XMLHttpRequest");
+        client.addHeader(UserAgentHelper.iphone6plusAgent());
+
+        if (CrawlerSetting.USE_PROXY) {
+            if (proxy == null) {
+
+                proxy = (Proxy) blockedpoll(proxybuffer);
+
+            }
+            //proxy = new Proxy(proxy.getHost(), proxy.getPort());
+
+            client.setProxy(proxy);
+            //System.out.println("Connecting using proxy = " + proxy);
+        }
+
         try {
             String result = client.wget("http://m.weibo.cn/u/" + temp);
-            String identifier = "window.$config={'stage':'page','stageId':'";
-            int i = result.indexOf(identifier);
-
-            String containerid = result.substring(i + identifier.length(), i + identifier.length() + 16);
-            //System.out.println("Done! " + temp + " -> " + containerid);
-            this.blockedpush(OutputBuffer, containerid);
-            //System.out.println("Pushed");
-            return Worker.SUCCESS;
+            client.close();
+            if (result != null) {
+                String identifier = "window.$config={'stage':'page','stageId':'";
+                int i = result.indexOf(identifier);
+                if (i != -1) {
+                    String containerid = result.substring(i + identifier.length(), i + identifier.length() + 16);
+                    //System.out.println("Done! " + temp + " -> " + containerid);
+                    if (!containerid.matches("[0-9]+")) {
+                        throw new Exception("Retrieved Null");
+                    }
+                    this.blockedpush(OutputBuffer, containerid);
+                    //System.out.println("Pushed");
+                    Thread.sleep(4000);
+                    return Worker.SUCCESS;
+                } else {
+                    throw new Exception("Retrieved Null");
+                }
+            } else {
+                throw new Exception("Retrieved Null");
+            }
         } catch (Exception ex) {
-            Logger.getLogger(Initialiser.class.getName()).log(Level.SEVERE, null, ex);
+            //ex.printStackTrace();
+            this.proxy = null;
             this.blockedpush(inputBuffer, temp);
             return Worker.FAIL;
         }

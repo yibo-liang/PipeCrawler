@@ -23,6 +23,8 @@
  */
 package pcc.core;
 
+import jpipe.util.Pair;
+
 /**
  *
  * @author yl9
@@ -45,4 +47,10 @@ public class CrawlerSetting {
 
     public static boolean USE_PROXY = true;
 
+    private static String server = "localhost";
+    private static int port = 10230;
+
+    public static Pair<String, Integer> getHost() {
+        return new Pair<>(server, port);
+    }
 }

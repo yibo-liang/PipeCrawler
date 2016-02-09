@@ -27,19 +27,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import pcc.http.entity.Proxy;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.ParseException;
 
 /**
  *
@@ -47,23 +46,10 @@ import org.apache.http.ParseException;
  */
 public class CrawlerClient {
 
-    private HttpHost proxy;// = new HttpHost("127.0.0.1", 80, "http");
-
-    private List<Header> headers = new ArrayList<>();
-    private final int CONNECTION_TIMEOUT = 5 * 1000; // timeout in millis
-
-    public HttpHost getProxy() {
-        return proxy;
-    }
-
-    public void setProxy(Proxy iproxy) {
-        this.proxy = new HttpHost(iproxy.getHost(), Integer.parseInt(iproxy.getPort()), "http");
-
-    }
-
-    public CrawlerClient() {
-
-    }
+    private final CloseableHttpClient client;
+    private int timeout = 40 * 1000;
+    private RequestConfig requestConfig;
+    private final List<Header> headers = new ArrayList<>();
 
     public void addHeader(Header header) {
         headers.add(header);
@@ -73,78 +59,77 @@ public class CrawlerClient {
         headers.add(new BasicHeader(key, value));
     }
 
-    public String wget(String url) throws Exception {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        RequestConfig requestConfig;
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    public CrawlerClient(CloseableHttpClient client) {
+        this.client = client;
+        requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(timeout)
+                .setConnectTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .build();
+    }
+
+    /**
+     * Set the proxy this client may use. Set null to use no proxy.
+     *
+     * @param proxy
+     */
+    public void setProxy(Proxy proxy) {
+        if (proxy == null) {
+            requestConfig = RequestConfig.custom()
+                    .setConnectionRequestTimeout(timeout)
+                    .setConnectTimeout(timeout)
+                    .setSocketTimeout(timeout)
+                    .build();
+            return;
+        }
+        HttpHost proxyHost = new HttpHost(proxy.getHost(), Integer.parseInt(proxy.getPort()), "http");
+        requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(timeout)
+                .setConnectTimeout(timeout)
+                .setSocketTimeout(timeout)
+                .setProxy(proxyHost)
+                .build();
+    }
+
+    public String wget(String url) {
         String result = null;
         try {
             HttpGet request = new HttpGet(url);
-            if (proxy != null) {
-
-                requestConfig = RequestConfig.custom()
-                        .setConnectionRequestTimeout(CONNECTION_TIMEOUT)
-                        .setConnectTimeout(CONNECTION_TIMEOUT)
-                        .setSocketTimeout(CONNECTION_TIMEOUT)
-                        .setProxy(proxy)
-                        .build();
-
-            } else {
-                requestConfig = RequestConfig.custom()
-                        .setConnectionRequestTimeout(CONNECTION_TIMEOUT)
-                        .setConnectTimeout(CONNECTION_TIMEOUT)
-                        .setSocketTimeout(CONNECTION_TIMEOUT)
-                        .build();
-            }
 
             request.setConfig(requestConfig);
             for (Iterator<Header> h = headers.iterator(); h.hasNext();) {
                 request.setHeader(h.next());
             }
-            //System.out.println("Executing request " + request.getRequestLine());
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
+            //request.setHeader("Connection", "close");
+            try (CloseableHttpResponse response = client.execute(request)) {
                 HttpEntity entity = response.getEntity();
                 result = entity != null ? EntityUtils.toString(entity) : null;
-                
                 EntityUtils.consume(entity);
-            }
+                response.close();
 
-        } catch (IOException | ParseException ex) {
-            return null;
-        } finally {
-            httpclient.close();
+            }
+            return result;
+        } catch (IOException ex) {
+            //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
+            // ex.printStackTrace();
+            return result;
         }
-        return result;
     }
 
-    /**
-     *
-     * @param url
-     * @return
-     * @throws java.io.IOException
-     */
-    public HttpEntity wgetEntity(String url) throws IOException {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        HttpEntity result;
+    public void close() {
         try {
-            HttpGet request = new HttpGet(url);
-            if (proxy != null) {
-                RequestConfig config = RequestConfig.custom()
-                        .setProxy(proxy)
-                        .build();
-
-                request.setConfig(config);
-            }
-            for (Iterator<Header> h = headers.iterator(); h.hasNext();) {
-                request.setHeader(h.next());
-            }
-            System.out.println("Executing request " + request.getRequestLine());
-            try (CloseableHttpResponse response = httpclient.execute(request)) {
-                result = response.getEntity();
-            }
-        } finally {
-            httpclient.close();
+            this.client.close();
+        } catch (IOException ex) {
+            Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return result;
     }
 
 }

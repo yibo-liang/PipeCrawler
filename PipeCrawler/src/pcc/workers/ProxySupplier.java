@@ -23,13 +23,10 @@
  */
 package pcc.workers;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.abstractclass.buffer.Buffer;
-import jpipe.buffer.util.BufferStore;
-import jpipe.interfaceclass.IBuffer;
 import pcc.http.CrawlerClient;
+import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
 
 /**
@@ -38,7 +35,7 @@ import pcc.http.entity.Proxy;
  */
 public class ProxySupplier extends Worker {
 
-    private int num = 5;
+    private int num = 20;
 
     public ProxySupplier() {
 
@@ -51,11 +48,13 @@ public class ProxySupplier extends Worker {
     @Override
     public int work() {
 
-        Buffer<Proxy> outputBuffer = this.getBufferStore().use("proxys");
-        CrawlerClient client = new CrawlerClient();
-        try {
-            String temp = client.wget("http://www.tkdaili.com/api/getiplist.aspx?vkey=408521EA3728E9DFBA7C881386734BE7&num=" + num + "&high=1&style=3");
+        Buffer<Proxy> outputBuffer = this.getBufferStore().use("rawproxys");
 
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
+
+        try {
+            String temp = client.wget("http://www.tkdaili.com/api/getiplist.aspx?vkey=22207159506CEC21A5DD188A458AE121&num=" + num + "&high=1&style=3");
+            client.close();
             String[] proxyarray = temp.split("\\r?\\n");
             for (String proxyarray1 : proxyarray) {
                 //System.out.println("Obtained Proxy = " + proxyarray1);
@@ -66,15 +65,16 @@ public class ProxySupplier extends Worker {
                     blockedpush(outputBuffer, p);
                 }
             }
+            System.out.println("Pushed "+num+" proxies.");
             Thread.sleep(5000);
             return Worker.SUCCESS;
 
         } catch (Exception ex) {
-           // Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
+            // Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
             //ex.printStackTrace();
+            client.close();
             return Worker.FAIL;
         }
-
     }
 
 }

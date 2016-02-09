@@ -26,19 +26,18 @@ package pcc.workers;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
-import jpipe.buffer.util.BufferStore;
-import jpipe.interfaceclass.IBuffer;
+import jpip.singletons.WorkerStates;
 import jpipe.util.Triplet;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import pcc.core.CrawlerSetting;
 import pcc.http.CrawlerClient;
+import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
 import pcc.http.entity.Proxy;
 
@@ -82,10 +81,10 @@ public class UserPagePusher extends Worker {
     public int work() {
         Buffer<String> inputbuffer = (LUBuffer) this.getBufferStore().use("containerid");
         Buffer<String> failbuffer = (LUBuffer) this.getBufferStore().use("failedcontainerid");
-
         Buffer<Triplet> outputbuffer = (LUBuffer) this.getBufferStore().use("pagelist");
 
         subassignments = new HashMap<>();
+        subassignments.clear();
         assignNum = 0;
         workDone = 0;
         //System.out.println("USER PAGE PUSHER STarts;");
@@ -94,27 +93,26 @@ public class UserPagePusher extends Worker {
             containerid = (String) inputbuffer.poll(this);
         }
         if (containerid == null) {
-            //System.out.println("NOOOOOINN[PUPT");
             return Worker.NO_INPUT;
         }
 
-        CrawlerClient client = new CrawlerClient();
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
         client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
         client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
         client.addHeader("X-Requested-With", "XMLHttpRequest");
         client.addHeader(UserAgentHelper.iphone6plusAgent());
+        //client.addHeader("Connection", "keep-alive");
+
         if (CrawlerSetting.USE_PROXY) {
             if (this.proxy == null) {
-               // System.out.println("poolllllllling");
+                // System.out.println("poolllllllling");
 
                 Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
-               // System.out.println(Objects.isNull(proxybuffer));
-                this.proxy = (Proxy) proxybuffer.poll(this);
-                while (this.proxy == null) {
-                    this.proxy = (Proxy) proxybuffer.poll(this);
-                }
+                // System.out.println(Objects.isNull(proxybuffer));
+                this.proxy = (Proxy) blockedpoll(proxybuffer);
+
             }
-           // System.out.println("Connecting using proxy = " + this.proxy);
+            // System.out.println("Connecting using proxy = " + this.proxy);
             client.setProxy(this.proxy);
 
         }
@@ -122,40 +120,73 @@ public class UserPagePusher extends Worker {
         String json1 = "";
         String json2 = "";
         JSONParser parser = new JSONParser();
-        Long fanNum;
-        Long followNum;
+        Long fanNum = new Long(0);
+        Long followNum = new Long(0);
+        String url;
+        url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1";
         try {
-            json1 = client.wget("http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1");
-            json2 = client.wget("http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1");
-            //System.out.println(json1);
-            //System.out.println(json2);
-
-            JSONObject obj1 = (JSONObject) parser.parse(json1);
-            JSONObject obj2 = (JSONObject) parser.parse(json2);
-
-            followNum = (Long) obj1.get("count") / 10 + 1;
-            fanNum = (Long) obj2.get("count") / 10 + 1;
+            json1 = client.wget(url);
+            if (json1 != null) {
+                if (json1.contains("{\"mod_type\":\"mod\\/empty\",\"msg\":\"\\u6ca1\\u6709\\u5185\\u5bb9\"}")) {
+                    System.out.println("No Contents. http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1");
+                    this.setState(WorkerStates.POST_SUCCESS);
+                    Thread.sleep(2000);
+                    return Worker.SUCCESS;
+                }
+                JSONObject obj1 = (JSONObject) parser.parse(json1);
+                followNum = ((Long) obj1.get("count") - 1) / 10 + 1;
+            } else {
+                throw new Exception("Retrieved Null");
+            }
         } catch (Exception ex) {
-            //Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
+            //System.out.println(ex.getMessage());
+            //System.out.println(url);
+
+            client.close();
+
             blockedpush(failbuffer, containerid);
             this.proxy = null;
-            //System.out.println("UPP Fails");
-            //System.out.println(json1);
-            //System.out.println(json2);
             return Worker.FAIL;
         }
+        url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1";
+        try {
+            json2 = client.wget(url);
+            if (json2 != null) {
+                if (json2.contains("{\"mod_type\":\"mod\\/empty\",\"msg\":\"\\u6ca1\\u6709\\u5185\\u5bb9\"}")) {
+                    System.out.println("No Contents. http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1");
+                    this.setState(WorkerStates.POST_SUCCESS);
+                    Thread.sleep(2000);
+                    return Worker.SUCCESS;
+                }
+                JSONObject obj2 = (JSONObject) parser.parse(json2);
+                fanNum = ((Long) obj2.get("count") - 1) / 10 + 1;
+            } else {
+                throw new Exception("Retrieved Null");
+            }
+        } catch (Exception ex) {
+            //System.out.println(ex.getMessage());
+            //System.out.println(url);
+
+            client.close();
+            blockedpush(failbuffer, containerid);
+            this.proxy = null;
+            return Worker.FAIL;
+        }
+        client.close();
         //System.out.println("pushing");
+        //followNum = followNum > 100 ? 100 : followNum;
+        //fanNum = fanNum > 100 ? 100 : fanNum;
         assignNum = followNum + fanNum;
         for (long i = 1; i <= followNum; i++) {
 
             blockedpush(outputbuffer, new Triplet(this, "follow" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=" + i));
-          //  System.out.println("Giving out task follow" + i);
+            //  System.out.println("Giving out task follow" + i);
             subassignments.put("follow" + i, false);
 
         }
         for (long i = 1; i <= fanNum; i++) {
             blockedpush(outputbuffer, new Triplet(this, "fans" + i, "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=" + i));
-           // System.out.println("Giving out task fans" + i);
+            // System.out.println("Giving out task fans" + i);
             subassignments.put("fans" + i, false);
 
         }
@@ -163,7 +194,10 @@ public class UserPagePusher extends Worker {
         synchronized (this) {
             while (!AllDone()) {
                 try {
+                    this.setState(WorkerStates.WAITING_SUBTASK);
                     wait();
+
+                    this.setState(WorkerStates.WORKING);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(UserPagePusher.class.getName()).log(Level.SEVERE, null, ex);
 

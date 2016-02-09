@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?> 
+<!DOCTYPE hibernate-mapping PUBLIC  
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"  
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd"> 
+  
+<hibernate-mapping> 
+    <class name="pcc.core.entity.User" table="users"> 
+        <id name="sequence_id">  
+            <generator class="assigned"></generator> 
+        </id>
+        <property name="wb_id"></property> 
+        <property name="container_id"></property> 
+        <property name="screen_name"></property> 
+        <property name="verified"></property> 
+        <property name="v_reason"></property> 
+        <property name="v_type"></property> 
+        <property name="is_member"></property> 
+        <property name="gender"></property> 
+        <property name="statuses_count"></property> 
+        <property name="description"></property> 
+        <property name="description_length"></property> 
+        <property name="fans_num"></property> 
+        <property name="follow_num"></property> 
+        <property name="last_update"></property> 
+        <property name="last_check"></property> 
+        <property name="crawling_state"></property> 
+        
+    </class> 
+
+</hibernate-mapping> 
