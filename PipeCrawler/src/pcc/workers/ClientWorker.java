@@ -56,6 +56,7 @@ public class ClientWorker<T> extends Worker{
         } catch (IOException ex) {
             Logger.getLogger(ClientWorker.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return 0;
     }
     
 }
