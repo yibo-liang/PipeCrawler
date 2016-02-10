@@ -52,7 +52,7 @@ public class Initialiser extends Worker {
         //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
         String temp = null;
         if (temp == null) {
-            temp = (String) inputBuffer.poll(this);
+            temp = (String) blockedpoll(inputBuffer);
         }
         if (temp == null) {
             return NO_INPUT;
@@ -80,6 +80,7 @@ public class Initialiser extends Worker {
             String result = client.wget("http://m.weibo.cn/u/" + temp);
             client.close();
             if (result != null) {
+                System.out.println(this.getPID()+", "+result);
                 String identifier = "window.$config={'stage':'page','stageId':'";
                 int i = result.indexOf(identifier);
                 if (i != -1) {
@@ -101,6 +102,7 @@ public class Initialiser extends Worker {
         } catch (Exception ex) {
             //ex.printStackTrace();
             this.proxy = null;
+            System.out.println("RETRIEVED NULL.....");
             this.blockedpush(inputBuffer, temp);
             return Worker.FAIL;
         }

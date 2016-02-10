@@ -64,7 +64,9 @@ public class ProxyValidator extends Worker {
             String result = client.wget("http://www.lagado.com/proxy-test");
             client.close();
 
-            if (result != null && result.contains("This request appears NOT to have come via a proxy.")) {
+            if (result != null && 
+                    (result.contains("This request appears NOT to have come via a proxy.")
+                    || false && result.contains("This request appears to have come via a proxy"))) {
                 blockedpush(outputBuffer, p);
                 System.out.println("pid="+this.getPID()+", Validated IP="+p.getHost()+","+p.getPort());
                 return Worker.SUCCESS;

@@ -68,7 +68,7 @@ public class CrawlerConnectionManager {
         return connManager;
     }
 
-    public static CrawlerClient getNewClient() {
+     public static CrawlerClient getNewClient() {
           RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(30 * 1000).build();
         
         return new CrawlerClient(
