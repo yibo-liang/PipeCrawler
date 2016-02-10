@@ -68,15 +68,15 @@ public class PipeCrawler {
         DefaultWorkerFactory<AccountCrawler> CrawlerFactory = new DefaultWorkerFactory<>(AccountCrawler.class);
 
         MultiPipeSection pipsec1 = new MultiPipeSection(InitFacotry, bs1, 5);
-        MultiPipeSection pipsec2 = new MultiPipeSection(ProxyValidatorFactory, bs1, 100);
-        MultiPipeSection pipsec3 = new MultiPipeSection(PagePusherFactory, bs1, 35);
-        MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 100);
+        MultiPipeSection pipsec2 = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
+        MultiPipeSection pipsec3 = new MultiPipeSection(PagePusherFactory, bs1, 5);
+        MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 20);
 
         pipsec1.Start();
         pipsec3.Start();
         pipsec4.Start();
         if (CrawlerSetting.USE_PROXY) {
-            ProxySupplier ps = new ProxySupplier(100);
+            ProxySupplier ps = new ProxySupplier(10);
             ps.setBufferStore(bs1);
             SinglePipeSection proxySupplier = new SinglePipeSection(ps);
 
