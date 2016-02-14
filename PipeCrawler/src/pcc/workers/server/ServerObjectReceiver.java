@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -45,7 +46,7 @@ import pcc.core.GlobalControll;
  *
  * @author yl9
  */
-public class ServerObjectReceiver<T> extends Worker {
+public class ServerObjectReceiver<T extends Serializable> extends Worker {
 
     private class Receiver implements Runnable {
 
@@ -71,6 +72,8 @@ public class ServerObjectReceiver<T> extends Worker {
 
                     System.out.println("Received " + receivedlist.length
                             + " " + receivedlist[0].getClass().getSimpleName());
+                    
+                    System.out.println("receive =" + receivedlist);
                 }
                 ois.close();
                 is.close();
@@ -100,12 +103,17 @@ public class ServerObjectReceiver<T> extends Worker {
 
     @Override
     public int work() {
+        try {
+            server = new ServerSocket(CrawlerSetting.getHost().getSecond());
+        } catch (IOException ex) {
+            Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+            return Worker.FAIL;
+        }
 
         do {
             try {
                 System.out.println("A");
-                server = new ServerSocket(CrawlerSetting.getHost().getSecond());
-
+                
                 Socket sock = server.accept();
                 (new Thread(new Receiver(sock))).start();
 

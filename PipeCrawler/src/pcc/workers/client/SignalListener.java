@@ -39,15 +39,16 @@ import pcc.core.GlobalControll;
  *
  * @author yl9
  */
-public class SignalListener implements Runnable{
+public class SignalListener implements Runnable {
 
     public int work() {
-        ServerSocket server;
-        Socket client = null;
-        BufferedReader in;
-        do {
-            try {
-                server = new ServerSocket(CrawlerSetting.controllerPort);
+        try {
+            ServerSocket server;
+            Socket client = null;
+            BufferedReader in;
+            server = new ServerSocket(CrawlerSetting.controllerPort);
+            do {
+
                 try {
                     client = server.accept();
                     in = new BufferedReader(new InputStreamReader(
@@ -59,15 +60,16 @@ public class SignalListener implements Runnable{
                         break;
                     }
                 } catch (IOException e) {
-                    //System.out.println("Accept failed: 4321");
+                        //System.out.println("Accept failed: 4321");
                     //System.exit(-1);
                 }
 
-            } catch (IOException ex) {
-                Logger.getLogger(SignalListener.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } while (true);
-        return Worker.SUCCESS;
+            } while (true);
+            return Worker.SUCCESS;
+        } catch (IOException ex) {
+            Logger.getLogger(SignalListener.class.getName()).log(Level.SEVERE, null, ex);
+            return Worker.FAIL;
+        }
     }
 
     @Override
