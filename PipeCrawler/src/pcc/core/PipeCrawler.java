@@ -19,6 +19,7 @@ import pcc.core.entity.User;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.client.AccountCrawler;
+import pcc.workers.client.ClientObjectSender;
 import pcc.workers.client.UserPagePusher;
 import pcc.workers.client.Initialiser;
 import pcc.workers.client.NaiveProxyValidator;
@@ -64,6 +65,7 @@ public class PipeCrawler {
         bs1.put("failedpagelist", Failedpagelistbuffer);
 
         bs1.put("users", resultUserbuffer);
+
         bs1.put("initusers", initUserbuffer);
 
         bs1.put("rawproxys", rawproxysbuffer);
@@ -92,7 +94,13 @@ public class PipeCrawler {
             (new Thread(proxySupplier)).start();
         }
 
-        resultUserbuffer.push(new Worker() {
+        //sender
+        ClientObjectSender<User> cos = new ClientObjectSender<>("users");
+        cos.setBufferStore(bs1);
+        SinglePipeSection senderPip = new SinglePipeSection(cos);
+        (new Thread(senderPip)).start();
+
+        initUserbuffer.push(new Worker() {
             @Override
             public int work() {
                 return Worker.SUCCESS;
@@ -108,8 +116,8 @@ public class PipeCrawler {
             System.out.println(bs1.BufferStates());
             System.out.println("  ----------------------------");
             //System.out.println(cp0.GetSectionAnalyseResult());
+            System.out.println(pipsec1.GetSectionAnalyseResult());
             System.out.println(pipsec2.GetSectionAnalyseResult());
-            System.out.println(pipsec3.GetSectionAnalyseResult());
             System.out.println(pipsec4.GetSectionAnalyseResult());
             System.out.println("  ----------------------------");
             System.out.println(rawproxysbuffer.getPushingRecordToString());
@@ -136,10 +144,7 @@ public class PipeCrawler {
         bs1.put("users", resultUserbuffer);
 
         //create worker - receiver
-        
         ServerObjectReceiver<User> sor = new ServerObjectReceiver<>("users", bs1);
-        
-        
 
         //create pip section
         SinglePipeSection userReceivePip = new SinglePipeSection(sor);

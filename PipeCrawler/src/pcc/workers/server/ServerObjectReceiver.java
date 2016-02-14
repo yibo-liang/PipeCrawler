@@ -61,15 +61,19 @@ public class ServerObjectReceiver<T> extends Worker {
             try {
                 is = sock.getInputStream();
                 ObjectInputStream ois = new ObjectInputStream(is);
-                T[] receivedlist = (T[]) ois.readObject();
-                for (int i = 0; i < receivedlist.length; i++) {
-                    blockedpush(outputbuffer, receivedlist[i]);
+                Object r = ois.readObject();
+                if (r != null) {
+                    T[] receivedlist = (T[]) r;
+
+                    for (int i = 0; i < receivedlist.length; i++) {
+                        blockedpush(outputbuffer, receivedlist[i]);
+                    }
+
+                    System.out.println("Received " + receivedlist.length
+                            + " " + receivedlist[0].getClass().getSimpleName());
                 }
                 ois.close();
                 is.close();
-                System.out.println("Received " + receivedlist.length
-                        + " " + receivedlist[0].getClass().getSimpleName());
-
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
             } finally {

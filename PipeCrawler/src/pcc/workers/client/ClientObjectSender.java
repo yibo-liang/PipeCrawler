@@ -41,19 +41,19 @@ import pcc.core.CrawlerSetting;
  * @param <T>
  */
 public class ClientObjectSender<T extends Serializable> extends Worker {
-
+    
     int num = 100;
-
+    
     private final String buffername;
-
+    
     public ClientObjectSender(String inputBuffer) {
         this.buffername = inputBuffer;
     }
-
+    
     @Override
     public int work() {
         Buffer<T> inputBuffer = (Buffer<T>) getBufferStore().use(buffername);
-
+        
         try {
             //Get entity from buffer and feed to serverworker
             Pair<String, Integer> host = CrawlerSetting.getHost();
@@ -62,7 +62,7 @@ public class ClientObjectSender<T extends Serializable> extends Worker {
             ObjectOutputStream oos = new ObjectOutputStream(os);
 
             //if connected 
-            T[] list = (T[]) new Object[num];
+            T[] list = (T[]) new Serializable[num];
             for (int i = 0; i < num; i++) {
                 list[i] = (T) blockedpoll(inputBuffer);
             }
@@ -71,12 +71,20 @@ public class ClientObjectSender<T extends Serializable> extends Worker {
             oos.close();
             os.close();
             socket.close();
-
+            
             return Worker.SUCCESS;
         } catch (IOException ex) {
-            Logger.getLogger(ClientObjectSender.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(ClientObjectSender.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getMessage().contains("Connection refused")) {
+                System.out.println("Connection Refused by server");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException ex1) {
+                    Logger.getLogger(ClientObjectSender.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+            }
         }
         return Worker.FAIL;
     }
-
+    
 }

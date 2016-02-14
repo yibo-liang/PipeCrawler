@@ -81,7 +81,7 @@ public class Initialiser extends Worker {
             String result = client.wget("http://m.weibo.cn/u/" + temp.getId());
             client.close();
             if (result != null) {
-                System.out.println(this.getPID()+", "+result);
+                //System.out.println(this.getPID()+", "+result);
                 String identifier = "window.$config={'stage':'page','stageId':'";
                 int i = result.indexOf(identifier);
                 if (i != -1) {
