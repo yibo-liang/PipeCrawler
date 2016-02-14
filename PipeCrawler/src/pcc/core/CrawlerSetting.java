@@ -48,9 +48,9 @@ public class CrawlerSetting {
     public static boolean USE_PROXY = true;
 
     private static final String server = "hw-u4-yl-proj-host.ddns.net";
-    private static final int port = 10230;
+    private static final int port = 36525;
     
-    public static int controllerPort=8808;
+    public static int controllerPort=8988;
 
     public static Pair<String, Integer> getHost() {
         return new Pair<>(server, port);

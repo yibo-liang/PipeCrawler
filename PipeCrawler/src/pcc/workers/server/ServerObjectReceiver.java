@@ -30,12 +30,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
+import jpipe.buffer.util.BufferStore;
 import pcc.core.CrawlerSetting;
 import pcc.core.GlobalControll;
 
@@ -82,33 +84,35 @@ public class ServerObjectReceiver<T> extends Worker {
 
     }
 
+    ServerSocket server;
     private final String outputBuffername;
     Buffer<T> outputbuffer;
 
-    public ServerObjectReceiver(String outputBuffer) {
+    public ServerObjectReceiver(String outputBuffer, BufferStore bs) {
         this.outputBuffername = outputBuffer;
+        this.setBufferStore(bs);
         this.outputbuffer = (Buffer<T>) getBufferStore().use(outputBuffername);
     }
 
     @Override
     public int work() {
-        ServerSocket server;
-        Socket sock = null;
 
         do {
             try {
-                server = new ServerSocket(CrawlerSetting.controllerPort);
-                try {
-                    sock = server.accept();
-                    (new Thread(new Receiver(sock))).start();
-                    
-                    System.out.println("Receiving objects from clients");
-                } catch (IOException e) {
-                    //System.out.println("Accept failed: 4321");
-                    //System.exit(-1);
-                }
+                System.out.println("A");
+                server = new ServerSocket(CrawlerSetting.getHost().getSecond());
+
+                Socket sock = server.accept();
+                (new Thread(new Receiver(sock))).start();
+
+                System.out.println("Receiving objects from clients");
 
             } catch (IOException ex) {
+                Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
                 Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
             }
         } while (true);

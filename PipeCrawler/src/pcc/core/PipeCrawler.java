@@ -136,8 +136,10 @@ public class PipeCrawler {
         bs1.put("users", resultUserbuffer);
 
         //create worker - receiver
-        ServerObjectReceiver<User> sor = new ServerObjectReceiver<>("users");
-        sor.setBufferStore(bs1);
+        
+        ServerObjectReceiver<User> sor = new ServerObjectReceiver<>("users", bs1);
+        
+        
 
         //create pip section
         SinglePipeSection userReceivePip = new SinglePipeSection(sor);
