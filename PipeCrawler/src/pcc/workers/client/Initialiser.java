@@ -21,11 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers;
+package pcc.workers.client;
 
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import pcc.core.CrawlerSetting;
+import pcc.core.entity.User;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
@@ -44,15 +45,15 @@ public class Initialiser extends Worker {
     @Override
     @SuppressWarnings("empty-statement")
     public int work() {
-        Buffer<String> inputBuffer = this.getBufferStore().use("users");
+        Buffer<User> inputBuffer = this.getBufferStore().use("initusers");
         Buffer<String> OutputBuffer = this.getBufferStore().use("containerid");
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
         //TPBuffer<Object> outputBuffer = (LUBuffer<Object>) buffers[1];
         //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
-        String temp = null;
+        User temp = null;
         if (temp == null) {
-            temp = (String) blockedpoll(inputBuffer);
+            temp = (User) blockedpoll(inputBuffer);
         }
         if (temp == null) {
             return NO_INPUT;
@@ -77,7 +78,7 @@ public class Initialiser extends Worker {
         }
 
         try {
-            String result = client.wget("http://m.weibo.cn/u/" + temp);
+            String result = client.wget("http://m.weibo.cn/u/" + temp.getId());
             client.close();
             if (result != null) {
                 System.out.println(this.getPID()+", "+result);

@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2015 yl9.
+ * Copyright 2016 yl9.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.core;
+package pcc.core.entity;
 
-import jpipe.util.Pair;
+import java.io.Serializable;
 
 /**
  *
  * @author yl9
+ * @param <T>
  */
-public class CrawlerSetting {
+public class MessageCarrier<T extends Serializable> implements Serializable {
 
-    private CrawlerSetting instance = null;
+    private static final long serialVersionUID = 8513452215332776147L;
 
-    private CrawlerSetting() {
+    private String msg;
+    private T obj;
 
+    public MessageCarrier(){
+        
     }
-
-    public CrawlerSetting getInstance() {
-        if (instance == null) {
-            instance = new CrawlerSetting();
-
-        }
-        return instance;
-    }
-
-    public static boolean USE_PROXY = true;
-
-    private static final String server = "hw-u4-yl-proj-host.ddns.net";
-    private static final int port = 10230;
     
-    public static int controllerPort=8808;
-
-    public static Pair<String, Integer> getHost() {
-        return new Pair<>(server, port);
+    public MessageCarrier(String msg, T obj){
+        this.msg=msg;
+        this.obj=obj;
+                
     }
+    
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
+
+    public T getObj() {
+        return obj;
+    }
+
+    public void setObj(T obj) {
+        this.obj = obj;
+    }
+
+    
 }

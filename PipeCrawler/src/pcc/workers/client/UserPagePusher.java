@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers;
+package pcc.workers.client;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -126,7 +126,7 @@ public class UserPagePusher extends Worker {
         url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1";
         try {
             json1 = client.wget(url);
-            System.out.println(json1);
+            //System.out.println(json1);
             if (json1 != null) {
                 if (json1.contains("{\"mod_type\":\"mod\\/empty\",\"msg\":\"\\u6ca1\\u6709\\u5185\\u5bb9\"}")) {
                     System.out.println("No Contents. http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1");
@@ -152,7 +152,7 @@ public class UserPagePusher extends Worker {
         url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1";
         try {
             json2 = client.wget(url);
-            System.out.println(json2);
+            //System.out.println(json2);
             if (json2 != null) {
                 if (json2.contains("{\"mod_type\":\"mod\\/empty\",\"msg\":\"\\u6ca1\\u6709\\u5185\\u5bb9\"}")) {
                     System.out.println("No Contents. http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1");

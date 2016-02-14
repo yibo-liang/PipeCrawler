@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers;
+package pcc.workers.client;
 
 import jpipe.abstractclass.worker.Worker;
 import jpipe.abstractclass.buffer.Buffer;
@@ -66,7 +66,7 @@ public class ProxySupplier extends Worker {
                     blockedpush(outputBuffer, p);
                 }
             }
-            System.out.println("Pushed "+num+" proxies.");
+            //System.out.println("Pushed "+num+" proxies.");
             Thread.sleep(5000);
             return Worker.SUCCESS;
 

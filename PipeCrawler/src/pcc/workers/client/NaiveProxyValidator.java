@@ -21,38 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.core;
+package pcc.workers.client;
 
-import jpipe.util.Pair;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
+import jpipe.abstractclass.worker.Worker;
+import jpipe.buffer.LUBuffer;
+import pcc.http.CrawlerClient;
+import pcc.http.CrawlerConnectionManager;
+import pcc.http.entity.Proxy;
 
 /**
  *
  * @author yl9
  */
-public class CrawlerSetting {
+public class NaiveProxyValidator extends Worker {
 
-    private CrawlerSetting instance = null;
+    @Override
+    public int work() {
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
 
-    private CrawlerSetting() {
+        LUBuffer<Proxy> inputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("rawproxys");
+
+        LUBuffer<Proxy> outputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("proxys");
+        
+        Proxy p = (Proxy) blockedpoll(inputBuffer);
+        
+        blockedpush(outputBuffer, p);
+        System.out.println("pid=" + this.getPID() + ", Validated IP=" + p.getHost() + "," + p.getPort());
+        return Worker.SUCCESS;
 
     }
 
-    public CrawlerSetting getInstance() {
-        if (instance == null) {
-            instance = new CrawlerSetting();
-
-        }
-        return instance;
-    }
-
-    public static boolean USE_PROXY = true;
-
-    private static final String server = "hw-u4-yl-proj-host.ddns.net";
-    private static final int port = 10230;
-    
-    public static int controllerPort=8808;
-
-    public static Pair<String, Integer> getHost() {
-        return new Pair<>(server, port);
-    }
 }

@@ -47,7 +47,7 @@ public class CrawlerConnectionManager {
 
     public static void setMaxConnection(int num) {
         connManager.setMaxTotal(num);
-        connManager.setDefaultMaxPerRoute(3);
+        connManager.setDefaultMaxPerRoute(50);
 
     }
 

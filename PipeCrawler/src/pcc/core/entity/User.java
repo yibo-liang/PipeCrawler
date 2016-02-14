@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2015 yl9.
+ * Copyright 2016 yl9.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.core;
+package pcc.core.entity;
 
-import jpipe.util.Pair;
+import java.io.Serializable;
 
 /**
  *
  * @author yl9
  */
-public class CrawlerSetting {
+public class User implements Serializable {
 
-    private CrawlerSetting instance = null;
-
-    private CrawlerSetting() {
-
-    }
-
-    public CrawlerSetting getInstance() {
-        if (instance == null) {
-            instance = new CrawlerSetting();
-
-        }
-        return instance;
-    }
-
-    public static boolean USE_PROXY = true;
-
-    private static final String server = "hw-u4-yl-proj-host.ddns.net";
-    private static final int port = 10230;
+    private static final long serialVersionUID = 7513452215622776147L;
+    private long id;
     
-    public static int controllerPort=8808;
-
-    public static Pair<String, Integer> getHost() {
-        return new Pair<>(server, port);
+    public User(){}
+    
+    public User(long id){
+        this.id=id;
     }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+    
+
 }

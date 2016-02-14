@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers;
+package pcc.workers.client;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -37,6 +37,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import pcc.core.CrawlerSetting;
+import pcc.core.entity.User;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
@@ -56,10 +57,13 @@ public class AccountCrawler extends Worker {
     @SuppressWarnings("empty-statement")
     public int work() {
         Buffer<Triplet> inputBuffer = (Buffer<Triplet>) getBufferStore().use("pagelist");
+        
         Buffer<Triplet> failbuffer = (Buffer) getBufferStore().use("failedpagelist");
         Buffer<Proxy> recycleBuffer = (Buffer<Proxy>) this.getBufferStore().use("recycledproxy");
 
-        Buffer<String> outputBuffer = (Buffer<String>) getBufferStore().use("users");
+        Buffer<User> outputBuffer = (Buffer<User>) getBufferStore().use("users");
+        Buffer<User> outputBuffer_int = (Buffer<User>) getBufferStore().use("initusers");
+        
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
         Triplet<UserPagePusher, String, String> temp;
@@ -121,9 +125,10 @@ public class AccountCrawler extends Worker {
                 JSONObject userObj = (JSONObject) ((JSONObject) i.next()).get("user");
                 //  System.out.println(userObj.toString());
                 //while (!outputBuffer.push(userObj.toString()));
-
-                blockedpush(outputBuffer, userObj.get("id").toString());
-
+                User user= new User();
+                user.setId(Long.parseLong(userObj.get("id").toString()));
+                blockedpush(outputBuffer, user);
+                blockedpush(outputBuffer_int, user);
             }
             temp.getFirst().notifyDone(temp.getSecond());
             this.setState(WorkerStates.POST_SUCCESS);

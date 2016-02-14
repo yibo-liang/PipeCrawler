@@ -21,42 +21,62 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers;
+package pcc.workers.client;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.util.Pair;
-import jpipe.util.Triplet;
 import pcc.core.CrawlerSetting;
 
 /**
  *
  * @author yl9
+ * @param <T>
  */
-public class ClientWorker<T> extends Worker{
-    
-    public ClientWorker() {
+public class ClientObjectSender<T extends Serializable> extends Worker {
+
+    int num = 100;
+
+    private final String buffername;
+
+    public ClientObjectSender(String inputBuffer) {
+        this.buffername = inputBuffer;
     }
 
     @Override
     public int work() {
-        Buffer<Triplet> entity_source=(Buffer<Triplet>)  getBufferStore().use("users");
+        Buffer<T> inputBuffer = (Buffer<T>) getBufferStore().use(buffername);
 
         try {
             //Get entity from buffer and feed to serverworker
-            Pair<String,Integer> host=CrawlerSetting.getHost();
+            Pair<String, Integer> host = CrawlerSetting.getHost();
+            Socket socket = new Socket(host.getFirst(), host.getSecond());
+            OutputStream os = socket.getOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(os);
+
+            //if connected 
+            T[] list = (T[]) new Object[num];
+            for (int i = 0; i < num; i++) {
+                list[i] = (T) blockedpoll(inputBuffer);
+            }
             
-            Socket socket=new Socket(host.getFirst(),host.getSecond());
-            
+            oos.writeObject(list);
+            oos.close();
+            os.close();
+            socket.close();
+
             return Worker.SUCCESS;
         } catch (IOException ex) {
-            Logger.getLogger(ClientWorker.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientObjectSender.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return 0;
+        return Worker.FAIL;
     }
-    
+
 }
