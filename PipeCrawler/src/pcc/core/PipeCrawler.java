@@ -166,7 +166,7 @@ public class PipeCrawler {
         } else if (args[0].toUpperCase().equals("SERVER")) {
             SignalListener sl = (new SignalListener());
             (new Thread(sl)).start();
-            ClientUserCrawler();
+            ServerCrawler();
 
         } else if (args[0].toUpperCase().equals("STOP")) {
             SignalSender ss = (new SignalSender());
