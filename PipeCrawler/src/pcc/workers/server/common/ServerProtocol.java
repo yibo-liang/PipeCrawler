@@ -61,6 +61,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                     .setMaxResults(1)
                     .list();
             RawAccount item=items.get(0);
+            item.setCrawlstate(1);
             raw_accounts[i]=item;
             session.save(item);
             session.flush();

@@ -52,7 +52,7 @@ public class RawUserTaskRequest implements ClientConnector.IClientProtocol{
         try{
             RawAccount[] rusers=(RawAccount[])msg.getObj();
             for (int i=0;i<rusers.length;i++){
-                user_buffer.push(rusers, rusers[i]);
+                this.connector.blockedpush(user_buffer, rusers[i]);
             }
         }catch(Exception e){
             

@@ -52,11 +52,9 @@ public class ServerConnector extends Worker {
         //return null so that the socket is closed immediately, otherwise
         //socket will reply with the returned message
         public MessageCarrier handleMsg(MessageCarrier mc);
-        
-        
-        
+
     }
-    
+
     private class Receiver implements Runnable {
 
         Socket sock;
@@ -73,19 +71,19 @@ public class ServerConnector extends Worker {
                 ObjectInputStream ois = new ObjectInputStream(is);
                 Object r = ois.readObject();
                 if (r != null) {
-                    MessageCarrier mc=(MessageCarrier)r;
-                    System.out.println("Receive from "+mc.getSender()+", MSG="+mc.getMsg());
-                    MessageCarrier reply= rohandler.handleMsg(mc);
+                    MessageCarrier mc = (MessageCarrier) r;
+                    System.out.println("Receive from " + mc.getSender() + ", MSG=" + mc.getMsg());
+                    MessageCarrier reply = rohandler.handleMsg(mc);
+
+                    OutputStream os = sock.getOutputStream();
+                    ObjectOutputStream oos = new ObjectOutputStream(os);
+                    oos.writeObject(reply);
+                    System.out.println("Replied to"+mc.getSender()+", MSG="+reply.getMsg()+"/"+reply.getObj().toString());
                     
-                    if (reply!=null){
-                        OutputStream os = sock.getOutputStream();
-                        ObjectOutputStream oos = new ObjectOutputStream(os);
-                        oos.writeObject(reply);
-                        oos.flush();
-                        oos.close();
-                        os.close();
-                    }
-                    
+                    oos.flush();
+                    oos.close();
+                    os.close();
+
                 }
                 ois.close();
                 is.close();
@@ -104,7 +102,7 @@ public class ServerConnector extends Worker {
     }
 
     ServerSocket server;
-    
+
     private IServerProtocol rohandler;
 
     public ServerConnector() {
@@ -112,10 +110,10 @@ public class ServerConnector extends Worker {
 
     @Override
     public int work() {
-        if (rohandler==null){
-            rohandler=new ServerProtocol(this);
+        if (rohandler == null) {
+            rohandler = new ServerProtocol(this);
         }
-        
+
         try {
             server = new ServerSocket(CrawlerSetting.getHost().getSecond());
         } catch (IOException ex) {
@@ -126,12 +124,11 @@ public class ServerConnector extends Worker {
         do {
             try {
                 System.out.println("A");
-                
+
                 Socket sock = server.accept();
                 (new Thread(new Receiver(sock))).start();
 
                 //System.out.println("Receiving objects from clients");
-
             } catch (IOException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
