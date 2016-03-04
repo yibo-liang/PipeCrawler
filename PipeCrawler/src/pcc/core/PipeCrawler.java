@@ -198,7 +198,7 @@ public class PipeCrawler {
             as[1]=new RawAccount(5135808743L);
             as[2]=new RawAccount(5666578644L);
             as[3]=new RawAccount(3807667648L);
-            dbi.batchInsert(as);
+            dbi.Insert(as);
         }
 
     }

@@ -45,6 +45,16 @@ public class DatabaseManager {
             session.close();
         }
         
+        public void Insert(T[] arr){
+            Session session=getSession();
+            Transaction tx=session.beginTransaction();
+            for (int i=0;i<arr.length;i++){
+                session.save(arr[i]);
+                session.flush();
+            }
+            tx.commit();
+            session.close();
+        }
         
     }
 
@@ -57,9 +67,11 @@ public class DatabaseManager {
     private static SessionFactory sessionFactory;
 
     private static void load() {
+          System.out.println("Working Directory = " +
+              System.getProperty("user.dir"));
         Configuration configuration
                 = new Configuration().
-                configure(HibernateUtil.class.getResource("hibernate.cfg.xml"))
+                configure("hibernate.cfg.xml")
                 .addPackage("pcc.core.entity")
                 .addAnnotatedClass(pcc.core.entity.MBlog.class)
                 .addAnnotatedClass(pcc.core.entity.RawAccount.class)
@@ -73,11 +85,16 @@ public class DatabaseManager {
 
     public static Session getSession()
             throws HibernateException {
-
+        if (sessionFactory==null){
+            load();
+        }
         return sessionFactory.openSession();
     }
 
     public static StatelessSession getStatelessSession() throws HibernateException {
+        if (sessionFactory==null){
+            load();
+        }
         return sessionFactory.openStatelessSession();
     }
 
