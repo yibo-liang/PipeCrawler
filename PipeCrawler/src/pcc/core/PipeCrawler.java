@@ -149,6 +149,7 @@ public class PipeCrawler {
         //create worker - receiver
         
         ServerConnector serverConeector = new ServerConnector();
+        serverConeector.setBufferStore(bs1);
         
         if (CrawlerSetting.USE_PROXY) {
             ProxySupplier ps = new ProxySupplier(100);

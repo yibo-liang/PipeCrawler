@@ -74,7 +74,7 @@ public class ServerConnector extends Worker {
                 Object r = ois.readObject();
                 if (r != null) {
                     MessageCarrier mc=(MessageCarrier)r;
-                    
+                    System.out.println("Receive from "+mc.getSender()+", MSG="+mc.getMsg());
                     MessageCarrier reply= rohandler.handleMsg(mc);
                     
                     if (reply!=null){
@@ -130,7 +130,7 @@ public class ServerConnector extends Worker {
                 Socket sock = server.accept();
                 (new Thread(new Receiver(sock))).start();
 
-                System.out.println("Receiving objects from clients");
+                //System.out.println("Receiving objects from clients");
 
             } catch (IOException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
