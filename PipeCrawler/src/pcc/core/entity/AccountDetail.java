@@ -23,48 +23,83 @@
  */
 package pcc.core.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
+import javax.persistence.Transient;
 
 /**
  *
  * @author yl9
  */
-public class User implements Serializable {
+@Entity
+@Table(name="account_detail")
+public class AccountDetail implements Serializable {
     
+    @Transient
     private static final long serialVersionUID = 7513452215622776148L;
     
     //user id
+    @Id
+    @Column(name="id")
     private long id;
     //container id that is used to get the user page
-    private long containerid;
+    
+    @Column(name="container_id")
+    private long container_id;
     
     //last time the info of this user is crawled
+    
+    @Column(name="update_time")
     private int update_time;
+    
+    @Column(name="create_time")
     private int create_time;
     
+    
+    @Column(name="name")
     private String name;
+    
+    @Column(name="background")
     private String background;
+    
+    @Column(name="description")
     private String description;
     
     //verification, used to help distinguish
     //member type, also can be used as filters
+    
+    @Column(name="verified",columnDefinition = "TINYINT(1)")
     private boolean verified;
+    
+    @Column(name="v_type")
     private int v_type;
     
+    
+    @Column(name="member_type")
     private int member_type;
+    
+    @Column(name="member_rank")
     private int member_rank;
     
     //numbers 
+    @Column(name="blog_num")
     private int blog_num;
     //attention number, guan zhu.
+    @Column(name="att_num")
     private int att_num;
+    @Column(name="fans_num")
     private int fans_num;
     
     //other info
+    @Column(name="native_place")
     private int native_place;
     
     
     //0 femail, 1 male, 2 other
+    @Column(name="gender")
     private int gender;
 
     public long getId() {
@@ -76,11 +111,11 @@ public class User implements Serializable {
     }
 
     public long getContainerid() {
-        return containerid;
+        return container_id;
     }
 
     public void setContainerid(long containerid) {
-        this.containerid = containerid;
+        this.container_id = containerid;
     }
 
     public int getUpdate_time() {

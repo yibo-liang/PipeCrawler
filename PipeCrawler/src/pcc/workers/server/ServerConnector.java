@@ -39,12 +39,13 @@ import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.util.BufferStore;
 import pcc.core.CrawlerSetting;
 import pcc.core.entity.MessageCarrier;
+import pcc.workers.server.common.ServerProtocol;
 
 /**
  *
  * @author yl9
  */
-public class ServerConnector<T extends Serializable> extends Worker {
+public class ServerConnector extends Worker {
 
     public interface IServerProtocol {
 
@@ -106,12 +107,15 @@ public class ServerConnector<T extends Serializable> extends Worker {
     
     private IServerProtocol rohandler;
 
-    public ServerConnector(IServerProtocol rohandler) {
-        this.rohandler=rohandler;
+    public ServerConnector() {
     }
 
     @Override
     public int work() {
+        if (rohandler==null){
+            rohandler=new ServerProtocol(this);
+        }
+        
         try {
             server = new ServerSocket(CrawlerSetting.getHost().getSecond());
         } catch (IOException ex) {

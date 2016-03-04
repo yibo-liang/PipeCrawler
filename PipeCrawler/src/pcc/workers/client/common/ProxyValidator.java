@@ -30,6 +30,7 @@ import jpipe.buffer.LUBuffer;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
+import pcc.workers.client.protocols.RawProxyRequest;
 
 /**
  *
@@ -42,23 +43,24 @@ public class ProxyValidator extends Worker {
         CrawlerClient client = CrawlerConnectionManager.getNewClient();
 
         try {
-            LUBuffer<Proxy> inputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("rawproxys");
-            LUBuffer<Proxy> recycleBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("recycledproxy");
-
+            LUBuffer<Proxy> inputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("rawproxies");
+            
             LUBuffer<Proxy> outputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("proxys");
 
-            Proxy p;
-            p = (Proxy) recycleBuffer.poll(this);
+            LUBuffer<ClientConnector.IClientProtocol> requestBuffer=
+                    (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
+            
+            Proxy p=null;
+            
+            p=(Proxy) inputBuffer.poll(this);
+            
             if (p == null) {
+                RawProxyRequest request=new RawProxyRequest();
+                blockedpush(requestBuffer, request);
+                
                 p = (Proxy) blockedpoll(inputBuffer);
-            } else {
-                if (p.getRecycle() < 1) {
-                    p.setRecycle(p.getRecycle() + 1);
-                } else {
-                    return Worker.FAIL;
-                }
-            }
-
+            } 
+            
             client.setProxy(p);
             //http://www2.macs.hw.ac.uk/~yl9/proxytest.php
             //http://www.lagado.com/proxy-test

@@ -21,12 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client.rawuser;
+package pcc.workers.client.protocols;
 
-import java.io.Serializable;
 import jpipe.abstractclass.buffer.Buffer;
 import pcc.core.entity.MessageCarrier;
-import pcc.core.entity.RawUser;
 import pcc.http.entity.Proxy;
 import pcc.workers.client.common.ClientConnector;
 
@@ -34,23 +32,25 @@ import pcc.workers.client.common.ClientConnector;
  *
  * @author yl9
  */
-public class RawUserTaskRequest implements ClientConnector.IClientProtocol{
+public class RawProxyRequest implements ClientConnector.IClientProtocol{
 
+    Buffer<Proxy> proxy_buffer;
     ClientConnector connector;
-    public RawUserTaskRequest(ClientConnector connector){
-       
-        this.connector=connector;
-    }
     
     @Override
-    public MessageCarrier messageToServer() {
-        MessageCarrier r=new MessageCarrier("UT", new Serializable() {});
+    public MessageCarrier messageToServer(ClientConnector connector) {
+        this.connector=connector;
+        this.proxy_buffer=connector.getBufferStore().use("rawproxies");
+        MessageCarrier r=new MessageCarrier("RawProxy", new Integer(20));
         return r;
     }
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
-        Buffer<RawUser> user_buffer=this.connector.getBufferStore().use("rawusers");
+        Proxy[] proxies=(Proxy[]) msg.getObj();
+        for (int i=0;i<proxies.length;i++){
+            proxy_buffer.push(connector, proxies[i]);
+        }
     }
     
     

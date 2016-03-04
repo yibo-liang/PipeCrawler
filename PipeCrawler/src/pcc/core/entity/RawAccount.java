@@ -23,20 +23,34 @@
  */
 package pcc.core.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import java.io.Serializable;
 
 /**
  *
  * @author yl9
  */
-public class RawUser implements Serializable {
 
+@Entity
+@Table(name = "raw_account")
+public class RawAccount implements Serializable {
+    @Transient
     private static final long serialVersionUID = 7513452215622776147L;
+    
+    @Id
     private long id;
     
-    public RawUser(){}
+    @Column(length = 1,name = "crawlstate")
+    private int crawlstate=0;
     
-    public RawUser(long id){
+    public RawAccount(){}
+    
+    public RawAccount(long id){
         this.id=id;
     }
 
@@ -47,6 +61,17 @@ public class RawUser implements Serializable {
     public void setId(long id) {
         this.id = id;
     }
+
+    public int getCrawlstate() {
+        return crawlstate;
+    }
+
+    public void setCrawlstate(int crawlstate) {
+        this.crawlstate = crawlstate;
+    }
+
     
+    
+   
 
 }

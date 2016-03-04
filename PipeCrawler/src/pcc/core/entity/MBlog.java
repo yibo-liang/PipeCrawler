@@ -23,66 +23,92 @@
  */
 package pcc.core.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
+import javax.persistence.Transient;
+import java.io.Serializable;
+import org.hibernate.annotations.Type;
 
 /**
  *
  * @author yl9
  */
+@Entity
+@Table(name = "mblog")
 public class MBlog implements Serializable{
     
+    @Transient
     private static final long serialVersionUID = 7513452215622776111L;
     
-    private long postid;
-    private long userid;
+    @Id
+    @Column(name = "post_id")
+    private long post_id;
+    
+    @Column(name = "user_id")
+    private long user_id;
+    
+    @Column(name="create_timestamp")
     private int create_timestamp;
+    @Column(name="update_timestamp")
     private int update_timestamp;
     
     
     /* Social counts */
     //zhuan fa
+    @Column(name="repost_count")
     private int repost_count;
     
+    @Column(name="comments_count")
     private int comments_count;
     
+    @Column(name="attitudes_count")
     private int attitudes_count;
     
+    @Column(name="like_count")
     private int like_count;
     
     //
-    
+    @Column(name="picture_count")
     private int picture_count;
     
+    @Column(name="is_video",columnDefinition = "TINYINT(1)")
+    private boolean is_video;
+    @Column(name="is_retweet",columnDefinition = "TINYINT(1)")
     private boolean is_retweet;
+    @Column(name="retweet_post_id")
     private long retweet_post_id;
     
     //
+    @Column(name="mblogtype", columnDefinition = "TINYINT(1)")
     private byte mblogtype;
+    @Column(name="is_long_text",columnDefinition = "TINYINT(1)")
     private boolean is_long_text;
     
-    
+    @Column(name="page_title")
     private String page_title;
     
     
     //
-    private String object_type;
 
     
     //getter and setters
     public long getPostid() {
-        return postid;
+        return post_id;
     }
 
     public void setPostid(long postid) {
-        this.postid = postid;
+        this.post_id = postid;
     }
 
     public long getUserid() {
-        return userid;
+        return user_id;
     }
 
     public void setUserid(long userid) {
-        this.userid = userid;
+        this.user_id = userid;
     }
 
     public int getCreate_timestamp() {
@@ -181,13 +207,14 @@ public class MBlog implements Serializable{
         this.page_title = page_title;
     }
 
-    public String getObject_type() {
-        return object_type;
+    public boolean isIs_video() {
+        return is_video;
     }
 
-    public void setObject_type(String object_type) {
-        this.object_type = object_type;
+    public void setIs_video(boolean is_video) {
+        this.is_video = is_video;
     }
+
     
     
 }

@@ -38,7 +38,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import pcc.core.CrawlerSetting;
-import pcc.core.entity.RawUser;
+import pcc.core.entity.RawAccount;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
@@ -59,11 +59,9 @@ public class AccountCrawler extends Worker {
     public int work() {
         Buffer<Triplet> inputBuffer = (Buffer<Triplet>) getBufferStore().use("pagelist");
         
-        Buffer<Triplet> failbuffer = (Buffer) getBufferStore().use("failedpagelist");
-        Buffer<Proxy> recycleBuffer = (Buffer<Proxy>) this.getBufferStore().use("recycledproxy");
+        Buffer<Triplet> failbuffer = (Buffer) getBufferStore().use("failedpagelist");;
 
-        Buffer<RawUser> outputBuffer = (Buffer<RawUser>) getBufferStore().use("rawusers");
-        Buffer<RawUser> outputBuffer_int = (Buffer<RawUser>) getBufferStore().use("initusers");
+        Buffer<RawAccount> outputBuffer = (Buffer<RawAccount>) getBufferStore().use("rawusers");
         
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
@@ -126,10 +124,10 @@ public class AccountCrawler extends Worker {
                 JSONObject userObj = (JSONObject) ((JSONObject) i.next()).get("user");
                 //  System.out.println(userObj.toString());
                 //while (!outputBuffer.push(userObj.toString()));
-                RawUser user= new RawUser();
+                RawAccount user= new RawAccount();
                 user.setId(Long.parseLong(userObj.get("id").toString()));
                 blockedpush(outputBuffer, user);
-                blockedpush(outputBuffer_int, user);
+                
             }
             temp.getFirst().notifyDone(temp.getSecond());
             this.setState(WorkerStates.POST_SUCCESS);

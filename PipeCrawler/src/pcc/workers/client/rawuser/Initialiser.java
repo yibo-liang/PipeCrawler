@@ -23,14 +23,17 @@
  */
 package pcc.workers.client.rawuser;
 
+import pcc.workers.client.protocols.RawUserTaskRequest;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
+import jpipe.buffer.LUBuffer;
 import pcc.core.CrawlerSetting;
-import pcc.core.entity.RawUser;
+import pcc.core.entity.RawAccount;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
 import pcc.http.entity.Proxy;
+import pcc.workers.client.common.ClientConnector;
 
 /**
  * This worker takes an user id which is 10 digits long, and turns it to a
@@ -45,16 +48,23 @@ public class Initialiser extends Worker {
     @Override
     @SuppressWarnings("empty-statement")
     public int work() {
-        Buffer<RawUser> inputBuffer = this.getBufferStore().use("initusers");
+        Buffer<RawAccount> inputBuffer = this.getBufferStore().use("initusers");
         Buffer<String> OutputBuffer = this.getBufferStore().use("containerid");
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
-
+        LUBuffer<ClientConnector.IClientProtocol> messageBuffer=
+                (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
         //TPBuffer<Object> outputBuffer = (LUBuffer<Object>) buffers[1];
         //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
-        RawUser temp = null;
-        if (temp == null) {
-            temp = (RawUser) blockedpoll(inputBuffer);
+        RawAccount temp = null;
+        temp=(RawAccount) inputBuffer.poll(this);
+        if (temp==null){
+            //no user in the input inituser buffer, add a request msg to msgbuffer
+            RawUserTaskRequest request=new RawUserTaskRequest();
+            blockedpush(messageBuffer, request);
+            //now wait for input buffer to be filled with init users
+            temp = (RawAccount) blockedpoll(inputBuffer);
         }
+        
         if (temp == null) {
             return NO_INPUT;
         }

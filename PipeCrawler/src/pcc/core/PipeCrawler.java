@@ -15,14 +15,14 @@ import jpipe.core.pipeline.DefaultWorkerFactory;
 import jpipe.core.pipeline.SinglePipeSection;
 import jpipe.interfaceclass.IWorkerLazy;
 import jpipe.util.Triplet;
-import pcc.core.entity.RawUser;
+import pcc.core.entity.MessageCarrier;
+import pcc.core.entity.RawAccount;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.client.rawuser.AccountCrawler;
 import pcc.workers.client.common.ClientConnector;
 import pcc.workers.client.rawuser.UserPagePusher;
 import pcc.workers.client.rawuser.Initialiser;
-import pcc.workers.client.common.NaiveProxyValidator;
 import pcc.workers.server.ProxySupplier;
 import pcc.workers.client.common.ProxyValidator;
 import pcc.workers.client.common.SignalListener;
@@ -40,7 +40,7 @@ public class PipeCrawler {
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
      */
-    private static void ClientUserCrawler() throws InterruptedException {
+    private static void ClientRawUserCrawler() throws InterruptedException {
 
         CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
@@ -50,28 +50,32 @@ public class PipeCrawler {
         LUBuffer<Triplet<IWorkerLazy, String, String>> pagelistbuffer = new LUBuffer<>(200);
         LUBuffer<Triplet<IWorkerLazy, String, String>> Failedpagelistbuffer = new LUBuffer<>(100);
 
-        LUBuffer<RawUser> rawUserBuffer = new LUBuffer<>(0);
-        LUBuffer<RawUser> initUserbuffer = new LUBuffer<>(0);
+        LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
+        LUBuffer<RawAccount> initUserbuffer = new LUBuffer<>(0);
+
+        LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(150);
 
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(80);
-        LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(150);
-        LUBuffer<Proxy> recycleproxysbuffer = new LUBuffer<>(0);
-
+        //Message Buffer
+        LUBuffer<ClientConnector.IClientProtocol> messageBuffer=new LUBuffer<>(0);
+        
         BufferStore bs1 = new BufferStore();
 
+        bs1.put("msg", messageBuffer);
+        
         bs1.put("containerid", containeridbuffer);
         bs1.put("failedcontainerid", Failedcontaineridbuffer);
 
         bs1.put("pagelist", pagelistbuffer);
         bs1.put("failedpagelist", Failedpagelistbuffer);
 
-        bs1.put("rawusers", rawUserBuffer);
-
         bs1.put("initusers", initUserbuffer);
+        
+        bs1.put("rawusers", rawUserBuffer);
+        
+        bs1.put("rawproxies", rawproxysbuffer);
 
-        bs1.put("rawproxys", rawproxysbuffer);
         bs1.put("proxys", proxysbuffer);
-        bs1.put("recycledproxy", recycleproxysbuffer);
 
         DefaultWorkerFactory<ProxyValidator> ProxyValidatorFactory = new DefaultWorkerFactory<>(ProxyValidator.class);
         DefaultWorkerFactory<Initialiser> InitFacotry = new DefaultWorkerFactory<>(Initialiser.class);
@@ -84,30 +88,28 @@ public class PipeCrawler {
         MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 20);
 
         pipsec1.Start();
+        
+        if (CrawlerSetting.USE_PROXY) {
+            pipsec2.Start();
+        }
         pipsec3.Start();
         pipsec4.Start();
-        if (CrawlerSetting.USE_PROXY) {
-            ProxySupplier ps = new ProxySupplier(10);
-            ps.setBufferStore(bs1);
-            SinglePipeSection proxySupplier = new SinglePipeSection(ps);
-
-            pipsec2.Start();
-            (new Thread(proxySupplier)).start();
-        }
 
         //sender
-        ClientConnector cos = new ClientConnector("");
+        ClientConnector cos = new ClientConnector("msg");
         cos.setBufferStore(bs1);
-        SinglePipeSection senderPip = new SinglePipeSection(cos);
-        (new Thread(senderPip)).start();
-
+        SinglePipeSection connectorSec = new SinglePipeSection(cos);
+        (new Thread(connectorSec)).start();
+        
+        /*
         initUserbuffer.push(new Worker() {
             @Override
             public int work() {
                 return Worker.SUCCESS;
             }
-        }, (new RawUser(5629952990L)));
-
+        }, (new RawAccount(5629952990L)));
+                */
+        
         while (true) {
             Thread.sleep(3000);
             System.out.println("=============================");
@@ -121,9 +123,7 @@ public class PipeCrawler {
             System.out.println(pipsec2.GetSectionAnalyseResult());
             System.out.println(pipsec4.GetSectionAnalyseResult());
             System.out.println("  ----------------------------");
-            System.out.println(rawproxysbuffer.getPushingRecordToString());
             System.out.println(proxysbuffer.getPushingRecordToString());
-            System.out.println(recycleproxysbuffer.getPushingRecordToString());
 
             System.out.println("    - - - ");
             System.out.println(proxysbuffer.getPollingRecordToString());
@@ -140,16 +140,24 @@ public class PipeCrawler {
         BufferStore bs1 = new BufferStore();
 
         //user buffer
-        LUBuffer<RawUser> resultUserbuffer = new LUBuffer<>(0);
-        //
-        bs1.put("users", resultUserbuffer);
+        LUBuffer<RawAccount> resultUserbuffer = new LUBuffer<>(0);
+        bs1.put("rawusers", resultUserbuffer);
 
+        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(80);
+        bs1.put("rawproxies", rawproxysbuffer);
         //create worker - receiver
         
-        ServerConnector sor = new ServerConnector(new ServerProtocol());
-
+        ServerConnector serverConeector = new ServerConnector();
+        
+        if (CrawlerSetting.USE_PROXY) {
+            ProxySupplier ps = new ProxySupplier(100);
+            ps.setBufferStore(bs1);
+            SinglePipeSection proxySupplier = new SinglePipeSection(ps);
+            (new Thread(proxySupplier)).start();
+        }
+        
         //create pip section
-        SinglePipeSection userReceivePip = new SinglePipeSection(sor);
+        SinglePipeSection userReceivePip = new SinglePipeSection(serverConeector);
         //start
         (new Thread(userReceivePip)).start();
 
@@ -170,7 +178,7 @@ public class PipeCrawler {
         if (args[0].toUpperCase().equals("USERCRAWLER")) {
             SignalListener sl = (new SignalListener());
             (new Thread(sl)).start();
-            ClientUserCrawler();
+            ClientRawUserCrawler();
 
         } else if (args[0].toUpperCase().equals("SERVER")) {
             SignalListener sl = (new SignalListener());

@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +47,7 @@ public class ClientConnector extends Worker {
     
     public interface IClientProtocol{
         
-        public MessageCarrier messageToServer();
+        public MessageCarrier messageToServer(ClientConnector connector);
         
         public void messageFromServer(MessageCarrier msg);
     }
@@ -72,7 +71,7 @@ public class ClientConnector extends Worker {
             ObjectOutputStream oos = new ObjectOutputStream(os);
 ;           IClientProtocol cp= (IClientProtocol) this.blockedpoll(cpbuffer);
             
-            oos.writeObject(cp.messageToServer());
+            oos.writeObject(cp.messageToServer(this));
             oos.flush();
             
             

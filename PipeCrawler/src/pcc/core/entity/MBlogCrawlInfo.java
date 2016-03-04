@@ -23,19 +23,48 @@
  */
 package pcc.core.entity;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
+import javax.persistence.Transient;
 
 /**
  *
  * @author yl9
  */
+@Entity
+@Table(name = "mblog_crawl_info")
 public class MBlogCrawlInfo implements Serializable{
     
+    @Transient
     private static final long serialVersionUID = 7513452215633776148L;
     
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    
+    @Column(name = "uid")
     private long uid;
+    
+    @Column(name="blog_count")
     private int blog_count;
+    
+    @Column(name = "crawl_state")
     private String crawl_state;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    
     
     public int[] get_crawl_state(){
         int [] result=new int[crawl_state.length()];

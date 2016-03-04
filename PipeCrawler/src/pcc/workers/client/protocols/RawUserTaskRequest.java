@@ -21,37 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client.common;
+package pcc.workers.client.protocols;
 
+import java.io.Serializable;
 import jpipe.abstractclass.buffer.Buffer;
 import pcc.core.entity.MessageCarrier;
+import pcc.core.entity.RawAccount;
 import pcc.http.entity.Proxy;
+import pcc.workers.client.common.ClientConnector;
 
 /**
  *
  * @author yl9
  */
-public class RawProxyRequest implements ClientConnector.IClientProtocol{
+public class RawUserTaskRequest implements ClientConnector.IClientProtocol{
 
-    Buffer<Proxy> proxy_buffer;
     ClientConnector connector;
-    public RawProxyRequest(ClientConnector connector){
-        
-        this.connector=connector;
-        this.proxy_buffer=connector.getBufferStore().use("rawproxys");
-    }
     
     @Override
-    public MessageCarrier messageToServer() {
-        MessageCarrier r=new MessageCarrier("RP", new Integer(20));
+    public MessageCarrier messageToServer(ClientConnector connector) {
+        this.connector=connector;
+        MessageCarrier r=new MessageCarrier("UserTask", new Integer(1));
         return r;
     }
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
-        Proxy[] proxies=(Proxy[]) msg.getObj();
-        for (int i=0;i<proxies.length;i++){
-            proxy_buffer.push(connector, proxies[i]);
+        Buffer<RawAccount> user_buffer=this.connector.getBufferStore().use("initusers");
+        
+        try{
+            RawAccount[] rusers=(RawAccount[])msg.getObj();
+            for (int i=0;i<rusers.length;i++){
+                user_buffer.push(rusers, rusers[i]);
+            }
+        }catch(Exception e){
+            
         }
     }
     

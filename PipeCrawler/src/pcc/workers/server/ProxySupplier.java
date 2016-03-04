@@ -35,7 +35,7 @@ import pcc.http.entity.Proxy;
  */
 public class ProxySupplier extends Worker {
 
-    private int num = 20;
+    private int num = 80;
 
     public ProxySupplier() {
 
@@ -48,7 +48,7 @@ public class ProxySupplier extends Worker {
     @Override
     public int work() {
 
-        Buffer<Proxy> outputBuffer = this.getBufferStore().use("rawproxys");
+        Buffer<Proxy> outputBuffer = this.getBufferStore().use("rawproxies");
 
         CrawlerClient client = CrawlerConnectionManager.getNewClient();
 

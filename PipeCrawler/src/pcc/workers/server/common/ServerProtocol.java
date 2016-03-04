@@ -23,9 +23,17 @@
  */
 package pcc.workers.server.common;
 
+import java.util.List;
+import jpipe.abstractclass.buffer.Buffer;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Restrictions;
 import pcc.core.entity.MessageCarrier;
-import pcc.core.entity.RawUser;
-import pcc.core.entity.User;
+import pcc.core.entity.RawAccount;
+import pcc.core.entity.AccountDetail;
+import pcc.core.hibernate.DatabaseManager;
+import pcc.http.entity.Proxy;
 import pcc.workers.server.ServerConnector;
 
 /**
@@ -34,14 +42,50 @@ import pcc.workers.server.ServerConnector;
  */
 public class ServerProtocol implements ServerConnector.IServerProtocol {
 
-    private MessageCarrier handleRawUser(MessageCarrier mc) {
-        RawUser[] rusers = (RawUser[]) mc.getObj();
+    private ServerConnector connector;
+    public ServerProtocol(ServerConnector connector) {
+        this.connector=connector;
+    }
 
-        return null;
+    
+    
+    private MessageCarrier handleUserTaskRequest(MessageCarrier mc){
+        int num=(Integer) mc.getObj();
+        RawAccount[] raw_accounts=new RawAccount[num];
+        Session session=DatabaseManager.getSession();
+        Transaction tx=session.beginTransaction();
+        for (int i=0;i<num;i++){
+            List<RawAccount> items = session
+                    .createCriteria(RawAccount.class)
+                    .add(Restrictions.eq("state", new Integer(0)))
+                    .setMaxResults(1)
+                    .list();
+            RawAccount item=items.get(0);
+            raw_accounts[i]=item;
+            session.save(item);
+            session.flush();
+            session.clear();
+            
+        }
+        tx.commit();
+        session.close();
+        
+        
+        
+        return new MessageCarrier("TASK", raw_accounts);
+    }
+    
+    private MessageCarrier handleRawUser(MessageCarrier mc) {
+        RawAccount[] rusers = (RawAccount[]) mc.getObj();
+        
+        DatabaseManager.DBInterface dbi=new DatabaseManager.DBInterface();
+        dbi.batchInsert(rusers);
+        
+        return new MessageCarrier("ACK", "");
     }
 
     private MessageCarrier handleUser(MessageCarrier mc) {
-        User[] users = (User[]) mc.getObj();
+        AccountDetail[] users = (AccountDetail[]) mc.getObj();
 
         return null;
     }
@@ -51,16 +95,32 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         return null;
     }
 
+    private MessageCarrier handleRawProxy(MessageCarrier mc){
+        Buffer<Proxy> outputBuffer =connector.getBufferStore().use("rawproxies");
+        int num=(Integer)mc.getObj();
+        Proxy[] ps=new Proxy[num];
+        for (int i=0;i<num;i++){
+            ps[i]=(Proxy) this.connector.blockedpoll(outputBuffer);
+        }
+        return new MessageCarrier("rawproxies", ps);
+    }
+    
     @Override
     public MessageCarrier handleMsg(MessageCarrier mc) {
         String msg = mc.getMsg();
         MessageCarrier reply;
         switch (msg) {
+            case "UserTask":
+                reply=handleUserTaskRequest(mc);
+                break;
             case "RawUser":
                 reply = handleRawUser(mc);
                 break;
             case "User":
                 reply = handleUser(mc);
+                break;
+            case "RawProxy":
+                reply = handleRawProxy(mc);
                 break;
             case "MBlog":
                 reply = handleMblog(mc);
