@@ -17,6 +17,7 @@ import jpipe.interfaceclass.IWorkerLazy;
 import jpipe.util.Triplet;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
+import pcc.core.hibernate.DatabaseManager;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.client.rawuser.AccountCrawler;
@@ -189,6 +190,15 @@ public class PipeCrawler {
             SignalSender ss = (new SignalSender());
             (new Thread(ss)).start();
 
+        }else if(args[0].toUpperCase().equals("DBINIT")){
+            
+            DatabaseManager.DBInterface dbi=new DatabaseManager.DBInterface();
+            RawAccount[] as=new RawAccount[4];
+            as[0]=new RawAccount(5623352990L);
+            as[1]=new RawAccount(5135808743L);
+            as[2]=new RawAccount(5666578644L);
+            as[3]=new RawAccount(3807667648L);
+            dbi.batchInsert(as);
         }
 
     }
