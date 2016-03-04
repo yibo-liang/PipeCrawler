@@ -21,55 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.core.entity;
+package pcc.workers.client.common;
 
-import java.io.Serializable;
-import pcc.core.CrawlerSetting;
+import jpipe.abstractclass.buffer.Buffer;
+import pcc.core.entity.MessageCarrier;
+import pcc.http.entity.Proxy;
 
 /**
  *
  * @author yl9
- * @param <T>
  */
-public class MessageCarrier implements Serializable {
+public class RawProxyRequest implements ClientConnector.IClientProtocol{
 
-    private static final long serialVersionUID = 8513452215332772147L;
-
-    private String msg;
-    private String sender;
-    private Serializable obj;
-
-    
-    
-    public MessageCarrier(){
-        this.sender=CrawlerSetting.getNodeHostName();
+    Buffer<Proxy> proxy_buffer;
+    ClientConnector connector;
+    public RawProxyRequest(ClientConnector connector){
+        
+        this.connector=connector;
+        this.proxy_buffer=connector.getBufferStore().use("rawproxys");
     }
     
-    public MessageCarrier(String msg, Serializable obj){
-        this();
-        this.msg=msg;
-        this.obj=obj;
+    @Override
+    public MessageCarrier messageToServer() {
+        MessageCarrier r=new MessageCarrier("RP", new Integer(20));
+        return r;
     }
 
-    public String getSender() {
-        return sender;
+    @Override
+    public void messageFromServer(MessageCarrier msg) {
+        Proxy[] proxies=(Proxy[]) msg.getObj();
+        for (int i=0;i<proxies.length;i++){
+            proxy_buffer.push(connector, proxies[i]);
+        }
     }
     
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Serializable getObj() {
-        return obj;
-    }
-
-    public void setObj(Serializable obj) {
-        this.obj = obj;
-    }
-
     
 }

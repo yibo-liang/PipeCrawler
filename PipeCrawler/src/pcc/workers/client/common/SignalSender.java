@@ -21,11 +21,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.common;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.worker.Worker;
@@ -39,13 +41,19 @@ public class SignalSender implements Runnable{
 
     public int work()  {
         try {
-            Socket sock=new Socket("localhost",CrawlerSetting.controllerPort);
+            Socket sock=new Socket();
+            sock.connect(new InetSocketAddress("localhost",CrawlerSetting.controllerPort), 2000);
             PrintWriter out = new PrintWriter(sock.getOutputStream(), 
                     true);
             out.println("STOP");
             Thread.sleep(500);
             System.out.println("STOP signal sent successfully");
-        } catch (IOException | InterruptedException ex) {
+        } catch (SocketTimeoutException ex){
+            //
+            System.out.println("Client is not running");
+        } catch (IOException ex) {
+            Logger.getLogger(SignalSender.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
             Logger.getLogger(SignalSender.class.getName()).log(Level.SEVERE, null, ex);
         }
    

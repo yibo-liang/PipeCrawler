@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.common;
 
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
@@ -60,8 +60,9 @@ public class ProxyValidator extends Worker {
             }
 
             client.setProxy(p);
-
-            String result = client.wget("http://www.lagado.com/proxy-test");
+            //http://www2.macs.hw.ac.uk/~yl9/proxytest.php
+            //http://www.lagado.com/proxy-test
+            String result = client.wget("http://www2.macs.hw.ac.uk/~yl9/proxytest.php");
             client.close();
 
             if (result != null && 

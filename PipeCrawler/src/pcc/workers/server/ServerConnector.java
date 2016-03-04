@@ -23,31 +23,39 @@
  */
 package pcc.workers.server;
 
-import pcc.workers.client.*;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.io.PrintWriter;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.util.BufferStore;
 import pcc.core.CrawlerSetting;
-import pcc.core.GlobalControll;
+import pcc.core.entity.MessageCarrier;
 
 /**
  *
  * @author yl9
  */
-public class ServerObjectReceiver<T extends Serializable> extends Worker {
+public class ServerConnector<T extends Serializable> extends Worker {
 
+    public interface IServerProtocol {
+
+        //return null so that the socket is closed immediately, otherwise
+        //socket will reply with the returned message
+        public MessageCarrier handleMsg(MessageCarrier mc);
+        
+        
+        
+    }
+    
     private class Receiver implements Runnable {
 
         Socket sock;
@@ -64,26 +72,29 @@ public class ServerObjectReceiver<T extends Serializable> extends Worker {
                 ObjectInputStream ois = new ObjectInputStream(is);
                 Object r = ois.readObject();
                 if (r != null) {
-                    T[] receivedlist = (T[]) r;
-
-                    for (int i = 0; i < receivedlist.length; i++) {
-                        blockedpush(outputbuffer, receivedlist[i]);
-                    }
-
-                    System.out.println("Received " + receivedlist.length
-                            + " " + receivedlist[0].getClass().getSimpleName());
+                    MessageCarrier mc=(MessageCarrier)r;
                     
-                    System.out.println("receive =" + receivedlist);
+                    MessageCarrier reply= rohandler.handleMsg(mc);
+                    
+                    if (reply!=null){
+                        OutputStream os = sock.getOutputStream();
+                        ObjectOutputStream oos = new ObjectOutputStream(os);
+                        oos.writeObject(reply);
+                        oos.flush();
+                        oos.close();
+                        os.close();
+                    }
+                    
                 }
                 ois.close();
                 is.close();
             } catch (IOException | ClassNotFoundException ex) {
-                Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
                 try {
                     is.close();
                 } catch (IOException ex) {
-                    Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
@@ -92,13 +103,11 @@ public class ServerObjectReceiver<T extends Serializable> extends Worker {
     }
 
     ServerSocket server;
-    private final String outputBuffername;
-    Buffer<T> outputbuffer;
+    
+    private IServerProtocol rohandler;
 
-    public ServerObjectReceiver(String outputBuffer, BufferStore bs) {
-        this.outputBuffername = outputBuffer;
-        this.setBufferStore(bs);
-        this.outputbuffer = (Buffer<T>) getBufferStore().use(outputBuffername);
+    public ServerConnector(IServerProtocol rohandler) {
+        this.rohandler=rohandler;
     }
 
     @Override
@@ -106,7 +115,7 @@ public class ServerObjectReceiver<T extends Serializable> extends Worker {
         try {
             server = new ServerSocket(CrawlerSetting.getHost().getSecond());
         } catch (IOException ex) {
-            Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             return Worker.FAIL;
         }
 
@@ -120,12 +129,12 @@ public class ServerObjectReceiver<T extends Serializable> extends Worker {
                 System.out.println("Receiving objects from clients");
 
             } catch (IOException ex) {
-                Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException ex) {
-                Logger.getLogger(ServerObjectReceiver.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
         } while (true);
     }

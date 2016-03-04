@@ -23,6 +23,10 @@
  */
 package pcc.core;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jpipe.util.Pair;
 
 /**
@@ -46,7 +50,9 @@ public class CrawlerSetting {
     }
 
     public static boolean USE_PROXY = true;
-
+    
+    private static String nodehostname=null;
+    
     private static final String server = "hw-u4-yl-proj-host.ddns.net";
     private static final int port = 36525;
     
@@ -55,4 +61,17 @@ public class CrawlerSetting {
     public static Pair<String, Integer> getHost() {
         return new Pair<>(server, port);
     }
+    
+    public static String getNodeHostName(){
+        if (nodehostname==null){
+            try {
+                nodehostname=InetAddress.getLocalHost().getHostName();
+            } catch (UnknownHostException ex) {
+                nodehostname="Unknown_node";
+            }
+            
+        }
+        return nodehostname;
+    }
+    
 }

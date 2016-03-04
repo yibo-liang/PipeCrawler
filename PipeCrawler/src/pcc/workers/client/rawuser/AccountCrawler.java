@@ -21,8 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.rawuser;
 
+import pcc.workers.client.rawuser.UserPagePusher;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -37,7 +38,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import pcc.core.CrawlerSetting;
-import pcc.core.entity.User;
+import pcc.core.entity.RawUser;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
@@ -61,8 +62,8 @@ public class AccountCrawler extends Worker {
         Buffer<Triplet> failbuffer = (Buffer) getBufferStore().use("failedpagelist");
         Buffer<Proxy> recycleBuffer = (Buffer<Proxy>) this.getBufferStore().use("recycledproxy");
 
-        Buffer<User> outputBuffer = (Buffer<User>) getBufferStore().use("users");
-        Buffer<User> outputBuffer_int = (Buffer<User>) getBufferStore().use("initusers");
+        Buffer<RawUser> outputBuffer = (Buffer<RawUser>) getBufferStore().use("rawusers");
+        Buffer<RawUser> outputBuffer_int = (Buffer<RawUser>) getBufferStore().use("initusers");
         
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
@@ -125,7 +126,7 @@ public class AccountCrawler extends Worker {
                 JSONObject userObj = (JSONObject) ((JSONObject) i.next()).get("user");
                 //  System.out.println(userObj.toString());
                 //while (!outputBuffer.push(userObj.toString()));
-                User user= new User();
+                RawUser user= new RawUser();
                 user.setId(Long.parseLong(userObj.get("id").toString()));
                 blockedpush(outputBuffer, user);
                 blockedpush(outputBuffer_int, user);

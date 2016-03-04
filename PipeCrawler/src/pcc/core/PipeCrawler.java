@@ -15,19 +15,20 @@ import jpipe.core.pipeline.DefaultWorkerFactory;
 import jpipe.core.pipeline.SinglePipeSection;
 import jpipe.interfaceclass.IWorkerLazy;
 import jpipe.util.Triplet;
-import pcc.core.entity.User;
+import pcc.core.entity.RawUser;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
-import pcc.workers.client.AccountCrawler;
-import pcc.workers.client.ClientObjectSender;
-import pcc.workers.client.UserPagePusher;
-import pcc.workers.client.Initialiser;
-import pcc.workers.client.NaiveProxyValidator;
-import pcc.workers.client.ProxySupplier;
-import pcc.workers.client.ProxyValidator;
-import pcc.workers.client.SignalListener;
-import pcc.workers.client.SignalSender;
-import pcc.workers.server.ServerObjectReceiver;
+import pcc.workers.client.rawuser.AccountCrawler;
+import pcc.workers.client.common.ClientConnector;
+import pcc.workers.client.rawuser.UserPagePusher;
+import pcc.workers.client.rawuser.Initialiser;
+import pcc.workers.client.common.NaiveProxyValidator;
+import pcc.workers.server.ProxySupplier;
+import pcc.workers.client.common.ProxyValidator;
+import pcc.workers.client.common.SignalListener;
+import pcc.workers.client.common.SignalSender;
+import pcc.workers.server.ServerConnector;
+import pcc.workers.server.common.ServerProtocol;
 
 /**
  *
@@ -49,8 +50,8 @@ public class PipeCrawler {
         LUBuffer<Triplet<IWorkerLazy, String, String>> pagelistbuffer = new LUBuffer<>(200);
         LUBuffer<Triplet<IWorkerLazy, String, String>> Failedpagelistbuffer = new LUBuffer<>(100);
 
-        LUBuffer<User> resultUserbuffer = new LUBuffer<>(0);
-        LUBuffer<User> initUserbuffer = new LUBuffer<>(0);
+        LUBuffer<RawUser> rawUserBuffer = new LUBuffer<>(0);
+        LUBuffer<RawUser> initUserbuffer = new LUBuffer<>(0);
 
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(80);
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(150);
@@ -64,7 +65,7 @@ public class PipeCrawler {
         bs1.put("pagelist", pagelistbuffer);
         bs1.put("failedpagelist", Failedpagelistbuffer);
 
-        bs1.put("users", resultUserbuffer);
+        bs1.put("rawusers", rawUserBuffer);
 
         bs1.put("initusers", initUserbuffer);
 
@@ -95,7 +96,7 @@ public class PipeCrawler {
         }
 
         //sender
-        ClientObjectSender<User> cos = new ClientObjectSender<>("users");
+        ClientConnector cos = new ClientConnector("");
         cos.setBufferStore(bs1);
         SinglePipeSection senderPip = new SinglePipeSection(cos);
         (new Thread(senderPip)).start();
@@ -105,7 +106,7 @@ public class PipeCrawler {
             public int work() {
                 return Worker.SUCCESS;
             }
-        }, (new User(5629952990L)));
+        }, (new RawUser(5629952990L)));
 
         while (true) {
             Thread.sleep(3000);
@@ -139,12 +140,13 @@ public class PipeCrawler {
         BufferStore bs1 = new BufferStore();
 
         //user buffer
-        LUBuffer<User> resultUserbuffer = new LUBuffer<>(0);
+        LUBuffer<RawUser> resultUserbuffer = new LUBuffer<>(0);
         //
         bs1.put("users", resultUserbuffer);
 
         //create worker - receiver
-        ServerObjectReceiver<User> sor = new ServerObjectReceiver<>("users", bs1);
+        
+        ServerConnector sor = new ServerConnector(new ServerProtocol());
 
         //create pip section
         SinglePipeSection userReceivePip = new SinglePipeSection(sor);

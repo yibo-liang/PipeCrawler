@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.rawuser;
 
 import java.util.HashMap;
 import java.util.Iterator;

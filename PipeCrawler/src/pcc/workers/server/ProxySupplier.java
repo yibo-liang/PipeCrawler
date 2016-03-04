@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.server;
 
 import jpipe.abstractclass.worker.Worker;
 import jpipe.abstractclass.buffer.Buffer;

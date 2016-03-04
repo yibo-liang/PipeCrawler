@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2016 yl9.
+ * Copyright 2015 yl9.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,55 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.core.entity;
+package pcc.workers.client.common;
 
-import java.io.Serializable;
-import pcc.core.CrawlerSetting;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
+import jpipe.abstractclass.worker.Worker;
+import jpipe.buffer.LUBuffer;
+import pcc.http.CrawlerClient;
+import pcc.http.CrawlerConnectionManager;
+import pcc.http.entity.Proxy;
 
 /**
  *
  * @author yl9
- * @param <T>
  */
-public class MessageCarrier implements Serializable {
+public class NaiveProxyValidator extends Worker {
 
-    private static final long serialVersionUID = 8513452215332772147L;
+    @Override
+    public int work() {
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
 
-    private String msg;
-    private String sender;
-    private Serializable obj;
+        LUBuffer<Proxy> inputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("rawproxys");
 
-    
-    
-    public MessageCarrier(){
-        this.sender=CrawlerSetting.getNodeHostName();
-    }
-    
-    public MessageCarrier(String msg, Serializable obj){
-        this();
-        this.msg=msg;
-        this.obj=obj;
+        LUBuffer<Proxy> outputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("proxys");
+        
+        Proxy p = (Proxy) blockedpoll(inputBuffer);
+        
+        blockedpush(outputBuffer, p);
+        System.out.println("pid=" + this.getPID() + ", Validated IP=" + p.getHost() + "," + p.getPort());
+        return Worker.SUCCESS;
+
     }
 
-    public String getSender() {
-        return sender;
-    }
-    
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Serializable getObj() {
-        return obj;
-    }
-
-    public void setObj(Serializable obj) {
-        this.obj = obj;
-    }
-
-    
 }

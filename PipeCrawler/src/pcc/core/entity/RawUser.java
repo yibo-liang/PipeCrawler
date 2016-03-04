@@ -24,52 +24,29 @@
 package pcc.core.entity;
 
 import java.io.Serializable;
-import pcc.core.CrawlerSetting;
 
 /**
  *
  * @author yl9
- * @param <T>
  */
-public class MessageCarrier implements Serializable {
+public class RawUser implements Serializable {
 
-    private static final long serialVersionUID = 8513452215332772147L;
-
-    private String msg;
-    private String sender;
-    private Serializable obj;
-
+    private static final long serialVersionUID = 7513452215622776147L;
+    private long id;
     
+    public RawUser(){}
     
-    public MessageCarrier(){
-        this.sender=CrawlerSetting.getNodeHostName();
-    }
-    
-    public MessageCarrier(String msg, Serializable obj){
-        this();
-        this.msg=msg;
-        this.obj=obj;
+    public RawUser(long id){
+        this.id=id;
     }
 
-    public String getSender() {
-        return sender;
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
     
-    public String getMsg() {
-        return msg;
-    }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Serializable getObj() {
-        return obj;
-    }
-
-    public void setObj(Serializable obj) {
-        this.obj = obj;
-    }
-
-    
 }

@@ -24,52 +24,68 @@
 package pcc.core.entity;
 
 import java.io.Serializable;
-import pcc.core.CrawlerSetting;
 
 /**
  *
  * @author yl9
- * @param <T>
  */
-public class MessageCarrier implements Serializable {
-
-    private static final long serialVersionUID = 8513452215332772147L;
-
-    private String msg;
-    private String sender;
-    private Serializable obj;
-
+public class MBlogCrawlInfo implements Serializable{
     
+    private static final long serialVersionUID = 7513452215633776148L;
     
-    public MessageCarrier(){
-        this.sender=CrawlerSetting.getNodeHostName();
-    }
+    private long uid;
+    private int blog_count;
+    private String crawl_state;
     
-    public MessageCarrier(String msg, Serializable obj){
-        this();
-        this.msg=msg;
-        this.obj=obj;
-    }
-
-    public String getSender() {
-        return sender;
+    public int[] get_crawl_state(){
+        int [] result=new int[crawl_state.length()];
+        for (int i=0;i<result.length;i++){
+            result[i]=Integer.parseInt(crawl_state.substring(i,1));
+        }
+        return result;
     }
     
-    public String getMsg() {
-        return msg;
+    private String get_crawl_str(int[] vec){
+        String result="";
+        for (int i=0;i<vec.length;i++){
+            result=result+vec;
+        }
+        
+        return result;
+        
+    }
+    
+    public synchronized void set_crawl_state(int i, int state){
+        int[] states=get_crawl_state();
+        states[i]=state;
+        this.crawl_state=get_crawl_str(states);
+               
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public long getUid() {
+        return uid;
     }
 
-    public Serializable getObj() {
-        return obj;
+    public void setUid(long uid) {
+        this.uid = uid;
     }
 
-    public void setObj(Serializable obj) {
-        this.obj = obj;
+    public int getBlog_count() {
+        return blog_count;
     }
 
+    public void setBlog_count(int blog_count) {
+        this.blog_count = blog_count;
+    }
+
+    public String getCrawl_state() {
+        return crawl_state;
+    }
+
+    public void setCrawl_state(String crawl_state) {
+        this.crawl_state = crawl_state;
+    }
+    
+    
     
 }

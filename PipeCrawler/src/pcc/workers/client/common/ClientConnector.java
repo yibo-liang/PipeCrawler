@@ -21,9 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.common;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -34,25 +36,33 @@ import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.util.Pair;
 import pcc.core.CrawlerSetting;
+import pcc.core.entity.MessageCarrier;
 
 /**
  *
  * @author yl9
  * @param <T>
  */
-public class ClientObjectSender<T extends Serializable> extends Worker {
+public class ClientConnector extends Worker {
     
-    int num = 100;
     
-    private final String buffername;
+    public interface IClientProtocol{
+        
+        public MessageCarrier messageToServer();
+        
+        public void messageFromServer(MessageCarrier msg);
+    }
     
-    public ClientObjectSender(String inputBuffer) {
-        this.buffername = inputBuffer;
+    
+    private final String protocolBuffer;
+    
+    public ClientConnector(String protocolBuffer) {
+        this.protocolBuffer = protocolBuffer;
     }
     
     @Override
     public int work() {
-        Buffer<T> inputBuffer = (Buffer<T>) getBufferStore().use(buffername);
+        Buffer<IClientProtocol> cpbuffer= this.getBufferStore().use(protocolBuffer);
         
         try {
             //Get entity from buffer and feed to serverworker
@@ -60,29 +70,34 @@ public class ClientObjectSender<T extends Serializable> extends Worker {
             Socket socket = new Socket(host.getFirst(), host.getSecond());
             OutputStream os = socket.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(os);
-
-            //if connected 
-            T[] list = (T[]) new Serializable[num];
-            for (int i = 0; i < num; i++) {
-                list[i] = (T) blockedpoll(inputBuffer);
-            }
+;           IClientProtocol cp= (IClientProtocol) this.blockedpoll(cpbuffer);
             
-            oos.writeObject(list);
+            oos.writeObject(cp.messageToServer());
+            oos.flush();
+            
+            
+            InputStream is = socket.getInputStream();
+            ObjectInputStream ois = new ObjectInputStream(is);
+            MessageCarrier r = (MessageCarrier)ois.readObject();
+            cp.messageFromServer(r);
+            
             oos.close();
             os.close();
             socket.close();
             
             return Worker.SUCCESS;
         } catch (IOException ex) {
-            //Logger.getLogger(ClientObjectSender.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
             if (ex.getMessage().contains("Connection refused")) {
                 System.out.println("Connection Refused by server");
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException ex1) {
-                    Logger.getLogger(ClientObjectSender.class.getName()).log(Level.SEVERE, null, ex1);
+                    Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
                 }
             }
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
         }
         return Worker.FAIL;
     }

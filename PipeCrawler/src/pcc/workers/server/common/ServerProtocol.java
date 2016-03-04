@@ -21,55 +21,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.core.entity;
+package pcc.workers.server.common;
 
-import java.io.Serializable;
-import pcc.core.CrawlerSetting;
+import pcc.core.entity.MessageCarrier;
+import pcc.core.entity.RawUser;
+import pcc.core.entity.User;
+import pcc.workers.server.ServerConnector;
 
 /**
  *
  * @author yl9
- * @param <T>
  */
-public class MessageCarrier implements Serializable {
+public class ServerProtocol implements ServerConnector.IServerProtocol {
 
-    private static final long serialVersionUID = 8513452215332772147L;
+    private MessageCarrier handleRawUser(MessageCarrier mc) {
+        RawUser[] rusers = (RawUser[]) mc.getObj();
 
-    private String msg;
-    private String sender;
-    private Serializable obj;
-
-    
-    
-    public MessageCarrier(){
-        this.sender=CrawlerSetting.getNodeHostName();
-    }
-    
-    public MessageCarrier(String msg, Serializable obj){
-        this();
-        this.msg=msg;
-        this.obj=obj;
+        return null;
     }
 
-    public String getSender() {
-        return sender;
-    }
-    
-    public String getMsg() {
-        return msg;
+    private MessageCarrier handleUser(MessageCarrier mc) {
+        User[] users = (User[]) mc.getObj();
+
+        return null;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    private MessageCarrier handleMblog(MessageCarrier mc) {
+
+        return null;
     }
 
-    public Serializable getObj() {
-        return obj;
+    @Override
+    public MessageCarrier handleMsg(MessageCarrier mc) {
+        String msg = mc.getMsg();
+        MessageCarrier reply;
+        switch (msg) {
+            case "RawUser":
+                reply = handleRawUser(mc);
+                break;
+            case "User":
+                reply = handleUser(mc);
+                break;
+            case "MBlog":
+                reply = handleMblog(mc);
+                break;
+            default:
+                reply = new MessageCarrier();
+        }
+
+        return reply;
     }
 
-    public void setObj(Serializable obj) {
-        this.obj = obj;
-    }
-
-    
 }

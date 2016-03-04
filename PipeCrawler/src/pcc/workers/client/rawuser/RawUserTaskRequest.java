@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2015 yl9.
+ * Copyright 2016 yl9.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,36 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.rawuser;
 
-//import java.util.logging.Level;
-//import java.util.logging.Logger;
-import jpipe.abstractclass.worker.Worker;
-import jpipe.buffer.LUBuffer;
-import pcc.http.CrawlerClient;
-import pcc.http.CrawlerConnectionManager;
+import java.io.Serializable;
+import jpipe.abstractclass.buffer.Buffer;
+import pcc.core.entity.MessageCarrier;
+import pcc.core.entity.RawUser;
 import pcc.http.entity.Proxy;
+import pcc.workers.client.common.ClientConnector;
 
 /**
  *
  * @author yl9
  */
-public class NaiveProxyValidator extends Worker {
+public class RawUserTaskRequest implements ClientConnector.IClientProtocol{
 
+    ClientConnector connector;
+    public RawUserTaskRequest(ClientConnector connector){
+       
+        this.connector=connector;
+    }
+    
     @Override
-    public int work() {
-        CrawlerClient client = CrawlerConnectionManager.getNewClient();
-
-        LUBuffer<Proxy> inputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("rawproxys");
-
-        LUBuffer<Proxy> outputBuffer = (LUBuffer<Proxy>) this.getBufferStore().use("proxys");
-        
-        Proxy p = (Proxy) blockedpoll(inputBuffer);
-        
-        blockedpush(outputBuffer, p);
-        System.out.println("pid=" + this.getPID() + ", Validated IP=" + p.getHost() + "," + p.getPort());
-        return Worker.SUCCESS;
-
+    public MessageCarrier messageToServer() {
+        MessageCarrier r=new MessageCarrier("UT", new Serializable() {});
+        return r;
     }
 
+    @Override
+    public void messageFromServer(MessageCarrier msg) {
+        Buffer<RawUser> user_buffer=this.connector.getBufferStore().use("rawusers");
+    }
+    
+    
 }

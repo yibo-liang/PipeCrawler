@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.rawuser;
 
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import pcc.core.CrawlerSetting;
-import pcc.core.entity.User;
+import pcc.core.entity.RawUser;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
@@ -45,15 +45,15 @@ public class Initialiser extends Worker {
     @Override
     @SuppressWarnings("empty-statement")
     public int work() {
-        Buffer<User> inputBuffer = this.getBufferStore().use("initusers");
+        Buffer<RawUser> inputBuffer = this.getBufferStore().use("initusers");
         Buffer<String> OutputBuffer = this.getBufferStore().use("containerid");
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
         //TPBuffer<Object> outputBuffer = (LUBuffer<Object>) buffers[1];
         //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
-        User temp = null;
+        RawUser temp = null;
         if (temp == null) {
-            temp = (User) blockedpoll(inputBuffer);
+            temp = (RawUser) blockedpoll(inputBuffer);
         }
         if (temp == null) {
             return NO_INPUT;
