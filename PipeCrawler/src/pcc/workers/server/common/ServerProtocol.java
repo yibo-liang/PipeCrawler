@@ -57,7 +57,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         for (int i=0;i<num;i++){
             List<RawAccount> items = session
                     .createCriteria(RawAccount.class)
-                    .add(Restrictions.eq("state", new Integer(0)))
+                    .add(Restrictions.eq("crawlstate", new Integer(0)))
                     .setMaxResults(1)
                     .list();
             RawAccount item=items.get(0);

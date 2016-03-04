@@ -39,6 +39,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "raw_account")
 public class RawAccount implements Serializable {
+    
     @Transient
     private static final long serialVersionUID = 7513452215622776147L;
     
