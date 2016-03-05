@@ -32,26 +32,27 @@ import pcc.workers.client.common.ClientConnector;
  *
  * @author yl9
  */
-public class RawProxyRequest implements ClientConnector.IClientProtocol{
+public class RawProxyRequest implements ClientConnector.IClientProtocol {
 
     Buffer<Proxy> proxy_buffer;
     ClientConnector connector;
-    
+
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
-        this.connector=connector;
-        this.proxy_buffer=connector.getBufferStore().use("rawproxies");
-        MessageCarrier r=new MessageCarrier("RawProxy", new Integer(20));
+        this.connector = connector;
+        this.proxy_buffer = connector.getBufferStore().use("rawproxies");
+        MessageCarrier r = new MessageCarrier("RawProxy", new Integer(20));
         return r;
     }
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
-        Proxy[] proxies=(Proxy[]) msg.getObj();
-        for (int i=0;i<proxies.length;i++){
-            proxy_buffer.push(connector, proxies[i]);
+        if (!msg.getMsg().equals("NULL")) {
+            Proxy[] proxies = (Proxy[]) msg.getObj();
+            for (int i = 0; i < proxies.length; i++) {
+                proxy_buffer.push(connector, proxies[i]);
+            }
         }
     }
-    
-    
+
 }

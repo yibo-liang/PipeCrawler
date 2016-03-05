@@ -104,13 +104,27 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
     }
 
     private MessageCarrier handleRawProxy(MessageCarrier mc) {
-        Buffer<Proxy> outputBuffer = connector.getBufferStore().use("rawproxies");
+        Buffer<Proxy> proxy_buffer = connector.getBufferStore().use("rawproxies");
         int num = (Integer) mc.getObj();
-        Proxy[] ps = new Proxy[num];
+        //Proxy[] ps = new Proxy[num];
+        List<Proxy> ps = new ArrayList<>();
+
         for (int i = 0; i < num; i++) {
-            ps[i] = (Proxy) this.connector.blockedpoll(outputBuffer);
+            //ps[i] = (Proxy) this.connector.blockedpoll(proxy_buffer);
+            Proxy p = (Proxy) proxy_buffer.poll(connector);
+            if (p != null) {
+                ps.add(p);
+            } else {
+                break;
+            }
         }
-        return new MessageCarrier("rawproxies", ps);
+        if (ps.size() > 0) {
+            Proxy[] result = ps.toArray(new Proxy[ps.size()]);
+
+            return new MessageCarrier("rawproxies", result);
+        }else{
+            return new MessageCarrier("NULL", "");
+        }
     }
 
     @Override
