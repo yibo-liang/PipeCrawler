@@ -116,7 +116,7 @@ public class Initialiser extends Worker {
             this.proxy = null;
             System.out.println("result=\n" + result);
             System.out.println("RETRIEVED NULL.....");
-            this.blockedpush(inputBuffer, temp);
+            //this.blockedpush(inputBuffer, temp);
             return Worker.FAIL;
         }
 
