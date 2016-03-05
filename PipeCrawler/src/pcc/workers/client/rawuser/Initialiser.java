@@ -88,7 +88,7 @@ public class Initialiser extends Worker {
         }
         String result = "";
         try {
-            result = client.wget("http://m.weibo.cn/u/" + temp.getId());
+            result = client.wget("http://m.weibo.cn/u/" + temp.getUid());
             client.close();
             if (result != null) {
                 //System.out.println(this.getPID()+", "+result);

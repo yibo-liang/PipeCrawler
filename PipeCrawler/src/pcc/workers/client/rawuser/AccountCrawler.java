@@ -124,8 +124,8 @@ public class AccountCrawler extends Worker {
                 JSONObject userObj = (JSONObject) ((JSONObject) i.next()).get("user");
                 //  System.out.println(userObj.toString());
                 //while (!outputBuffer.push(userObj.toString()));
-                RawAccount user= new RawAccount();
-                user.setId(Long.parseLong(userObj.get("id").toString()));
+                RawAccount user= new RawAccount(Long.parseLong(userObj.get("id").toString()));
+                
                 blockedpush(outputBuffer, user);
                 
             }
