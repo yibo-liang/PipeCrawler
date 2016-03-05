@@ -94,7 +94,8 @@ public class Initialiser extends Worker {
                 //System.out.println(this.getPID()+", "+result);
                 String identifier = "window.$config={'stage':'page','stageId':'";
                 int i = result.indexOf(identifier);
-                if (i != -1) {
+                int j = result.indexOf("\"mod_type\":\"mod\\/empty\"");
+                if (i != -1 && j == -1) {
                     String containerid = result.substring(i + identifier.length(), i + identifier.length() + 16);
                     //System.out.println("Done! " + temp + " -> " + containerid);
                     if (!containerid.matches("[0-9]+")) {
