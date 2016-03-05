@@ -21,19 +21,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package pcc.workers.client;
+package pcc.workers.client.rawuser;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
+import pcc.core.entity.RawAccount;
+import pcc.workers.client.common.ClientConnector;
+import pcc.workers.client.protocols.RawUserUploadRequest;
 
 /**
  *
  * @author yl9
  */
-public class UserResultCollector extends Worker{
+public class UserResultCollector extends Worker {
+
+    int num = 100;
 
     @Override
     public int work() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
+        Buffer<RawAccount> inputbuffer = (Buffer<RawAccount>) getBufferStore().use("rawusers");
+        Buffer<ClientConnector.IClientProtocol> msgbuffer = getBufferStore().use("msg");
+
+        if (inputbuffer.getCount() > num) {
+
+            RawAccount[] data = new RawAccount[num];
+            for (int i = 0; i < num; i++) {
+                data[i] = (RawAccount) blockedpoll(inputbuffer);
+            }
+            RawUserUploadRequest request=new RawUserUploadRequest(data);
+            blockedpush(msgbuffer, request);
+        } else {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(UserResultCollector.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return Worker.SUCCESS;
+
     }
-    
+
 }

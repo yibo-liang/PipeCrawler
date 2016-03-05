@@ -67,7 +67,6 @@ public class ClientConnector extends Worker {
             Socket socket = new Socket(host.getFirst(), host.getSecond());
             OutputStream os = socket.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(os);
-            ;
             IClientProtocol cp = (IClientProtocol) this.blockedpoll(cpbuffer);
 
             oos.writeObject(cp.messageToServer(this));

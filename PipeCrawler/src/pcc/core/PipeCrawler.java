@@ -28,6 +28,7 @@ import pcc.workers.server.ProxySupplier;
 import pcc.workers.client.common.ProxyValidator;
 import pcc.workers.client.common.SignalListener;
 import pcc.workers.client.common.SignalSender;
+import pcc.workers.client.rawuser.UserResultCollector;
 import pcc.workers.server.ServerConnector;
 import pcc.workers.server.common.ServerProtocol;
 
@@ -96,6 +97,13 @@ public class PipeCrawler {
         pipsec3.Start();
         pipsec4.Start();
 
+        //the section that collects all raw user and create upload massage
+        UserResultCollector collector=new UserResultCollector();
+        collector.setBufferStore(bs1);
+        SinglePipeSection collectorSec=new SinglePipeSection(collector);
+        (new Thread(collectorSec)).start();
+        
+        
         //client side message sender
         ClientConnector cos = new ClientConnector("msg");
         cos.setBufferStore(bs1);
