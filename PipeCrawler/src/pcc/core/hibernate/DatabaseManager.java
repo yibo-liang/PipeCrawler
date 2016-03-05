@@ -26,6 +26,7 @@ package pcc.core.hibernate;
 import net.sf.ehcache.hibernate.HibernateUtil;
 import org.hibernate.*;
 import org.hibernate.cfg.*;
+import org.hibernate.exception.ConstraintViolationException;
 import pcc.core.GlobalControll;
 
 /**
@@ -40,7 +41,13 @@ public class DatabaseManager {
             StatelessSession session = getStatelessSession();
             Transaction tx = session.beginTransaction();
             for (int i = 0; i < arr.length; i++) {
-                session.insert(arr[i]);
+                try {
+
+                    session.insert(arr[i]);
+                    
+                } catch (ConstraintViolationException ex) {
+                    
+                }
             }
             tx.commit();
             session.close();
@@ -69,8 +76,8 @@ public class DatabaseManager {
 
     private static void load() {
 
-        if (!GlobalControll.PROCESS_TASK.equals("SERVER") &&
-                !GlobalControll.PROCESS_TASK.equals("DBINIT")) {
+        if (!GlobalControll.PROCESS_TASK.equals("SERVER")
+                && !GlobalControll.PROCESS_TASK.equals("DBINIT")) {
             return;
         }
 
