@@ -30,6 +30,7 @@ import javax.persistence.Table;
 import java.io.Serializable;
 import javax.persistence.Transient;
 import java.io.Serializable;
+import javax.persistence.Index;
 import org.hibernate.annotations.Type;
 
 /**
@@ -37,7 +38,12 @@ import org.hibernate.annotations.Type;
  * @author yl9
  */
 @Entity
-@Table(name = "mblog")
+@Table(name = "mblog", indexes = {
+    @Index ( columnList = "user_id", name="post_user_id_idx"),
+    @Index ( columnList = "create_timestamp", name="ctime_idx")
+    
+    
+})
 public class MBlog implements Serializable{
     
     @Transient

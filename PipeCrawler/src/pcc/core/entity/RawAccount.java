@@ -32,6 +32,7 @@ import javax.persistence.Transient;
 import java.io.Serializable;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.persistence.Index;
 
 /**
  *
@@ -39,7 +40,11 @@ import javax.persistence.GenerationType;
  */
 
 @Entity
-@Table(name = "raw_account")
+@Table(name = "raw_account", indexes = {
+    @Index ( columnList = "id", name="table_id_idx"),
+    @Index ( columnList = "uid", name="user_id_idx")
+    
+})
 public class RawAccount implements Serializable {
     
     @Transient
