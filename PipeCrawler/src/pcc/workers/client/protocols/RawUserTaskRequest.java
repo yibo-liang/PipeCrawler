@@ -23,11 +23,9 @@
  */
 package pcc.workers.client.protocols;
 
-import java.io.Serializable;
 import jpipe.abstractclass.buffer.Buffer;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
-import pcc.http.entity.Proxy;
 import pcc.workers.client.common.ClientConnector;
 
 /**
@@ -58,6 +56,10 @@ public class RawUserTaskRequest implements ClientConnector.IClientProtocol {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }else{
+            RawUserTaskRequest request=new RawUserTaskRequest();
+            Buffer<ClientConnector.IClientProtocol> b= this.connector.getBufferStore().use("msg");
+            b.push(connector, request);
         }
     }
 

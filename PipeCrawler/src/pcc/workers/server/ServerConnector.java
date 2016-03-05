@@ -132,11 +132,7 @@ public class ServerConnector extends Worker {
             } catch (IOException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            
         } while (true);
     }
 
