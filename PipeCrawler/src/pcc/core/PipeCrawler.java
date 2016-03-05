@@ -55,7 +55,7 @@ public class PipeCrawler {
         LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
         LUBuffer<RawAccount> initUserbuffer = new LUBuffer<>(0);
 
-        LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(150);
+        LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
 
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(80);
         //Message Buffer
@@ -144,7 +144,7 @@ public class PipeCrawler {
         LUBuffer<RawAccount> resultUserbuffer = new LUBuffer<>(0);
         bs1.put("rawusers", resultUserbuffer);
 
-        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(80);
+        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(300);
         bs1.put("rawproxies", rawproxysbuffer);
         //create worker - receiver
         
