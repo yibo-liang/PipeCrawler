@@ -133,7 +133,7 @@ public class ServerConnector extends Worker {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
             try {
-                Thread.sleep(2000);
+                Thread.sleep(500);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
