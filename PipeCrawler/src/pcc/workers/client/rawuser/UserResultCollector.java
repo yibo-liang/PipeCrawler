@@ -55,7 +55,7 @@ public class UserResultCollector extends Worker {
             blockedpush(msgbuffer, request);
         } else {
             try {
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             } catch (InterruptedException ex) {
                 Logger.getLogger(UserResultCollector.class.getName()).log(Level.SEVERE, null, ex);
             }
