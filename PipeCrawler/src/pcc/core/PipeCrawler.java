@@ -96,20 +96,12 @@ public class PipeCrawler {
         pipsec3.Start();
         pipsec4.Start();
 
-        //sender
+        //client side message sender
         ClientConnector cos = new ClientConnector("msg");
         cos.setBufferStore(bs1);
         SinglePipeSection connectorSec = new SinglePipeSection(cos);
         (new Thread(connectorSec)).start();
         
-        /*
-        initUserbuffer.push(new Worker() {
-            @Override
-            public int work() {
-                return Worker.SUCCESS;
-            }
-        }, (new RawAccount(5629952990L)));
-                */
         
         while (true) {
             Thread.sleep(3000);

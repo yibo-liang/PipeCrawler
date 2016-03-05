@@ -50,7 +50,7 @@ public class DatabaseManager {
             Session session = getSession();
             Transaction tx = session.beginTransaction();
             for (int i = 0; i < arr.length; i++) {
-                session.save(arr[i]);
+                session.saveOrUpdate(arr[i]);
                 session.flush();
             }
             tx.commit();
@@ -69,7 +69,8 @@ public class DatabaseManager {
 
     private static void load() {
 
-        if (!GlobalControll.PROCESS_TASK.equals("SERVER")) {
+        if (!GlobalControll.PROCESS_TASK.equals("SERVER") &&
+                !GlobalControll.PROCESS_TASK.equals("DBINIT")) {
             return;
         }
 

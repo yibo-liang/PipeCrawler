@@ -43,62 +43,61 @@ import pcc.core.entity.MessageCarrier;
  * @param <T>
  */
 public class ClientConnector extends Worker {
-    
-    
-    public interface IClientProtocol{
-        
+
+    public interface IClientProtocol {
+
         public MessageCarrier messageToServer(ClientConnector connector);
-        
+
         public void messageFromServer(MessageCarrier msg);
     }
-    
-    
+
     private final String protocolBuffer;
-    
+
     public ClientConnector(String protocolBuffer) {
         this.protocolBuffer = protocolBuffer;
     }
-    
+
     @Override
     public int work() {
-        Buffer<IClientProtocol> cpbuffer= this.getBufferStore().use(protocolBuffer);
-        
+        Buffer<IClientProtocol> cpbuffer = this.getBufferStore().use(protocolBuffer);
+
         try {
             //Get entity from buffer and feed to serverworker
             Pair<String, Integer> host = CrawlerSetting.getHost();
             Socket socket = new Socket(host.getFirst(), host.getSecond());
             OutputStream os = socket.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(os);
-;           IClientProtocol cp= (IClientProtocol) this.blockedpoll(cpbuffer);
-            
+            ;
+            IClientProtocol cp = (IClientProtocol) this.blockedpoll(cpbuffer);
+
             oos.writeObject(cp.messageToServer(this));
             oos.flush();
-            
-            
+
             InputStream is = socket.getInputStream();
             ObjectInputStream ois = new ObjectInputStream(is);
-            MessageCarrier r = (MessageCarrier)ois.readObject();
+            MessageCarrier r = (MessageCarrier) ois.readObject();
             cp.messageFromServer(r);
-            
+
             oos.close();
             os.close();
             socket.close();
-            
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException ex1) {
+                Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
+            }
             return Worker.SUCCESS;
         } catch (IOException ex) {
             //Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
             if (ex.getMessage().contains("Connection refused")) {
                 System.out.println("Connection Refused by server");
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException ex1) {
-                    Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
-                }
+
             }
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
         }
         return Worker.FAIL;
     }
-    
+
 }

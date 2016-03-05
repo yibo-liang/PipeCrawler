@@ -34,30 +34,31 @@ import pcc.workers.client.common.ClientConnector;
  *
  * @author yl9
  */
-public class RawUserTaskRequest implements ClientConnector.IClientProtocol{
+public class RawUserTaskRequest implements ClientConnector.IClientProtocol {
 
     ClientConnector connector;
-    
+
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
-        this.connector=connector;
-        MessageCarrier r=new MessageCarrier("UserTask", new Integer(1));
+        this.connector = connector;
+        MessageCarrier r = new MessageCarrier("UserTask", new Integer(1));
         return r;
     }
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
-        Buffer<RawAccount> user_buffer=this.connector.getBufferStore().use("initusers");
-        
-        try{
-            RawAccount[] rusers=(RawAccount[])msg.getObj();
-            for (int i=0;i<rusers.length;i++){
-                this.connector.blockedpush(user_buffer, rusers[i]);
+        if (!msg.getMsg().equals("NULL")) {
+            Buffer<RawAccount> user_buffer = this.connector.getBufferStore().use("initusers");
+
+            try {
+                RawAccount[] rusers = (RawAccount[]) msg.getObj();
+                for (int i = 0; i < rusers.length; i++) {
+                    this.connector.blockedpush(user_buffer, rusers[i]);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }catch(Exception e){
-            e.printStackTrace();
         }
     }
-    
-    
+
 }

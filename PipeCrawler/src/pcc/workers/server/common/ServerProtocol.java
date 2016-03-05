@@ -23,6 +23,7 @@
  */
 package pcc.workers.server.common;
 
+import java.util.ArrayList;
 import java.util.List;
 import jpipe.abstractclass.buffer.Buffer;
 import org.hibernate.Query;
@@ -43,45 +44,51 @@ import pcc.workers.server.ServerConnector;
 public class ServerProtocol implements ServerConnector.IServerProtocol {
 
     private ServerConnector connector;
+
     public ServerProtocol(ServerConnector connector) {
-        this.connector=connector;
+        this.connector = connector;
     }
 
-    
-    
-    private MessageCarrier handleUserTaskRequest(MessageCarrier mc){
-        int num=(Integer) mc.getObj();
-        RawAccount[] raw_accounts=new RawAccount[num];
-        Session session=DatabaseManager.getSession();
-        Transaction tx=session.beginTransaction();
-        for (int i=0;i<num;i++){
+    private MessageCarrier handleUserTaskRequest(MessageCarrier mc) {
+        int num = (Integer) mc.getObj();
+
+        List<RawAccount> result = new ArrayList<>();
+        Session session = DatabaseManager.getSession();
+        Transaction tx = session.beginTransaction();
+        for (int i = 0; i < num; i++) {
             List<RawAccount> items = session
                     .createCriteria(RawAccount.class)
                     .add(Restrictions.eq("crawlstate", new Integer(0)))
                     .setMaxResults(1)
                     .list();
-            RawAccount item=items.get(0);
-            item.setCrawlstate(1);
-            raw_accounts[i]=item;
-            session.save(item);
-            session.flush();
-            session.clear();
-            
+            if (items.size() > 0) {
+                RawAccount item = items.get(0);
+                item.setCrawlstate(1);
+                result.add(item);
+                session.save(item);
+                session.flush();
+                session.clear();
+            } else {
+                break;
+            }
+
         }
         tx.commit();
         session.close();
-        
-        
-        
-        return new MessageCarrier("TASK", raw_accounts);
+        if (result.size() > 0) {
+            RawAccount[] raw_accounts = result.toArray(new RawAccount[result.size()]);
+            return new MessageCarrier("RAWUSER", raw_accounts);
+        } else {
+            return new MessageCarrier("NULL", "");
+        }
     }
-    
+
     private MessageCarrier handleRawUser(MessageCarrier mc) {
         RawAccount[] rusers = (RawAccount[]) mc.getObj();
-        
-        DatabaseManager.DBInterface dbi=new DatabaseManager.DBInterface();
+
+        DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
         dbi.batchInsert(rusers);
-        
+
         return new MessageCarrier("ACK", "");
     }
 
@@ -96,23 +103,23 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         return null;
     }
 
-    private MessageCarrier handleRawProxy(MessageCarrier mc){
-        Buffer<Proxy> outputBuffer =connector.getBufferStore().use("rawproxies");
-        int num=(Integer)mc.getObj();
-        Proxy[] ps=new Proxy[num];
-        for (int i=0;i<num;i++){
-            ps[i]=(Proxy) this.connector.blockedpoll(outputBuffer);
+    private MessageCarrier handleRawProxy(MessageCarrier mc) {
+        Buffer<Proxy> outputBuffer = connector.getBufferStore().use("rawproxies");
+        int num = (Integer) mc.getObj();
+        Proxy[] ps = new Proxy[num];
+        for (int i = 0; i < num; i++) {
+            ps[i] = (Proxy) this.connector.blockedpoll(outputBuffer);
         }
         return new MessageCarrier("rawproxies", ps);
     }
-    
+
     @Override
     public MessageCarrier handleMsg(MessageCarrier mc) {
         String msg = mc.getMsg();
         MessageCarrier reply;
         switch (msg) {
             case "UserTask":
-                reply=handleUserTaskRequest(mc);
+                reply = handleUserTaskRequest(mc);
                 break;
             case "RawUser":
                 reply = handleRawUser(mc);
