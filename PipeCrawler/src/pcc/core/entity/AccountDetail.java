@@ -114,6 +114,16 @@ public class AccountDetail implements Serializable {
         this.id = id;
     }
 
+    public long getUid() {
+        return uid;
+    }
+
+    public void setUid(long uid) {
+        this.uid = uid;
+    }
+
+    
+    
     public long getContainerid() {
         return container_id;
     }
