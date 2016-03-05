@@ -51,20 +51,20 @@ public class Initialiser extends Worker {
         Buffer<RawAccount> inputBuffer = this.getBufferStore().use("initusers");
         Buffer<String> OutputBuffer = this.getBufferStore().use("containerid");
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
-        LUBuffer<ClientConnector.IClientProtocol> messageBuffer=
-                (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
+        LUBuffer<ClientConnector.IClientProtocol> messageBuffer
+                = (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
         //TPBuffer<Object> outputBuffer = (LUBuffer<Object>) buffers[1];
         //TPBuffer<String> failBuffer = (LUBuffer<String>) buffers[2];
         RawAccount temp = null;
-        temp=(RawAccount) inputBuffer.poll(this);
-        if (temp==null){
+        temp = (RawAccount) inputBuffer.poll(this);
+        if (temp == null) {
             //no user in the input inituser buffer, add a request msg to msgbuffer
-            RawUserTaskRequest request=new RawUserTaskRequest();
+            RawUserTaskRequest request = new RawUserTaskRequest();
             blockedpush(messageBuffer, request);
             //now wait for input buffer to be filled with init users
             temp = (RawAccount) blockedpoll(inputBuffer);
         }
-        
+
         if (temp == null) {
             return NO_INPUT;
         }
@@ -86,9 +86,9 @@ public class Initialiser extends Worker {
             client.setProxy(proxy);
             //System.out.println("Connecting using proxy = " + proxy);
         }
-
+        String result = "";
         try {
-            String result = client.wget("http://m.weibo.cn/u/" + temp.getId());
+            result = client.wget("http://m.weibo.cn/u/" + temp.getId());
             client.close();
             if (result != null) {
                 //System.out.println(this.getPID()+", "+result);
@@ -113,6 +113,7 @@ public class Initialiser extends Worker {
         } catch (Exception ex) {
             //ex.printStackTrace();
             this.proxy = null;
+            System.out.println("result=\n" + result);
             System.out.println("RETRIEVED NULL.....");
             this.blockedpush(inputBuffer, temp);
             return Worker.FAIL;
