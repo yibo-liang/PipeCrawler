@@ -30,6 +30,8 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import java.io.Serializable;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 
 /**
  *
@@ -44,15 +46,19 @@ public class RawAccount implements Serializable {
     private static final long serialVersionUID = 7513452215622776147L;
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+    
+    @Column(name = "uid", unique=true)
+    private long uid;
     
     @Column(length = 1,name = "crawlstate")
     private int crawlstate=0;
     
     public RawAccount(){}
     
-    public RawAccount(long id){
-        this.id=id;
+    public RawAccount(long uid){
+        this.uid=uid;
     }
 
     public long getId() {
@@ -62,6 +68,15 @@ public class RawAccount implements Serializable {
     public void setId(long id) {
         this.id = id;
     }
+
+    public long getUid() {
+        return uid;
+    }
+
+    public void setUid(long uid) {
+        this.uid = uid;
+    }
+    
 
     public int getCrawlstate() {
         return crawlstate;
