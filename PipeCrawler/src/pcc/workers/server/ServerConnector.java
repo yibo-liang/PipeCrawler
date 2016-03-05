@@ -123,7 +123,7 @@ public class ServerConnector extends Worker {
 
         do {
             try {
-                System.out.println("A");
+                //System.out.println("A");
 
                 Socket sock = server.accept();
                 (new Thread(new Receiver(sock))).start();
