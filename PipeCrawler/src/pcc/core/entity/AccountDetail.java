@@ -28,6 +28,9 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Index;
 import javax.persistence.Transient;
 
 /**
@@ -35,71 +38,72 @@ import javax.persistence.Transient;
  * @author yl9
  */
 @Entity
-@Table(name="account_detail")
+@Table(name = "account_detail", indexes = {
+    @Index ( columnList = "id", name="table_id_idx"),
+    @Index ( columnList = "uid", name="user_id_idx")
+})
 public class AccountDetail implements Serializable {
-    
+
     @Transient
     private static final long serialVersionUID = 7513452215622776148L;
-    
-    //user id
+
     @Id
-    @Column(name="id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    //user id
+    @Column(name = "uid", unique = true)
+    private long uid;
+
     //container id that is used to get the user page
-    
-    @Column(name="container_id")
+    @Column(name = "container_id")
     private long container_id;
-    
+
     //last time the info of this user is crawled
-    
-    @Column(name="update_time")
+    @Column(name = "update_time")
     private int update_time;
-    
-    @Column(name="create_time")
+
+    @Column(name = "create_time")
     private int create_time;
-    
-    
-    @Column(name="name")
+
+    @Column(name = "name")
     private String name;
-    
-    @Column(name="background")
+
+    @Column(name = "background")
     private String background;
-    
-    @Column(name="description")
+
+    @Column(name = "description")
     private String description;
-    
+
     //verification, used to help distinguish
     //member type, also can be used as filters
-    
-    @Column(name="verified",columnDefinition = "TINYINT(1)")
+    @Column(name = "verified", columnDefinition = "TINYINT(1)")
     private boolean verified;
-    
-    @Column(name="v_type")
+
+    @Column(name = "v_type")
     private int v_type;
-    
-    
-    @Column(name="member_type")
+
+    @Column(name = "member_type")
     private int member_type;
-    
-    @Column(name="member_rank")
+
+    @Column(name = "member_rank")
     private int member_rank;
-    
+
     //numbers 
-    @Column(name="blog_num")
+    @Column(name = "blog_num")
     private int blog_num;
     //attention number, guan zhu.
-    @Column(name="att_num")
+    @Column(name = "att_num")
     private int att_num;
-    @Column(name="fans_num")
+    @Column(name = "fans_num")
     private int fans_num;
-    
+
     //other info
-    @Column(name="native_place")
+    @Column(name = "native_place")
     private int native_place;
-    
-    
+
     //0 femail, 1 male, 2 other
-    @Column(name="gender")
+    @Column(name = "gender")
     private int gender;
 
     public long getId() {
@@ -229,6 +233,5 @@ public class AccountDetail implements Serializable {
     public void setGender(int gender) {
         this.gender = gender;
     }
-    
-    
+
 }
