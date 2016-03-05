@@ -29,6 +29,7 @@ import jpipe.abstractclass.buffer.Buffer;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
@@ -55,13 +56,22 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         List<RawAccount> result = new ArrayList<>();
         Session session = DatabaseManager.getSession();
         Transaction tx = session.beginTransaction();
-        
+        long count = (long) session.
+                createCriteria(RawAccount.class).
+                setProjection(Projections.rowCount()).
+                uniqueResult();
+        long range = (count > 1000) ? 1000 : count - 1;
+
         for (int i = 0; i < num; i++) {
-            List<RawAccount> items = session
-                    .createCriteria(RawAccount.class)
-                    .add(Restrictions.eq("crawlstate", new Integer(0)))
-                    .setMaxResults(1)
-                    .list();
+            List<RawAccount> items;
+            do {
+                items = session
+                        .createCriteria(RawAccount.class)
+                        .add(Restrictions.eq("crawlstate", new Integer(0)))
+                        .add(Restrictions.idEq(new Long((long) (count - Math.random() * range))))
+                        .setMaxResults(1)
+                        .list();
+            } while (items.size() <= 0);
             if (items.size() > 0) {
                 RawAccount item = items.get(0);
                 item.setCrawlstate(1);
@@ -123,7 +133,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             Proxy[] result = ps.toArray(new Proxy[ps.size()]);
 
             return new MessageCarrier("rawproxies", result);
-        }else{
+        } else {
             return new MessageCarrier("NULL", "");
         }
     }
