@@ -55,6 +55,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         List<RawAccount> result = new ArrayList<>();
         Session session = DatabaseManager.getSession();
         Transaction tx = session.beginTransaction();
+        
         for (int i = 0; i < num; i++) {
             List<RawAccount> items = session
                     .createCriteria(RawAccount.class)
