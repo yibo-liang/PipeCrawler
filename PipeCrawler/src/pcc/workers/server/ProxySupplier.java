@@ -23,6 +23,8 @@
  */
 package pcc.workers.server;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.abstractclass.buffer.Buffer;
 import pcc.http.CrawlerClient;
@@ -67,11 +69,11 @@ public class ProxySupplier extends Worker {
                 }
             }
             //System.out.println("Pushed "+num+" proxies.");
-            //Thread.sleep(1000);
+            Thread.sleep(50);
             return Worker.SUCCESS;
 
         } catch (Exception ex) {
-            // Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
+             Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
             //ex.printStackTrace();
             client.close();
             return Worker.FAIL;
