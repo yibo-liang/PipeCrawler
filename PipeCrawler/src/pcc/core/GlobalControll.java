@@ -41,15 +41,16 @@ public class GlobalControll {
         return INSTANCE;
     }
 
-    public static int STARTING = 0;
+    public static final int STARTING = 0;
 
-    public static int RUNNING = 1;
+    public static final int RUNNING = 1;
 
-    public static int STOPPING = 1;
-
+    public static final int STOPPING = 1;
 
     private static int GLOBAL_STATE = STARTING;
 
+    public static String PROCESS_TASK;
+    
     public static synchronized void setState(int state) {
         GLOBAL_STATE = state;
     }

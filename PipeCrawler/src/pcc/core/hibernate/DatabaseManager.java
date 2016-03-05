@@ -26,6 +26,7 @@ package pcc.core.hibernate;
 import net.sf.ehcache.hibernate.HibernateUtil;
 import org.hibernate.*;
 import org.hibernate.cfg.*;
+import pcc.core.GlobalControll;
 
 /**
  *
@@ -44,31 +45,35 @@ public class DatabaseManager {
             tx.commit();
             session.close();
         }
-        
-        public void Insert(T[] arr){
-            Session session=getSession();
-            Transaction tx=session.beginTransaction();
-            for (int i=0;i<arr.length;i++){
+
+        public void Insert(T[] arr) {
+            Session session = getSession();
+            Transaction tx = session.beginTransaction();
+            for (int i = 0; i < arr.length; i++) {
                 session.save(arr[i]);
                 session.flush();
             }
             tx.commit();
             session.close();
         }
-        
+
     }
 
     private DatabaseManager() {
         load();
     }
-    
+
     public static DatabaseManager INSTANCE = new DatabaseManager();
 
     private static SessionFactory sessionFactory;
 
     private static void load() {
-          System.out.println("Working Directory = " +
-              System.getProperty("user.dir"));
+
+        if (!GlobalControll.PROCESS_TASK.equals("SERVER")) {
+            return;
+        }
+
+        System.out.println("Initiating DB");
         Configuration configuration
                 = new Configuration().
                 configure("hibernate.cfg.xml")
@@ -85,14 +90,14 @@ public class DatabaseManager {
 
     public static Session getSession()
             throws HibernateException {
-        if (sessionFactory==null){
+        if (sessionFactory == null) {
             load();
         }
         return sessionFactory.openSession();
     }
 
     public static StatelessSession getStatelessSession() throws HibernateException {
-        if (sessionFactory==null){
+        if (sessionFactory == null) {
             load();
         }
         return sessionFactory.openStatelessSession();

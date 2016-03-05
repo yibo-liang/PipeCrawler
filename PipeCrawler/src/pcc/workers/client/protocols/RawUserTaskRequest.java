@@ -55,7 +55,7 @@ public class RawUserTaskRequest implements ClientConnector.IClientProtocol{
                 this.connector.blockedpush(user_buffer, rusers[i]);
             }
         }catch(Exception e){
-            
+            e.printStackTrace();
         }
     }
     

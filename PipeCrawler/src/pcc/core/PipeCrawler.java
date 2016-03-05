@@ -177,29 +177,36 @@ public class PipeCrawler {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        if (args[0].toUpperCase().equals("USERCRAWLER")) {
-            SignalListener sl = (new SignalListener());
-            (new Thread(sl)).start();
-            ClientRawUserCrawler();
-
-        } else if (args[0].toUpperCase().equals("SERVER")) {
-            SignalListener sl = (new SignalListener());
-            (new Thread(sl)).start();
-            ServerCrawler();
-
-        } else if (args[0].toUpperCase().equals("STOP")) {
-            SignalSender ss = (new SignalSender());
-            (new Thread(ss)).start();
-
-        }else if(args[0].toUpperCase().equals("DBINIT")){
-            
-            DatabaseManager.DBInterface dbi=new DatabaseManager.DBInterface();
-            RawAccount[] as=new RawAccount[4];
-            as[0]=new RawAccount(5623352990L);
-            as[1]=new RawAccount(5135808743L);
-            as[2]=new RawAccount(5666578644L);
-            as[3]=new RawAccount(3807667648L);
-            dbi.Insert(as);
+        String arg=args[0].toUpperCase();
+        GlobalControll.PROCESS_TASK=arg;
+        switch (arg) {
+            case "USERCRAWLER":
+                {
+                    SignalListener sl = (new SignalListener());
+                    (new Thread(sl)).start();
+                    ClientRawUserCrawler();
+                    break;
+                }
+            case "SERVER":
+                {
+                    SignalListener sl = (new SignalListener());
+                    (new Thread(sl)).start();
+                    ServerCrawler();
+                    break;
+                }
+            case "STOP":
+                SignalSender ss = (new SignalSender());
+                (new Thread(ss)).start();
+                break;
+            case "DBINIT":
+                DatabaseManager.DBInterface dbi=new DatabaseManager.DBInterface();
+                RawAccount[] as=new RawAccount[4];
+                as[0]=new RawAccount(5623352990L);
+                as[1]=new RawAccount(5135808743L);
+                as[2]=new RawAccount(5666578644L);
+                as[3]=new RawAccount(3807667648L);
+                dbi.Insert(as);
+                break;
         }
 
     }
