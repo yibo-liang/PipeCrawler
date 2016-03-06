@@ -39,7 +39,7 @@ public class RawUserTaskRequest implements ClientConnector.IClientProtocol {
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
         this.connector = connector;
-        MessageCarrier r = new MessageCarrier("UserTask", new Integer(1));
+        MessageCarrier r = new MessageCarrier("UserTask", new Integer(5));
         return r;
     }
 

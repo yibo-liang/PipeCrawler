@@ -23,11 +23,15 @@
  */
 package pcc.workers.server;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -38,6 +42,7 @@ import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.util.BufferStore;
 import pcc.core.CrawlerSetting;
+import pcc.core.GlobalControll;
 import pcc.core.entity.MessageCarrier;
 import pcc.workers.server.common.ServerProtocol;
 
@@ -53,6 +58,17 @@ public class ServerConnector extends Worker {
         //socket will reply with the returned message
         public MessageCarrier handleMsg(MessageCarrier mc);
 
+    }
+
+    private void logError(Exception ex) {
+        try {
+
+            PrintWriter pw = new PrintWriter(new File("~/project/error.txt"));
+            ex.printStackTrace(pw);
+            pw.close();
+        } catch (FileNotFoundException ex1) {
+            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
+        }
     }
 
     private class Receiver implements Runnable {
@@ -78,8 +94,8 @@ public class ServerConnector extends Worker {
                     OutputStream os = sock.getOutputStream();
                     ObjectOutputStream oos = new ObjectOutputStream(os);
                     oos.writeObject(reply);
-                    System.out.println("Replied to"+mc.getSender()+", MSG="+reply.getMsg()+"/"+reply.getObj().toString());
-                    
+                    System.out.println("Replied to" + mc.getSender() + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
+
                     oos.flush();
                     oos.close();
                     os.close();
@@ -89,10 +105,13 @@ public class ServerConnector extends Worker {
                 is.close();
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
+                logError(ex);
+
             } finally {
                 try {
                     is.close();
                 } catch (IOException ex) {
+                    logError(ex);
                     Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -117,6 +136,7 @@ public class ServerConnector extends Worker {
         try {
             server = new ServerSocket(CrawlerSetting.getHost().getSecond());
         } catch (IOException ex) {
+            logError(ex);
             Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             return Worker.FAIL;
         }
@@ -130,9 +150,10 @@ public class ServerConnector extends Worker {
 
                 //System.out.println("Receiving objects from clients");
             } catch (IOException ex) {
+                logError(ex);
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
         } while (true);
     }
 

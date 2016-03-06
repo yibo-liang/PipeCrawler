@@ -67,8 +67,8 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             do {
                 items = session
                         .createCriteria(RawAccount.class)
-                        .add(Restrictions.eq("crawlstate", new Integer(0)))
                         .add(Restrictions.idEq(new Long((long) (count - Math.random() * range))))
+                        .add(Restrictions.eq("crawlstate", new Integer(0)))
                         .setMaxResults(1)
                         .list();
             } while (items.size() <= 0);
@@ -78,7 +78,6 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 result.add(item);
                 session.save(item);
                 session.flush();
-                session.clear();
             } else {
                 break;
             }
