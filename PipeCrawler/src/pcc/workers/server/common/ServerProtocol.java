@@ -78,6 +78,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 result.add(item);
                 session.save(item);
                 session.flush();
+                session.clear();
             } else {
                 break;
             }
