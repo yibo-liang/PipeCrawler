@@ -86,8 +86,6 @@ public class ServerConnector extends Worker {
                 is = sock.getInputStream();
                 ObjectInputStream ois = new ObjectInputStream(is);
                 Object r = ois.readObject();
-                ois.close();
-                is.close();
                 
                 if (r != null) {
                     MessageCarrier mc = (MessageCarrier) r;
@@ -120,6 +118,8 @@ public class ServerConnector extends Worker {
                     }
                 }
                 
+                ois.close();
+                is.close();
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
                 logError(ex);

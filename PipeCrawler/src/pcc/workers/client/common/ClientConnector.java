@@ -71,13 +71,13 @@ public class ClientConnector extends Worker {
 
             oos.writeObject(cp.messageToServer(this));
             oos.flush();
-            oos.close();
             
             InputStream is = socket.getInputStream();
             ObjectInputStream ois = new ObjectInputStream(is);
             MessageCarrier r = (MessageCarrier) ois.readObject();
             cp.messageFromServer(r);
 
+            oos.close();
             os.close();
             socket.close();
 
