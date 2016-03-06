@@ -63,7 +63,7 @@ public class ServerConnector extends Worker {
     private void logError(Exception ex) {
         try {
 
-            PrintWriter pw = new PrintWriter(new File("~/project/error.txt"));
+            PrintWriter pw = new PrintWriter(new File("~/error.txt"));
             ex.printStackTrace(pw);
             pw.close();
         } catch (FileNotFoundException ex1) {
@@ -86,6 +86,9 @@ public class ServerConnector extends Worker {
                 is = sock.getInputStream();
                 ObjectInputStream ois = new ObjectInputStream(is);
                 Object r = ois.readObject();
+                ois.close();
+                is.close();
+                
                 if (r != null) {
                     MessageCarrier mc = (MessageCarrier) r;
                     System.out.println("Receive from " + mc.getSender() + ", MSG=" + mc.getMsg());
@@ -100,9 +103,23 @@ public class ServerConnector extends Worker {
                     oos.close();
                     os.close();
 
+                }else{
+                    try{
+                    OutputStream os = sock.getOutputStream();
+                    ObjectOutputStream oos = new ObjectOutputStream(os);
+                    MessageCarrier reply = new MessageCarrier("ERROR", "");
+
+                    oos.writeObject(reply);
+                    System.out.println("Error received," + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
+                    
+                    oos.flush();
+                    oos.close();
+                    os.close();
+                    }catch(Exception ex){
+                        logError(ex);
+                    }
                 }
-                ois.close();
-                is.close();
+                
             } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
                 logError(ex);
