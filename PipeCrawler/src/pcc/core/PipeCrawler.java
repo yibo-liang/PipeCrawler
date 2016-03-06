@@ -57,7 +57,7 @@ public class PipeCrawler {
 
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
 
-        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(80);
+        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(20);
         //Message Buffer
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer=new LUBuffer<>(0);
         
