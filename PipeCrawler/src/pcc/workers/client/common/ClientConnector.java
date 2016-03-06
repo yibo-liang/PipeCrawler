@@ -89,10 +89,7 @@ public class ClientConnector extends Worker {
             return Worker.SUCCESS;
         } catch (IOException ex) {
             //Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
-            if (ex.getMessage().contains("Connection refused")) {
-                System.out.println("Connection Refused by server");
-
-            }
+            ex.printStackTrace();
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
         }
