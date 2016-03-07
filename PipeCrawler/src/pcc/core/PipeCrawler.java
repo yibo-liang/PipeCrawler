@@ -30,6 +30,7 @@ import pcc.workers.client.common.SignalListener;
 import pcc.workers.client.common.SignalSender;
 import pcc.workers.client.rawuser.UserResultCollector;
 import pcc.workers.server.ServerConnector;
+import pcc.workers.server.common.ServerDisplay;
 import pcc.workers.server.common.ServerProtocol;
 
 /**
@@ -59,12 +60,12 @@ public class PipeCrawler {
 
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(20);
         //Message Buffer
-        LUBuffer<ClientConnector.IClientProtocol> messageBuffer=new LUBuffer<>(0);
-        
+        LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
+
         BufferStore bs1 = new BufferStore();
 
         bs1.put("msg", messageBuffer);
-        
+
         bs1.put("containerid", containeridbuffer);
         bs1.put("failedcontainerid", Failedcontaineridbuffer);
 
@@ -72,9 +73,9 @@ public class PipeCrawler {
         bs1.put("failedpagelist", Failedpagelistbuffer);
 
         bs1.put("initusers", initUserbuffer);
-        
+
         bs1.put("rawusers", rawUserBuffer);
-        
+
         bs1.put("rawproxies", rawproxysbuffer);
 
         bs1.put("proxys", proxysbuffer);
@@ -90,7 +91,7 @@ public class PipeCrawler {
         MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 20);
 
         pipsec1.Start();
-        
+
         if (CrawlerSetting.USE_PROXY) {
             pipsec2.Start();
         }
@@ -98,19 +99,17 @@ public class PipeCrawler {
         pipsec4.Start();
 
         //the section that collects all raw user and create upload massage
-        UserResultCollector collector=new UserResultCollector();
+        UserResultCollector collector = new UserResultCollector();
         collector.setBufferStore(bs1);
-        SinglePipeSection collectorSec=new SinglePipeSection(collector);
+        SinglePipeSection collectorSec = new SinglePipeSection(collector);
         (new Thread(collectorSec)).start();
-        
-        
+
         //client side message sender
         ClientConnector cos = new ClientConnector("msg");
         cos.setBufferStore(bs1);
         SinglePipeSection connectorSec = new SinglePipeSection(cos);
         (new Thread(connectorSec)).start();
-        
-        
+
         while (true) {
             Thread.sleep(3000);
             System.out.println("=============================");
@@ -147,29 +146,37 @@ public class PipeCrawler {
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(300);
         bs1.put("rawproxies", rawproxysbuffer);
         //create worker - receiver
-        
+
         ServerConnector serverConeector = new ServerConnector();
         serverConeector.setBufferStore(bs1);
-        
+
         if (CrawlerSetting.USE_PROXY) {
             ProxySupplier ps = new ProxySupplier(300);
             ps.setBufferStore(bs1);
             SinglePipeSection proxySupplier = new SinglePipeSection(ps);
             (new Thread(proxySupplier)).start();
         }
-        
+
         //create pip section
         SinglePipeSection userReceivePip = new SinglePipeSection(serverConeector);
         //start
         (new Thread(userReceivePip)).start();
-
+        String suffix = "";
         while (true) {
-            Thread.sleep(3000);
+            Thread.sleep(100);
             Calendar cal = Calendar.getInstance();
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            System.out.println(sdf.format(cal.getTime()));
-            System.out.println(bs1.BufferStates());
-            System.out.println("----------------------------");
+            //SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            //System.out.println(sdf.format(cal.getTime()));
+            String t = bs1.BufferStates();
+            if (!t.equals(suffix)) {
+                suffix = t;
+                ServerDisplay.changeSuffix(suffix);
+            }
+
+            if (ServerDisplay.isUpdated()){
+                ServerDisplay.show();
+            }
+            //System.out.println("----------------------------");
             if (GlobalControll.getState() == GlobalControll.STOPPING) {
                 break;
             }
@@ -177,34 +184,32 @@ public class PipeCrawler {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String arg=args[0].toUpperCase();
-        GlobalControll.PROCESS_TASK=arg;
+        String arg = args[0].toUpperCase();
+        GlobalControll.PROCESS_TASK = arg;
         switch (arg) {
-            case "USERCRAWLER":
-                {
-                    SignalListener sl = (new SignalListener());
-                    (new Thread(sl)).start();
-                    ClientRawUserCrawler();
-                    break;
-                }
-            case "SERVER":
-                {
-                    SignalListener sl = (new SignalListener());
-                    (new Thread(sl)).start();
-                    ServerCrawler();
-                    break;
-                }
+            case "USERCRAWLER": {
+                SignalListener sl = (new SignalListener());
+                (new Thread(sl)).start();
+                ClientRawUserCrawler();
+                break;
+            }
+            case "SERVER": {
+                SignalListener sl = (new SignalListener());
+                (new Thread(sl)).start();
+                ServerCrawler();
+                break;
+            }
             case "STOP":
                 SignalSender ss = (new SignalSender());
                 (new Thread(ss)).start();
                 break;
             case "DBINIT":
-                DatabaseManager.DBInterface dbi=new DatabaseManager.DBInterface();
-                RawAccount[] as=new RawAccount[4];
-                as[0]=new RawAccount(5623352990L);
-                as[1]=new RawAccount(5135808743L);
-                as[2]=new RawAccount(5666578644L);
-                as[3]=new RawAccount(3807667648L);
+                DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
+                RawAccount[] as = new RawAccount[4];
+                as[0] = new RawAccount(5623352990L);
+                as[1] = new RawAccount(5135808743L);
+                as[2] = new RawAccount(5666578644L);
+                as[3] = new RawAccount(3807667648L);
                 dbi.Insert(as);
                 break;
         }

@@ -60,6 +60,10 @@ public class ServerDisplay {
         updated = true;
     }
 
+    public static boolean isUpdated(){
+        return updated;
+    }
+    
     public static void show() {
         //clear screen
         System.out.print("\f");
