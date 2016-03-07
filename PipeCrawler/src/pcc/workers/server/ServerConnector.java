@@ -81,13 +81,19 @@ public class ServerConnector extends Worker {
                 is = sock.getInputStream();
                 ObjectInputStream ois = new ObjectInputStream(is);
                 Object r = ois.readObject();
-                
+
                 if (r != null) {
                     MessageCarrier mc = (MessageCarrier) r;
                     //System.out.println("Receive from " + mc.getSender() + ", MSG=" + mc.getMsg());
                     ServerDisplay.update(mc.getSender(), mc.getMsg());
-                    MessageCarrier reply = rohandler.handleMsg(mc);
-
+                    boolean isError = false;
+                    MessageCarrier reply;
+                    try {
+                        reply = rohandler.handleMsg(mc);
+                    } catch (Exception ex) {
+                        isError = true;
+                        reply = new MessageCarrier("NULL", "");
+                    }
                     OutputStream os = sock.getOutputStream();
                     ObjectOutputStream oos = new ObjectOutputStream(os);
                     oos.writeObject(reply);
@@ -97,23 +103,23 @@ public class ServerConnector extends Worker {
                     oos.close();
                     os.close();
 
-                }else{
-                    try{
-                    OutputStream os = sock.getOutputStream();
-                    ObjectOutputStream oos = new ObjectOutputStream(os);
-                    MessageCarrier reply = new MessageCarrier("ERROR", "");
+                } else {
+                    try {
+                        OutputStream os = sock.getOutputStream();
+                        ObjectOutputStream oos = new ObjectOutputStream(os);
+                        MessageCarrier reply = new MessageCarrier("ERROR", "");
 
-                    oos.writeObject(reply);
-                    //System.out.println("Error received," + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
-                    
-                    oos.flush();
-                    oos.close();
-                    os.close();
-                    }catch(Exception ex){
+                        oos.writeObject(reply);
+                        //System.out.println("Error received," + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
+
+                        oos.flush();
+                        oos.close();
+                        os.close();
+                    } catch (Exception ex) {
                         logError(ex);
                     }
                 }
-                
+
                 ois.close();
                 is.close();
             } catch (IOException | ClassNotFoundException ex) {

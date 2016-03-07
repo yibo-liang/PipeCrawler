@@ -41,7 +41,7 @@ public class RawProxyRequest implements ClientConnector.IClientProtocol {
     public MessageCarrier messageToServer(ClientConnector connector) {
         this.connector = connector;
         this.proxy_buffer = connector.getBufferStore().use("rawproxies");
-        MessageCarrier r = new MessageCarrier("RawProxy", new Integer(20));
+        MessageCarrier r = new MessageCarrier("RawProxy", new Integer(50));
         return r;
     }
 

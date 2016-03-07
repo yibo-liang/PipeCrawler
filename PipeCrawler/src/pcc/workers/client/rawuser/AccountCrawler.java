@@ -66,7 +66,7 @@ public class AccountCrawler extends Worker {
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
 
         Triplet<UserPagePusher, String, String> temp;
-        // System.out.println("Account Crawler: Trying to get from Failed page list first");
+       // System.out.println("Account Crawler: Trying to get from Failed page list first");
         temp = (Triplet<UserPagePusher, String, String>) failbuffer.poll(this);
         if (temp == null) {
 
@@ -74,7 +74,7 @@ public class AccountCrawler extends Worker {
             temp = (Triplet<UserPagePusher, String, String>)blockedpoll (inputBuffer);
             if (temp == null) {
                 setState(WorkerStates.POST_FAIL);
-                System.out.println("CRAWLER NO INPUT, id="+this.getPID());
+                //System.out.println("CRAWLER NO INPUT, id="+this.getPID());
                 return Worker.NO_INPUT;
             }
             //System.out.println("polling");
@@ -97,7 +97,7 @@ public class AccountCrawler extends Worker {
             proxy = new Proxy(proxy.getHost(), proxy.getPort());
 
             client.setProxy(proxy);
-            //System.out.println("Connecting using proxy = " + proxy);
+           // System.out.println("Connecting using proxy = " + proxy);
         }
         String json=null;
         try {
@@ -122,7 +122,7 @@ public class AccountCrawler extends Worker {
 
             for (Iterator i = a2.iterator(); i.hasNext();) {
                 JSONObject userObj = (JSONObject) ((JSONObject) i.next()).get("user");
-                //  System.out.println(userObj.toString());
+                 // System.out.println(userObj.toString());
                 //while (!outputBuffer.push(userObj.toString()));
                 RawAccount user= new RawAccount(Long.parseLong(userObj.get("id").toString()));
                 

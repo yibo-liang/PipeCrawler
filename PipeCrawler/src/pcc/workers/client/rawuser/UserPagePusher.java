@@ -197,7 +197,7 @@ public class UserPagePusher extends Worker {
             while (!AllDone()) {
                 try {
                     this.setState(WorkerStates.WAITING_SUBTASK);
-                    Thread.sleep(3000);
+                    wait();
 
                     this.setState(WorkerStates.WORKING);
                 } catch (InterruptedException ex) {
