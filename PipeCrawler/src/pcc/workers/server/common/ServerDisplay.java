@@ -23,6 +23,7 @@
  */
 package pcc.workers.server.common;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,6 +31,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -65,8 +68,12 @@ public class ServerDisplay {
     }
     
     public static void show() {
-        //clear screen
-        System.out.print('\u000C');
+        try {
+            //clear screen
+            Runtime.getRuntime().exec("clear");
+        } catch (IOException ex) {
+            //Logger.getLogger(ServerDisplay.class.getName()).log(Level.SEVERE, null, ex);
+        }
         System.out.print("\f");
         System.out.println("Pipecrawler Server");
         System.out.println("Worker\t\t\tLast MSG\t\tUpdate at");
