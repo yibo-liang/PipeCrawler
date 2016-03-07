@@ -64,7 +64,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
 
         long count = new Long(q.list().get(0).toString());
 
-        long range = (count > 100) ? 100 : count - 1;
+        long range = (count > 5000) ? 5000 : count - 1;
         boolean error = false;
         try {
             List<RawAccount> items;
