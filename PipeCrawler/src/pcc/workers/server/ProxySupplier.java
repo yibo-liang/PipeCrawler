@@ -69,7 +69,7 @@ public class ProxySupplier extends Worker {
                 }
             }
             //System.out.println("Pushed "+num+" proxies.");
-            Thread.sleep(50);
+            Thread.sleep(1000);
             return Worker.SUCCESS;
 
         } catch (Exception ex) {

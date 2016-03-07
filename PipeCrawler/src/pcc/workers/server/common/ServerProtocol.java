@@ -29,6 +29,7 @@ import jpipe.abstractclass.buffer.Buffer;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import pcc.core.entity.MessageCarrier;
@@ -56,36 +57,49 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         List<RawAccount> result = new ArrayList<>();
         Session session = DatabaseManager.getSession();
         Transaction tx = session.beginTransaction();
-        long count = (long) session.
-                createCriteria(RawAccount.class).
-                setProjection(Projections.rowCount()).
-                uniqueResult();
-        long range = (count > 1000) ? 1000 : count - 1;
+        long count = (long) session.createSQLQuery("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'ylproj' AND TABLE_NAME = 'raw_account';").uniqueResult();
+        long range = (count > 100) ? 100 : count - 1;
         boolean error = false;
         try {
-            for (int i = 0; i < num; i++) {
-                List<RawAccount> items;
-                RawAccount item;
-                do {
-                    item = (RawAccount) session
-                            .createCriteria(RawAccount.class)
-                            .add(Restrictions.eq("id", new Long((long) (count - Math.random() * range))))
-                            .uniqueResult();
-                } while (item == null || item.getCrawlstate() == 1);
+            List<RawAccount> items;
+            items = session.createCriteria(RawAccount.class)
+                    .add(Restrictions.gt("id", new Long(count - range)))
+                    .add(Restrictions.le("id", range))
+                    .add(Restrictions.eq("crawlstate", 0))
+                    .addOrder(Order.asc("uid"))
+                    .setMaxResults(num)
+                    .list();
 
+            RawAccount item;
+            /*
+             for (int i = 0; i < num; i++) {
+
+                
+             do {
+             item = (RawAccount) session
+             .createCriteria(RawAccount.class)
+             .add(Restrictions.eq("id", new Long((long) (count - Math.random() * range))))
+             .uniqueResult();
+             } while (item == null || item.getCrawlstate() == 1);
+             */
+            for (int i = 0; i < items.size(); i++) {
+                item = items.get(i);
                 item.setCrawlstate(1);
                 result.add(item);
                 session.save(item);
                 session.flush();
-
             }
+            //}
         } catch (Exception ex) {
             error = true;
         }
 
         tx.commit();
+
         session.close();
-        if (result.size() > 0 && !error) {
+
+        if (result.size()
+                > 0 && !error) {
             RawAccount[] raw_accounts = result.toArray(new RawAccount[result.size()]);
             return new MessageCarrier("RAWUSER", raw_accounts);
         } else {

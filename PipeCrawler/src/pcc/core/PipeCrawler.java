@@ -153,7 +153,7 @@ public class PipeCrawler {
         serverConeector.setBufferStore(bs1);
 
         if (CrawlerSetting.USE_PROXY) {
-            ProxySupplier ps = new ProxySupplier(300);
+            ProxySupplier ps = new ProxySupplier(500);
             ps.setBufferStore(bs1);
             SinglePipeSection proxySupplier = new SinglePipeSection(ps);
             (new Thread(proxySupplier)).start();
