@@ -88,7 +88,7 @@ public class PipeCrawler {
         MultiPipeSection pipsec1 = new MultiPipeSection(InitFacotry, bs1, 5);
         MultiPipeSection pipsec2 = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
         MultiPipeSection pipsec3 = new MultiPipeSection(PagePusherFactory, bs1, 5);
-        MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 20);
+        MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 80);
 
         pipsec1.Start();
 
