@@ -57,9 +57,9 @@ public class ServerDisplay {
         updated = true;
     }
 
-    public static void changeSuffix(String suffix) {
+    public static void changeSuffix(String s) {
 
-        suffix = suffix;
+        suffix = s;
         updated = true;
     }
 
@@ -80,7 +80,7 @@ public class ServerDisplay {
             sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
             String formattedDate = sdf.format(date);
             System.out.println(String.format("%1$10s", worker) + 
-                    ":\t" + String.format("%1$10s",messageMap.get(worker)) + "\t\t" + formattedDate);
+                    ":\t" + String.format("%1$12s",messageMap.get(worker)) + "\t\t" + formattedDate);
         }
         System.out.println("");
         System.out.println(suffix);
