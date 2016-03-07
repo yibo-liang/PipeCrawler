@@ -41,7 +41,14 @@ public class RawProxyRequest implements ClientConnector.IClientProtocol {
     public MessageCarrier messageToServer(ClientConnector connector) {
         this.connector = connector;
         this.proxy_buffer = connector.getBufferStore().use("rawproxies");
-        MessageCarrier r = new MessageCarrier("RawProxy", new Integer(50));
+
+        int num = proxy_buffer.getCount();
+        num = 50 - num;
+        if (num < 0) {
+            num = 1;
+        }
+
+        MessageCarrier r = new MessageCarrier("RawProxy", new Integer(num));
         return r;
     }
 
@@ -52,9 +59,9 @@ public class RawProxyRequest implements ClientConnector.IClientProtocol {
             for (int i = 0; i < proxies.length; i++) {
                 proxy_buffer.push(connector, proxies[i]);
             }
-        }else{
-            RawProxyRequest request=new RawProxyRequest();
-            Buffer<ClientConnector.IClientProtocol> b= this.connector.getBufferStore().use("msg");
+        } else {
+            RawProxyRequest request = new RawProxyRequest();
+            Buffer<ClientConnector.IClientProtocol> b = this.connector.getBufferStore().use("msg");
             b.push(connector, request);
         }
     }
