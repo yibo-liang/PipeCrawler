@@ -35,15 +35,10 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
-import jpipe.buffer.util.BufferStore;
 import pcc.core.CrawlerSetting;
-import pcc.core.GlobalControll;
 import pcc.core.entity.MessageCarrier;
+import pcc.workers.server.common.ServerDisplay;
 import pcc.workers.server.common.ServerProtocol;
 
 /**
@@ -67,7 +62,7 @@ public class ServerConnector extends Worker {
             ex.printStackTrace(pw);
             pw.close();
         } catch (FileNotFoundException ex1) {
-            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
+            //Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
         }
     }
 
@@ -89,13 +84,14 @@ public class ServerConnector extends Worker {
                 
                 if (r != null) {
                     MessageCarrier mc = (MessageCarrier) r;
-                    System.out.println("Receive from " + mc.getSender() + ", MSG=" + mc.getMsg());
+                    //System.out.println("Receive from " + mc.getSender() + ", MSG=" + mc.getMsg());
+                    ServerDisplay.update(mc.getSender(), mc.getMsg());
                     MessageCarrier reply = rohandler.handleMsg(mc);
 
                     OutputStream os = sock.getOutputStream();
                     ObjectOutputStream oos = new ObjectOutputStream(os);
                     oos.writeObject(reply);
-                    System.out.println("Replied to" + mc.getSender() + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
+                    //System.out.println("Replied to" + mc.getSender() + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
 
                     oos.flush();
                     oos.close();
@@ -108,7 +104,7 @@ public class ServerConnector extends Worker {
                     MessageCarrier reply = new MessageCarrier("ERROR", "");
 
                     oos.writeObject(reply);
-                    System.out.println("Error received," + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
+                    //System.out.println("Error received," + ", MSG=" + reply.getMsg() + "/" + reply.getObj().toString());
                     
                     oos.flush();
                     oos.close();
@@ -121,7 +117,7 @@ public class ServerConnector extends Worker {
                 ois.close();
                 is.close();
             } catch (IOException | ClassNotFoundException ex) {
-                Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
                 logError(ex);
 
             } finally {
@@ -129,7 +125,7 @@ public class ServerConnector extends Worker {
                     is.close();
                 } catch (IOException ex) {
                     logError(ex);
-                    Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
+                    //Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
@@ -154,7 +150,7 @@ public class ServerConnector extends Worker {
             server = new ServerSocket(CrawlerSetting.getHost().getSecond());
         } catch (IOException ex) {
             logError(ex);
-            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             return Worker.FAIL;
         }
 
@@ -168,7 +164,7 @@ public class ServerConnector extends Worker {
                 //System.out.println("Receiving objects from clients");
             } catch (IOException ex) {
                 logError(ex);
-                Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex);
             }
 
         } while (true);

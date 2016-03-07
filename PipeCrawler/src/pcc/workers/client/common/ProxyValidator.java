@@ -64,7 +64,8 @@ public class ProxyValidator extends Worker {
             client.setProxy(p);
             //http://www2.macs.hw.ac.uk/~yl9/proxytest.php
             //http://www.lagado.com/proxy-test
-            String result = client.wget("http://www2.macs.hw.ac.uk/~yl9/proxytest.php");
+            //
+            String result = client.wget("http://139.196.193.188/t2.php");
             client.close();
 
             if (result != null && 
