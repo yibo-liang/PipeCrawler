@@ -61,32 +61,32 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 setProjection(Projections.rowCount()).
                 uniqueResult();
         long range = (count > 1000) ? 1000 : count - 1;
+        boolean error = false;
+        try {
+            for (int i = 0; i < num; i++) {
+                List<RawAccount> items;
+                RawAccount item;
+                do {
+                    item = (RawAccount) session
+                            .createCriteria(RawAccount.class)
+                            .add(Restrictions.idEq(new Long((long) (count - Math.random() * range))))
+                            .uniqueResult();
+                } while (item == null || item.getCrawlstate() == 1);
 
-        for (int i = 0; i < num; i++) {
-            List<RawAccount> items;
-            do {
-                items = session
-                        .createCriteria(RawAccount.class)
-                        .add(Restrictions.idEq(new Long((long) (count - Math.random() * range))))
-                        .add(Restrictions.eq("crawlstate", new Integer(0)))
-                        .setMaxResults(1)
-                        .list();
-            } while (items.size() <= 0);
-            if (items.size() > 0) {
-                RawAccount item = items.get(0);
                 item.setCrawlstate(1);
                 result.add(item);
                 session.save(item);
                 session.flush();
                 session.clear();
-            } else {
-                break;
-            }
 
+            }
+        } catch (Exception ex) {
+            error = true;
         }
+
         tx.commit();
         session.close();
-        if (result.size() > 0) {
+        if (result.size() > 0 && !error) {
             RawAccount[] raw_accounts = result.toArray(new RawAccount[result.size()]);
             return new MessageCarrier("RAWUSER", raw_accounts);
         } else {
