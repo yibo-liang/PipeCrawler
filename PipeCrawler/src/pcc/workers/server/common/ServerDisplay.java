@@ -70,7 +70,7 @@ public class ServerDisplay {
     public static void show() {
         System.out.print("\033[2J\033[1;1H");
         System.out.println("Pipecrawler Server");
-        System.out.println("Worker\t\t\tLast MSG\t\tUpdate at");
+        System.out.println("Worker\t\tLast MSG\t\tUpdate at");
         List<String> list = new ArrayList<>(messageMap.keySet());
         Collections.sort(list);
         for (int i = 0; i < list.size(); i++) {
