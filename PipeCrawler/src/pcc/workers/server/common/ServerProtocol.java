@@ -70,7 +70,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             List<RawAccount> items;
             items = session.createCriteria(RawAccount.class)
                     .add(Restrictions.gt("id", new Long(count - range)))
-                    .add(Restrictions.le("id", new Long(range)))
+                    .add(Restrictions.le("id", new Long(count)))
                     .add(Restrictions.eq("crawlstate", 0))
                     .addOrder(Order.asc("uid"))
                     .setMaxResults(num)

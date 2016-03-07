@@ -231,7 +231,7 @@ public class PipeCrawler {
                 long count = new Long(q.list().get(0).toString());
                 List<RawAccount> items = session.createCriteria(RawAccount.class)
                     .add(Restrictions.gt("id", new Long(count - 100)))
-                    .add(Restrictions.le("id", 100L))
+                    .add(Restrictions.le("id", new Long(count)))
                     .add(Restrictions.eq("crawlstate", 0))
                     .addOrder(Order.asc("uid"))
                     .setMaxResults(5)
