@@ -68,13 +68,7 @@ public class ServerDisplay {
     }
     
     public static void show() {
-        try {
-            //clear screen
-            Runtime.getRuntime().exec("clear");
-        } catch (IOException ex) {
-            //Logger.getLogger(ServerDisplay.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        System.out.print("\f");
+        System.out.print("\033[2J\033[1;1H");
         System.out.println("Pipecrawler Server");
         System.out.println("Worker\t\t\tLast MSG\t\tUpdate at");
         List<String> list = new ArrayList<>(messageMap.keySet());
