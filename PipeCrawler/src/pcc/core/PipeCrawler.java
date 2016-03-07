@@ -87,7 +87,7 @@ public class PipeCrawler {
 
         MultiPipeSection pipsec1 = new MultiPipeSection(InitFacotry, bs1, 5);
         MultiPipeSection pipsec2 = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
-        MultiPipeSection pipsec3 = new MultiPipeSection(PagePusherFactory, bs1, 5);
+        MultiPipeSection pipsec3 = new MultiPipeSection(PagePusherFactory, bs1, 20);
         MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 80);
 
         pipsec1.Start();
@@ -119,9 +119,11 @@ public class PipeCrawler {
             System.out.println(bs1.BufferStates());
             System.out.println("  ----------------------------");
             //System.out.println(cp0.GetSectionAnalyseResult());
-            System.out.println(pipsec1.GetSectionAnalyseResult());
             System.out.println(pipsec2.GetSectionAnalyseResult());
+            System.out.println(pipsec3.GetSectionAnalyseResult());
+            
             System.out.println(pipsec4.GetSectionAnalyseResult());
+            
             System.out.println("  ----------------------------");
             System.out.println(proxysbuffer.getPushingRecordToString());
 
