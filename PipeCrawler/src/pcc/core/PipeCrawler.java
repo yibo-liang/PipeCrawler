@@ -15,6 +15,9 @@ import jpipe.core.pipeline.DefaultWorkerFactory;
 import jpipe.core.pipeline.SinglePipeSection;
 import jpipe.interfaceclass.IWorkerLazy;
 import jpipe.util.Triplet;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
@@ -121,9 +124,9 @@ public class PipeCrawler {
             //System.out.println(cp0.GetSectionAnalyseResult());
             System.out.println(pipsec2.GetSectionAnalyseResult());
             System.out.println(pipsec3.GetSectionAnalyseResult());
-            
+
             System.out.println(pipsec4.GetSectionAnalyseResult());
-            
+
             System.out.println("  ----------------------------");
             System.out.println(proxysbuffer.getPushingRecordToString());
 
@@ -175,7 +178,7 @@ public class PipeCrawler {
                 ServerDisplay.changeSuffix(suffix);
             }
 
-            if (ServerDisplay.isUpdated()){
+            if (ServerDisplay.isUpdated()) {
                 ServerDisplay.show();
             }
             //System.out.println("----------------------------");
@@ -214,6 +217,19 @@ public class PipeCrawler {
                 as[3] = new RawAccount(3807667648L);
                 dbi.Insert(as);
                 break;
+            case "TEST":
+                Session session = DatabaseManager.getSession();
+                Transaction tx = session.beginTransaction();
+                Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
+                        + "FROM INFORMATION_SCHEMA.TABLES "
+                        + "WHERE TABLE_SCHEMA = 'ylproj' "
+                        + "AND TABLE_NAME = 'raw_account';");
+                System.out.println(q.getQueryString());
+                long count = new Long(q.list().get(0).toString());
+                tx.commit();
+                session.close();
+
+                System.out.println("c=" + count);
         }
 
     }

@@ -57,7 +57,13 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         List<RawAccount> result = new ArrayList<>();
         Session session = DatabaseManager.getSession();
         Transaction tx = session.beginTransaction();
-        long count = (long) session.createSQLQuery("SELECT `AUTO_INCREMENT` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'ylproj' AND TABLE_NAME = 'raw_account';").uniqueResult();
+        Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
+                + "FROM INFORMATION_SCHEMA.TABLES "
+                + "WHERE TABLE_SCHEMA = 'ylproj' "
+                + "AND TABLE_NAME = 'raw_account';");
+        
+        long count = new Long(q.list().get(0).toString());
+        
         long range = (count > 100) ? 100 : count - 1;
         boolean error = false;
         try {

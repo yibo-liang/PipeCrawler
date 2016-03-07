@@ -79,7 +79,8 @@ public class DatabaseManager {
     private static void load() {
 
         if (!GlobalControll.PROCESS_TASK.equals("SERVER")
-                && !GlobalControll.PROCESS_TASK.equals("DBINIT")) {
+                && !GlobalControll.PROCESS_TASK.equals("DBINIT")
+                && !GlobalControll.PROCESS_TASK.equals("TEST")) {
             return;
         }
 
