@@ -7,6 +7,7 @@ package pcc.core;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
 import jpipe.buffer.util.BufferStore;
@@ -18,6 +19,8 @@ import jpipe.util.Triplet;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
@@ -226,9 +229,18 @@ public class PipeCrawler {
                         + "AND TABLE_NAME = 'raw_account';");
                 System.out.println(q.getQueryString());
                 long count = new Long(q.list().get(0).toString());
+                List<RawAccount> items = session.createCriteria(RawAccount.class)
+                    .add(Restrictions.gt("id", new Long(count - 100)))
+                    .add(Restrictions.le("id", 100L))
+                    .add(Restrictions.eq("crawlstate", 0))
+                    .addOrder(Order.asc("uid"))
+                    .setMaxResults(5)
+                    .list();
                 tx.commit();
                 session.close();
-
+                for (int i=0;i<items.size();i++){
+                    System.out.println(items.get(i).getUid());
+                }
                 System.out.println("c=" + count);
         }
 

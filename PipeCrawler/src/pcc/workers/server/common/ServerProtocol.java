@@ -61,16 +61,16 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 + "FROM INFORMATION_SCHEMA.TABLES "
                 + "WHERE TABLE_SCHEMA = 'ylproj' "
                 + "AND TABLE_NAME = 'raw_account';");
-        
+
         long count = new Long(q.list().get(0).toString());
-        
+
         long range = (count > 100) ? 100 : count - 1;
         boolean error = false;
         try {
             List<RawAccount> items;
             items = session.createCriteria(RawAccount.class)
                     .add(Restrictions.gt("id", new Long(count - range)))
-                    .add(Restrictions.le("id", range))
+                    .add(Restrictions.le("id", new Long(range)))
                     .add(Restrictions.eq("crawlstate", 0))
                     .addOrder(Order.asc("uid"))
                     .setMaxResults(num)
@@ -92,6 +92,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 item = items.get(i);
                 item.setCrawlstate(1);
                 result.add(item);
+                System.out.println("Give : "+item.getUid());
                 session.save(item);
                 session.flush();
             }
