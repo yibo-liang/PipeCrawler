@@ -165,7 +165,7 @@ public class PipeCrawler {
         (new Thread(userReceivePip)).start();
         String suffix = "";
         while (true) {
-            Thread.sleep(1000);
+            Thread.sleep(200);
             Calendar cal = Calendar.getInstance();
             //SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             //System.out.println(sdf.format(cal.getTime()));
