@@ -79,7 +79,8 @@ public class ServerDisplay {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             sdf.setTimeZone(TimeZone.getTimeZone("GMT+0"));
             String formattedDate = sdf.format(date);
-            System.out.println(String.format("%1$10s", worker) + ":\t" + messageMap.get(worker) + "\t\t" + formattedDate);
+            System.out.println(String.format("%1$10s", worker) + 
+                    ":\t" + String.format("%1$10s",messageMap.get(worker)) + "\t\t" + formattedDate);
         }
         System.out.println("");
         System.out.println(suffix);
