@@ -25,6 +25,8 @@ package pcc.workers.client.common;
 
 //import java.util.logging.Level;
 //import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
 import pcc.http.CrawlerClient;
@@ -81,7 +83,7 @@ public class ProxyValidator extends Worker {
                 return Worker.FAIL;
             }
         } catch (Exception ex) {
-            //Logger.getLogger(ProxyValidator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ProxyValidator.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println("Failed "+ex.getMessage());
             return Worker.FAIL;
         }

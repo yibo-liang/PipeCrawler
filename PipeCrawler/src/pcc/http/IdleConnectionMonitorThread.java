@@ -47,9 +47,9 @@ public class IdleConnectionMonitorThread extends Thread {
         try {
             while (!shutdown) {
                 synchronized (this) {
-                    wait(1000*60);
+                    wait(1000*5);
                     connMgr.closeExpiredConnections();
-                    connMgr.closeIdleConnections(120, TimeUnit.SECONDS);
+                    connMgr.closeIdleConnections(45, TimeUnit.SECONDS);
                     System.out.println("** CLOSED IDLE CONNECTIONS **");
                 }
             }

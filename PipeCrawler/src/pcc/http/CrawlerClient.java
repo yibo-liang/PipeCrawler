@@ -118,7 +118,7 @@ public class CrawlerClient {
             }
             return result;
         } catch (IOException ex) {
-            //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
             // ex.printStackTrace();
             return result;
         }
