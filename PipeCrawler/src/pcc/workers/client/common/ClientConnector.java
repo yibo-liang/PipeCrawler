@@ -93,6 +93,11 @@ public class ClientConnector extends Worker {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
         }
+         try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex1) {
+                Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
+            }
         return Worker.FAIL;
     }
 
