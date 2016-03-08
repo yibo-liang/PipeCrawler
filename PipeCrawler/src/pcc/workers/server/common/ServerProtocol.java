@@ -63,14 +63,18 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 + "AND TABLE_NAME = 'raw_account';");
 
         long count = new Long(q.list().get(0).toString());
+        long range = (count > 100) ? 100 : count - 1;
 
-        long range = (count > 5000) ? 5000 : count - 1;
+        double pick = Math.random();
+        long lower = (long) (pick * count);
+        long upper = lower + range;
+
         boolean error = false;
         try {
             List<RawAccount> items;
             items = session.createCriteria(RawAccount.class)
-                    .add(Restrictions.gt("id", new Long(count - range)))
-                    .add(Restrictions.le("id", new Long(count)))
+                    .add(Restrictions.gt("id", new Long(lower)))
+                    .add(Restrictions.le("id", new Long(upper)))
                     .add(Restrictions.eq("crawlstate", 0))
                     .addOrder(Order.asc("uid"))
                     .setMaxResults(num)
@@ -92,7 +96,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 item = items.get(i);
                 item.setCrawlstate(1);
                 result.add(item);
-                System.out.println("Give : "+item.getUid());
+                System.out.println("Give : " + item.getUid());
                 session.save(item);
                 session.flush();
             }
