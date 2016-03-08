@@ -26,6 +26,8 @@ import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
 import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
+import pcc.workers.client.accountdetail.ATest;
+import pcc.workers.client.accountdetail.DetailCrawler;
 import pcc.workers.client.rawuser.AccountCrawler;
 import pcc.workers.client.common.ClientConnector;
 import pcc.workers.client.rawuser.UserPagePusher;
@@ -145,6 +147,9 @@ public class PipeCrawler {
 
     public static void ServerCrawler() throws InterruptedException {
         //buffer store 
+        CrawlerConnectionManager.setMaxConnection(1000);
+        CrawlerConnectionManager.StartConnectionMonitor();
+
         BufferStore bs1 = new BufferStore();
 
         //user buffer
@@ -191,6 +196,44 @@ public class PipeCrawler {
         }
     }
 
+    public static void DetailCrawler() throws InterruptedException {
+
+        CrawlerConnectionManager.setMaxConnection(1000);
+        CrawlerConnectionManager.StartConnectionMonitor();
+
+        LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
+        LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
+        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
+        LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
+
+        BufferStore bs1 = new BufferStore();
+        bs1.put("msg", messageBuffer);
+        bs1.put("rawusers", rawUserBuffer);
+        bs1.put("rawproxies", rawproxysbuffer);
+        bs1.put("proxys", proxysbuffer);
+
+        DefaultWorkerFactory<ProxyValidator> ProxyValidatorFactory = new DefaultWorkerFactory<>(ProxyValidator.class);
+
+        DefaultWorkerFactory<DetailCrawler> dcFacotry = new DefaultWorkerFactory<>(DetailCrawler.class);
+
+        MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
+        MultiPipeSection dcPipe = new MultiPipeSection(dcFacotry, bs1, 20);
+
+        proxyPipe.Start();
+        dcPipe.Start();
+
+        //client side message sender
+        ClientConnector cos = new ClientConnector("msg");
+        cos.setBufferStore(bs1);
+        SinglePipeSection connectorSec = new SinglePipeSection(cos);
+        (new Thread(connectorSec)).start();
+        while (true) {
+            Thread.sleep(2000);
+            System.out.println("-----------------------------------");
+            ATest.printKs();
+        }
+    }
+
     public static void main(String[] args) throws InterruptedException {
         String arg = args[0].toUpperCase();
         GlobalControll.PROCESS_TASK = arg;
@@ -221,7 +264,7 @@ public class PipeCrawler {
                 dbi.Insert(as);
                 break;
             case "TEST":
-                ServerConnector.logError(new Exception("Error test"));
+
         }
 
     }

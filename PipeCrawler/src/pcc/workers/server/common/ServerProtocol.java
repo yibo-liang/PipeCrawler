@@ -118,11 +118,77 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         }
     }
 
+    private MessageCarrier handleDetailTaskRequest(MessageCarrier mc) {
+        int num = (Integer) mc.getObj();
+
+        List<RawAccount> result = new ArrayList<>();
+        Session session = DatabaseManager.getSession();
+        Transaction tx = session.beginTransaction();
+        Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
+                + "FROM INFORMATION_SCHEMA.TABLES "
+                + "WHERE TABLE_SCHEMA = 'ylproj' "
+                + "AND TABLE_NAME = 'raw_account';");
+
+        long count = new Long(q.list().get(0).toString());
+        long range = (count > 100) ? 100 : count - 1;
+
+        double pick = Math.random();
+        long lower = (long) (pick * count);
+        long upper = lower + range;
+
+        boolean error = false;
+        try {
+            List<RawAccount> items;
+            items = session.createCriteria(RawAccount.class)
+                    .add(Restrictions.gt("id", new Long(lower)))
+                    .add(Restrictions.le("id", new Long(upper)))
+                    .add(Restrictions.eq("crawlstate", 0))
+                    .addOrder(Order.asc("uid"))
+                    .setMaxResults(num)
+                    .list();
+
+            RawAccount item;
+            /*
+             for (int i = 0; i < num; i++) {
+
+                
+             do {
+             item = (RawAccount) session
+             .createCriteria(RawAccount.class)
+             .add(Restrictions.eq("id", new Long((long) (count - Math.random() * range))))
+             .uniqueResult();
+             } while (item == null || item.getCrawlstate() == 1);
+             */
+            for (int i = 0; i < items.size(); i++) {
+                item = items.get(i);
+                result.add(item);
+            }
+            //}
+        } catch (Exception ex) {
+            error = true;
+        }
+
+        tx.commit();
+
+        session.close();
+
+        if (result.size()
+                > 0 && !error) {
+            RawAccount[] raw_accounts = result.toArray(new RawAccount[result.size()]);
+            return new MessageCarrier("RAWUSER", raw_accounts);
+        } else {
+            return new MessageCarrier("NULL", "");
+        }
+    }
+
     private MessageCarrier handleRawUser(MessageCarrier mc) {
         RawAccount[] rusers = (RawAccount[]) mc.getObj();
 
-        DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
-        dbi.batchInsert(rusers);
+        Buffer<RawAccount> buffer = connector.getBufferStore().use("rawusers");
+        
+        for (int i=0;i<rusers.length;i++){
+            connector.blockedpush(buffer, rusers[i]);
+        }
 
         return new MessageCarrier("ACK", "");
     }
