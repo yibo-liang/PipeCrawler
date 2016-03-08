@@ -82,7 +82,7 @@ public class ClientConnector extends Worker {
             socket.close();
 
             try {
-                Thread.sleep(2000);
+                Thread.sleep(200);
             } catch (InterruptedException ex1) {
                 Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
             }
@@ -94,7 +94,7 @@ public class ClientConnector extends Worker {
             Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
         }
          try {
-                Thread.sleep(2000);
+                Thread.sleep(200);
             } catch (InterruptedException ex1) {
                 Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
             }
