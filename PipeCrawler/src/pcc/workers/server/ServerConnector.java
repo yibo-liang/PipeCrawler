@@ -25,6 +25,7 @@ package pcc.workers.server;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -35,6 +36,8 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jpipe.abstractclass.worker.Worker;
 import pcc.core.CrawlerSetting;
 import pcc.core.entity.MessageCarrier;
@@ -55,14 +58,18 @@ public class ServerConnector extends Worker {
 
     }
 
-    private void logError(Exception ex) {
+    public static void logError(Exception ex) {
         try {
-
-            PrintWriter pw = new PrintWriter(new File("~/error.txt"));
+            String userHome = System.getProperty( "user.home" );
+            FileWriter fw = new FileWriter(userHome+"/err.txt",true);
+            PrintWriter pw = new PrintWriter(fw);
             ex.printStackTrace(pw);
+            
             pw.close();
         } catch (FileNotFoundException ex1) {
-            //Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
+            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
+        } catch (IOException ex1) {
+            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
         }
     }
 

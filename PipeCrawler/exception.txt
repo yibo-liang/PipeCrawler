@@ -1,0 +1,6 @@
+java.lang.Exception: Error test
+	at pcc.core.PipeCrawler.main(PipeCrawler.java:224)
+java.lang.Exception: Error test
+	at pcc.core.PipeCrawler.main(PipeCrawler.java:224)
+java.lang.Exception: Error test
+	at pcc.core.PipeCrawler.main(PipeCrawler.java:224)

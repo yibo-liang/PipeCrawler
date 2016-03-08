@@ -151,7 +151,7 @@ public class PipeCrawler {
         LUBuffer<RawAccount> resultUserbuffer = new LUBuffer<>(0);
         bs1.put("rawusers", resultUserbuffer);
 
-        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(300);
+        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(500);
         bs1.put("rawproxies", rawproxysbuffer);
         //create worker - receiver
 
@@ -221,27 +221,7 @@ public class PipeCrawler {
                 dbi.Insert(as);
                 break;
             case "TEST":
-                Session session = DatabaseManager.getSession();
-                Transaction tx = session.beginTransaction();
-                Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
-                        + "FROM INFORMATION_SCHEMA.TABLES "
-                        + "WHERE TABLE_SCHEMA = 'ylproj' "
-                        + "AND TABLE_NAME = 'raw_account';");
-                System.out.println(q.getQueryString());
-                long count = new Long(q.list().get(0).toString());
-                List<RawAccount> items = session.createCriteria(RawAccount.class)
-                    .add(Restrictions.gt("id", new Long(count - 100)))
-                    .add(Restrictions.le("id", new Long(count)))
-                    .add(Restrictions.eq("crawlstate", 0))
-                    .addOrder(Order.asc("uid"))
-                    .setMaxResults(5)
-                    .list();
-                tx.commit();
-                session.close();
-                for (int i=0;i<items.size();i++){
-                    System.out.println(items.get(i).getUid());
-                }
-                System.out.println("c=" + count);
+                ServerConnector.logError(new Exception("Error test"));
         }
 
     }
