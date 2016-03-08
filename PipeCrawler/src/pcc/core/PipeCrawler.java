@@ -264,6 +264,11 @@ public class PipeCrawler {
                 dbi.Insert(as);
                 break;
             case "TEST":
+                SignalListener sl = (new SignalListener());
+                (new Thread(sl)).start();
+                DetailCrawler();
+                break;
+                        
 
         }
 

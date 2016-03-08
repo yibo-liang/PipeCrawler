@@ -233,6 +233,9 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         String msg = mc.getMsg();
         MessageCarrier reply;
         switch (msg) {
+            case "DetailTask":
+                reply=handleDetailTaskRequest(mc);
+                break;
             case "UserTask":
                 reply = handleUserTaskRequest(mc);
                 break;
