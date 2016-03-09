@@ -51,7 +51,6 @@ public class RawAccount implements Serializable {
     private static final long serialVersionUID = 7513452215622776147L;
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     
     @Column(name = "uid", unique=true)
