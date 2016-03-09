@@ -76,7 +76,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                     .add(Restrictions.gt("id", new Long(lower)))
                     .add(Restrictions.le("id", new Long(upper)))
                     .add(Restrictions.eq("crawlstate", 0))
-                    .addOrder(Order.asc("uid"))
+                    //.addOrder(Order.asc("uid"))
                     .setMaxResults(num)
                     .list();
 
