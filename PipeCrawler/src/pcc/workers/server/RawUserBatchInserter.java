@@ -61,16 +61,17 @@ public class RawUserBatchInserter extends Worker {
                         if (i < num - 1) {
                             sql += ",";
                         }
-                        
+
                     }
-                    stmt.executeQuery(sql);
+                    stmt.addBatch(sql);
+                    stmt.executeBatch();
                     stmt.close();
                     conn.close();
-                    
+
                     //dbi.batchInsert(rusers);
-                }catch(Exception ex){
+                } catch (Exception ex) {
                     Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
-            
+
                     ServerConnector.logError(ex);
                 }
             }
