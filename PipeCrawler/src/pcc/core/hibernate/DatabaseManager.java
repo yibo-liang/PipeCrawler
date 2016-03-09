@@ -62,6 +62,7 @@ public class DatabaseManager {
             Transaction tx = session.beginTransaction();
             try {
                 for (int i = 0; i < arr.length; i++) {
+                    System.out.println(arr[i]);
                     session.saveOrUpdate(arr[i]);
 
                     if (i % 20 == 0) {
@@ -71,11 +72,12 @@ public class DatabaseManager {
 
                 }
 
-                tx.commit();
-                session.close();
             } catch (Exception ex) {
                 ServerConnector.logError(ex);
             }
+
+            tx.commit();
+            session.close();
         }
 
     }

@@ -33,16 +33,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Index;
 import javax.persistence.Transient;
 
-
-
 /**
  *
  * @author yl9
  */
 @Entity
 @Table(name = "account_detail", indexes = {
-    @Index ( columnList = "id", name="table_id_idx"),
-    @Index ( columnList = "uid", name="user_id_idx")
+    @Index(columnList = "id", name = "table_id_idx"),
+    @Index(columnList = "uid", name = "user_id_idx")
 })
 public class AccountDetail implements Serializable {
 
@@ -71,9 +69,9 @@ public class AccountDetail implements Serializable {
     @Column(name = "name")
     private String name;
 
-    @Column(name="avatar_img", length = 127)
+    @Column(name = "avatar_img", length = 127)
     private String avatar_img;
-    
+
     @Column(name = "background")
     private String background;
 
@@ -127,8 +125,6 @@ public class AccountDetail implements Serializable {
         this.uid = uid;
     }
 
-    
-    
     public long getContainerid() {
         return container_id;
     }
@@ -177,14 +173,12 @@ public class AccountDetail implements Serializable {
         this.avatar_img = avatar_img;
     }
 
-    
-    
     public String getBackground() {
         return background;
     }
 
     public void setBackground(String background) {
-        this.background = (background.length()<=255) ? background : background.substring(1, 255);
+        this.background = (background.length() <= 255) ? background : background.substring(1, 255);
     }
 
     public String getDescription() {
@@ -192,7 +186,7 @@ public class AccountDetail implements Serializable {
     }
 
     public void setDescription(String description) {
-        this.description = (description.length()<=255) ? description : description.substring(1, 255);
+        this.description = (description.length() <= 255) ? description : description.substring(1, 255);
     }
 
     public boolean isVerified() {
@@ -267,4 +261,13 @@ public class AccountDetail implements Serializable {
         this.gender = gender;
     }
 
+    @Override
+    public String toString() {
+        String result = "";
+        result += this.getGender() + ",";
+        result += this.getUid() + ",";
+        result += this.getName() + ",";
+        result += this.getDescription() + ",";
+        return result;
+    }
 }
