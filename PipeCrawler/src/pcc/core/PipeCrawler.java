@@ -168,7 +168,7 @@ public class PipeCrawler {
         bs1.put("rawproxies", rawproxysbuffer);
 
         //user detail buffer
-        LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>();
+        LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>(0);
         bs1.put("account_detail", detailbuffer);
         //create worker - receiver
 
