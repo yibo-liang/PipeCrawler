@@ -28,6 +28,8 @@ import org.hibernate.*;
 import org.hibernate.cfg.*;
 import org.hibernate.exception.ConstraintViolationException;
 import pcc.core.GlobalControll;
+import pcc.http.CrawlerClient;
+import pcc.workers.server.ServerConnector;
 
 /**
  *
@@ -72,6 +74,7 @@ public class DatabaseManager {
                 tx.commit();
                 session.close();
             } catch (Exception ex) {
+                ServerConnector.logError(ex);
             }
         }
 
