@@ -31,6 +31,10 @@ import pcc.core.GlobalControll;
 import pcc.http.CrawlerClient;
 import pcc.workers.server.ServerConnector;
 
+import java.sql.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author yl9
@@ -38,6 +42,25 @@ import pcc.workers.server.ServerConnector;
 public class DatabaseManager {
 
     public static class DBInterface<T> {
+
+        public Connection getJDBC_Connection() {
+
+            try {
+                String JDBC_DRIVER = "com.mysql.jdbc.Driver";
+                String DB_URL = "jdbc:mysql://192.168.1.39/ylproj?useServerPrepStmts=false&rewriteBatchedStatements=true";
+                String USER = "java";
+                String PASS = "NE391NDF9";
+
+                Class.forName(JDBC_DRIVER);
+                Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+                return conn;
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(DatabaseManager.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(DatabaseManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return null;
+        }
 
         public void batchInsert(T[] arr) {
             int dup = 0;
@@ -47,7 +70,7 @@ public class DatabaseManager {
                 try {
 
                     session.insert(arr[i]);
-                    
+
                 } catch (Exception ex) {
                     dup++;
                 }
@@ -103,10 +126,14 @@ public class DatabaseManager {
                 = new Configuration().
                 configure("hibernate.cfg.xml")
                 .addPackage("pcc.core.entity")
-                .addAnnotatedClass(pcc.core.entity.MBlog.class)
-                .addAnnotatedClass(pcc.core.entity.RawAccount.class)
-                .addAnnotatedClass(pcc.core.entity.AccountDetail.class)
-                .addAnnotatedClass(pcc.core.entity.MBlogCrawlInfo.class);
+                .addAnnotatedClass(pcc.core.entity.MBlog.class
+                )
+                .addAnnotatedClass(pcc.core.entity.RawAccount.class
+                )
+                .addAnnotatedClass(pcc.core.entity.AccountDetail.class
+                )
+                .addAnnotatedClass(pcc.core.entity.MBlogCrawlInfo.class
+                );
 
         sessionFactory = configuration
                 .configure()

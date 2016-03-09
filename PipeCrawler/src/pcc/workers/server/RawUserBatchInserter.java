@@ -23,6 +23,8 @@
  */
 package pcc.workers.server;
 
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -51,8 +53,26 @@ public class RawUserBatchInserter extends Worker {
                     rusers[i] = (RawAccount) blockedpoll(buffer);
                 }
 
-                dbi.batchInsert(rusers);
-
+                try (Connection conn = dbi.getJDBC_Connection()) {
+                    Statement stmt = conn.createStatement();
+                    String sql = "INSERT IGNORE into raw_account (id, crawlstate, uid) values";
+                    for (int i = 0; i < num; i++) {
+                        sql += "(null, 0, " + rusers[i].getUid() + ")";
+                        if (i < num - 1) {
+                            sql += ",";
+                        }
+                        
+                    }
+                    stmt.executeQuery(sql);
+                    stmt.close();
+                    conn.close();
+                    
+                    //dbi.batchInsert(rusers);
+                }catch(Exception ex){
+                    Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
+            
+                    ServerConnector.logError(ex);
+                }
             }
         } catch (Exception ex) {
             Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
