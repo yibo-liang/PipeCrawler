@@ -45,7 +45,7 @@ import javax.persistence.Transient;
 public class AccountDetail implements Serializable {
 
     @Transient
-    private static final long serialVersionUID = 7513452215622776148L;
+    private static final long serialVersionUID = 7533152215622776148L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

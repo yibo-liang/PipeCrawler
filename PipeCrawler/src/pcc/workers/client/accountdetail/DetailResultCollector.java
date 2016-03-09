@@ -52,10 +52,11 @@ public class DetailResultCollector extends Worker {
             AccountDetail[] data = new AccountDetail[num];
             for (int i = 0; i < num; i++) {
                 data[i] = (AccountDetail) blockedpoll(inputbuffer);
+                System.out.println(data[i]);
             }
-            DetailUploadRequest request=new DetailUploadRequest(data);
+            DetailUploadRequest request = new DetailUploadRequest(data);
             blockedpush(msgbuffer, request);
-            
+
         } else {
             try {
                 Thread.sleep(1000);
