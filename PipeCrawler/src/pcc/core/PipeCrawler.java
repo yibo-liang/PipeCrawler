@@ -172,6 +172,8 @@ public class PipeCrawler {
         bs1.put("account_detail", detailbuffer);
         //create worker - receiver
 
+       
+
         if (CrawlerSetting.USE_PROXY) {
             ProxySupplier ps = new ProxySupplier(500);
             ps.setBufferStore(bs1);
@@ -180,6 +182,7 @@ public class PipeCrawler {
         }
 
         //create pip section
+        
         /* --- Server connector --- */
         ServerConnector serverConnector = new ServerConnector();
         serverConnector.setBufferStore(bs1);
@@ -187,10 +190,11 @@ public class PipeCrawler {
         (new Thread(userReceivePip)).start();
 
         /* --- RawUser Inserter --- */
-        DefaultWorkerFactory<RawUserBatchInserter> InserTerFact = new DefaultWorkerFactory<>(RawUserBatchInserter.class);
-
-        MultiPipeSection ruInserterPipe = new MultiPipeSection(InserTerFact, bs1, 3);
-        ruInserterPipe.Start();
+        
+        RawUserBatchInserter ruInserter = new RawUserBatchInserter();
+        ruInserter.setBufferStore(bs1);
+        SinglePipeSection ruInserterPipe = new SinglePipeSection(ruInserter);
+        (new Thread(ruInserterPipe)).start();
 
         /* --- Account Detail Inserter --- */
         DetailBatchInserter adInserter = new DetailBatchInserter();
@@ -198,6 +202,8 @@ public class PipeCrawler {
         SinglePipeSection adInserterPipe = new SinglePipeSection(adInserter);
         (new Thread(adInserterPipe)).start();
 
+        
+        
         String suffix = "";
 
         while (true) {
@@ -264,7 +270,7 @@ public class PipeCrawler {
             Thread.sleep(2000);
             System.out.println(bs1.BufferStates());
             System.out.println("-----------------------------------");
-
+            
         }
     }
 

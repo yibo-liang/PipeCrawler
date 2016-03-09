@@ -47,7 +47,7 @@ public class DatabaseManager {
                 try {
 
                     session.insert(arr[i]);
-
+                    
                 } catch (ConstraintViolationException ex) {
                     dup++;
                 }
