@@ -197,7 +197,7 @@ public class PipeCrawler {
 
         /* --- Account Detail Inserter --- */
         DetailBatchInserter adInserter = new DetailBatchInserter();
-        ruInserter.setBufferStore(bs1);
+        adInserter.setBufferStore(bs1);
         SinglePipeSection adInserterPipe = new SinglePipeSection(adInserter);
         (new Thread(adInserterPipe)).start();
 
