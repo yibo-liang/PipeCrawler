@@ -267,6 +267,7 @@ public class PipeCrawler {
 
         while (true) {
             Thread.sleep(2000);
+            System.out.println(bs1.BufferStates());
             System.out.println("-----------------------------------");
             
         }
@@ -301,7 +302,7 @@ public class PipeCrawler {
                 as[3] = new RawAccount(3807667648L);
                 dbi.Insert(as);
                 break;
-            case "TEST":
+            case "DETAIL":
                 SignalListener sl = (new SignalListener());
                 (new Thread(sl)).start();
                 DetailCrawler();

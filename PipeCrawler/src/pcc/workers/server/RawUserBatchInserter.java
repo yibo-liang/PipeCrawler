@@ -45,8 +45,9 @@ public class RawUserBatchInserter extends Worker {
 
         if (buffer.getCount() >= 2000) {
             DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
-            RawAccount[] rusers = new RawAccount[2000];
-            for (int i = 0; i < 2000; i++) {
+            int num=buffer.getCount();
+            RawAccount[] rusers = new RawAccount[num];
+            for (int i = 0; i < num; i++) {
                 rusers[i] = (RawAccount) blockedpoll(buffer);
             }
 
@@ -55,7 +56,7 @@ public class RawUserBatchInserter extends Worker {
         }
 
         try {
-            Thread.sleep(200);
+            Thread.sleep(10);
         } catch (InterruptedException ex) {
             Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
         }
