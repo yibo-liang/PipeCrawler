@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -51,6 +52,10 @@ import pcc.workers.client.protocols.DetailTaskRequest;
 public class DetailCrawler extends Worker {
 
     private Proxy proxy = null;
+
+    private String unescape(String s) {
+        return StringEscapeUtils.unescapeJava(s);
+    }
 
     @Override
     @SuppressWarnings("empty-statement")
@@ -124,7 +129,7 @@ public class DetailCrawler extends Worker {
 
                     detail.setBackground((String) infoObj.get("background"));
                     detail.setBlog_num(Integer.parseInt((String) infoObj.get("mblogNum")));
-                    detail.setDescription((String) infoObj.get("description"));
+                    detail.setDescription(unescape((String) infoObj.get("description")));
                     detail.setFans_num(Integer.parseInt((String) infoObj.get("fansNum")));
 
                     String ta = (String) infoObj.get("ta");
@@ -133,8 +138,8 @@ public class DetailCrawler extends Worker {
                                     : 2));
                     detail.setMember_rank(Integer.parseInt((String) infoObj.get("mbrank")));
                     detail.setMember_type(Integer.parseInt((String) infoObj.get("mbtype")));
-                    detail.setName((String) infoObj.get("name"));
-                    detail.setNative_place((String) infoObj.get("nativePlace"));
+                    detail.setName(unescape((String) infoObj.get("name")));
+                    detail.setNative_place(unescape((String) infoObj.get("nativePlace")));
                     long unixTime = System.currentTimeMillis() / 1000L;
                     detail.setUpdate_time((int) unixTime);
                     detail.setV_type(Integer.parseInt((String) infoObj.get("verified_type")));
@@ -161,10 +166,10 @@ public class DetailCrawler extends Worker {
                 throw new Exception("Retrieved Null");
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
             this.proxy = null;
-            System.out.println("result=\n" + result);
-            System.out.println("RETRIEVED NULL.....");
+            //System.out.println("result=\n" + result);
+            //System.out.println("RETRIEVED NULL.....");
             //this.blockedpush(inputBuffer, temp);
             return Worker.FAIL;
         }

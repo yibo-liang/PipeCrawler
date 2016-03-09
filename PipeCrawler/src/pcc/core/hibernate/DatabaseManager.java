@@ -58,17 +58,21 @@ public class DatabaseManager {
         public void Insert(T[] arr) {
             Session session = getSession();
             Transaction tx = session.beginTransaction();
-            for (int i = 0; i < arr.length; i++) {
-                session.saveOrUpdate(arr[i]);
+            try {
+                for (int i = 0; i < arr.length; i++) {
+                    session.saveOrUpdate(arr[i]);
 
-                if (i % 20 == 0) {
-                    session.flush();
-                    session.clear();
+                    if (i % 20 == 0) {
+                        session.flush();
+                        session.clear();
+                    }
+
                 }
 
+                tx.commit();
+                session.close();
+            } catch (Exception ex) {
             }
-            tx.commit();
-            session.close();
         }
 
     }

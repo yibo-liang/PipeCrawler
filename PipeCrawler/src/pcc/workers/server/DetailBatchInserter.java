@@ -43,11 +43,11 @@ public class DetailBatchInserter extends Worker {
     public int work() {
 
         Buffer<AccountDetail> buffer = this.getBufferStore().use("account_detail");
-
-        if (buffer.getCount() > 200) {
+        
+        if (buffer.getCount() >= 20) {
             DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
-            AccountDetail[] rusers = new AccountDetail[200];
-            for (int i = 0; i < 200; i++) {
+            AccountDetail[] rusers = new AccountDetail[20];
+            for (int i = 0; i < 20; i++) {
                 rusers[i] = (AccountDetail) blockedpoll(buffer);
             }
             
