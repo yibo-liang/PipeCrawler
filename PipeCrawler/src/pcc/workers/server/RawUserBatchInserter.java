@@ -42,19 +42,21 @@ public class RawUserBatchInserter extends Worker {
     public int work() {
 
         Buffer<RawAccount> buffer = this.getBufferStore().use("rawusers");
+        try {
+            if (buffer.getCount() >= 2000) {
+                DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
+                int num = buffer.getCount();
+                RawAccount[] rusers = new RawAccount[num];
+                for (int i = 0; i < num; i++) {
+                    rusers[i] = (RawAccount) blockedpoll(buffer);
+                }
 
-        if (buffer.getCount() >= 2000) {
-            DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
-            int num=buffer.getCount();
-            RawAccount[] rusers = new RawAccount[num];
-            for (int i = 0; i < num; i++) {
-                rusers[i] = (RawAccount) blockedpoll(buffer);
+                dbi.batchInsert(rusers);
+
             }
-
-            dbi.batchInsert(rusers);
-
+        } catch (Exception ex) {
+            Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         try {
             Thread.sleep(10);
         } catch (InterruptedException ex) {
