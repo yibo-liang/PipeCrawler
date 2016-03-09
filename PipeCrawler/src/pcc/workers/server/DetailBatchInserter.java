@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
+import pcc.core.entity.AccountDetail;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
 
@@ -36,28 +37,28 @@ import pcc.core.hibernate.DatabaseManager;
  *
  * @author yl9
  */
-public class RawUserBachInserter extends Worker {
+public class DetailBatchInserter extends Worker {
 
     @Override
     public int work() {
 
-        Buffer<RawAccount> buffer = this.getBufferStore().use("rawusers");
+        Buffer<AccountDetail> buffer = this.getBufferStore().use("account_detail");
 
-        if (buffer.getCount() > 2000) {
+        if (buffer.getCount() > 200) {
             DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
-            RawAccount[] rusers = new RawAccount[1000];
-            for (int i = 0; i < 2000; i++) {
-                rusers[i] = (RawAccount) blockedpoll(buffer);
+            AccountDetail[] rusers = new AccountDetail[200];
+            for (int i = 0; i < 200; i++) {
+                rusers[i] = (AccountDetail) blockedpoll(buffer);
             }
-
-            dbi.batchInsert(rusers);
+            
+            dbi.Insert(rusers);
 
         }
 
         try {
             Thread.sleep(200);
         } catch (InterruptedException ex) {
-            Logger.getLogger(RawUserBachInserter.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DetailBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
         }
         return Worker.SUCCESS;
     }

@@ -23,6 +23,9 @@
  */
 package pcc.workers.client.accountdetail;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
@@ -30,6 +33,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import pcc.core.CrawlerSetting;
+import pcc.core.entity.AccountDetail;
 import pcc.core.entity.RawAccount;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
@@ -51,7 +55,7 @@ public class DetailCrawler extends Worker {
     @Override
     @SuppressWarnings("empty-statement")
     public int work() {
-        Buffer<RawAccount> inputBuffer = this.getBufferStore().use("initusers");
+        Buffer<RawAccount> inputBuffer = this.getBufferStore().use("rawusers");
         Buffer<String> OutputBuffer = this.getBufferStore().use("account_detail");
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer
@@ -94,13 +98,16 @@ public class DetailCrawler extends Worker {
             client.close();
             if (result != null) {
                 //System.out.println(this.getPID()+", "+result);
-                String identifier = "window.$config=";
+                String identifier = "window.$render_data = ";
                 int i = result.indexOf(identifier);
                 int j = result.indexOf("\"mod_type\":\"mod\\/empty\"");
                 if (i != -1 && j == -1) {
                     int start = i + identifier.length();
                     String tmpstr[] = result.substring(start).split(";");
                     String usr_json = tmpstr[0];
+                    usr_json = usr_json.replaceAll("'", "\"");
+                    //System.out.println(usr_json);
+
                     //handle json
                     JSONParser parser = new JSONParser();
                     JSONObject usrObj = ((JSONObject) parser.parse(usr_json));
@@ -108,11 +115,44 @@ public class DetailCrawler extends Worker {
                     JSONArray pageArr = (JSONArray) stageObj.get("page");
                     JSONObject infoObj = (JSONObject) pageArr.get(1);
 
-                    for (Object key : infoObj.keySet()) {
-                        ATest.put(key.toString());
+                    AccountDetail detail = new AccountDetail();
+
+                    detail.setUid(temp.getUid());
+                    detail.setContainerid(new Long("100505" + temp.getUid()));
+                    detail.setAtt_num(Integer.parseInt((String) infoObj.get("attNum")));
+                    detail.setAvatar_img((String) infoObj.get("avatar_hd"));
+
+                    detail.setBackground((String) infoObj.get("background"));
+                    detail.setBlog_num(Integer.parseInt((String) infoObj.get("mblogNum")));
+                    detail.setDescription((String) infoObj.get("description"));
+                    detail.setFans_num(Integer.parseInt((String) infoObj.get("fansNum")));
+
+                    String ta = (String) infoObj.get("ta");
+                    detail.setGender(ta.equals("\\u5979") ? 0
+                            : (ta.equals("\\u4ED6") ? 1
+                                    : 2));
+                    detail.setMember_rank(Integer.parseInt((String) infoObj.get("mbrank")));
+                    detail.setMember_type(Integer.parseInt((String) infoObj.get("mbtype")));
+                    detail.setName((String) infoObj.get("name"));
+                    detail.setNative_place((String) infoObj.get("nativePlace"));
+                    long unixTime = System.currentTimeMillis() / 1000L;
+                    detail.setUpdate_time((int) unixTime);
+                    detail.setV_type(Integer.parseInt((String) infoObj.get("verified_type")));
+
+                    String verified = (String) infoObj.get("verified");
+                    detail.setVerified((verified.equals("1")));
+
+                    try {
+                        //"Sat Sep 25 18:45:20 +0800 2010"
+                        DateFormat dfm = new SimpleDateFormat("E MMM dd HH:mm:ss Z yyyy");
+                        long unixtime = dfm.parse((String) infoObj.get("created_at")).getTime() / 1000;
+                        detail.setCreate_time((int) unixtime);
+                    } catch (ParseException ex) {
+                        detail.setCreate_time(0);
                     }
 
-                    Thread.sleep(4000);
+                    blockedpush(OutputBuffer, detail);
+                    Thread.sleep(3000);
                     return Worker.SUCCESS;
                 } else {
                     throw new Exception("Retrieved Null");
@@ -121,7 +161,7 @@ public class DetailCrawler extends Worker {
                 throw new Exception("Retrieved Null");
             }
         } catch (Exception ex) {
-            //ex.printStackTrace();
+            ex.printStackTrace();
             this.proxy = null;
             System.out.println("result=\n" + result);
             System.out.println("RETRIEVED NULL.....");

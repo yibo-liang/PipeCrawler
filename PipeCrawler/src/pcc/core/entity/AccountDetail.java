@@ -33,6 +33,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Index;
 import javax.persistence.Transient;
 
+
+
 /**
  *
  * @author yl9
@@ -69,6 +71,9 @@ public class AccountDetail implements Serializable {
     @Column(name = "name")
     private String name;
 
+    @Column(name="avatar_img", length = 127)
+    private String avatar_img;
+    
     @Column(name = "background")
     private String background;
 
@@ -99,8 +104,8 @@ public class AccountDetail implements Serializable {
     private int fans_num;
 
     //other info
-    @Column(name = "native_place")
-    private int native_place;
+    @Column(name = "native_place", length = 10)
+    private String native_place;
 
     //0 femail, 1 male, 2 other
     @Column(name = "gender")
@@ -156,12 +161,30 @@ public class AccountDetail implements Serializable {
         this.name = name;
     }
 
+    public long getContainer_id() {
+        return container_id;
+    }
+
+    public void setContainer_id(long container_id) {
+        this.container_id = container_id;
+    }
+
+    public String getAvatar_img() {
+        return avatar_img;
+    }
+
+    public void setAvatar_img(String avatar_img) {
+        this.avatar_img = avatar_img;
+    }
+
+    
+    
     public String getBackground() {
         return background;
     }
 
     public void setBackground(String background) {
-        this.background = background;
+        this.background = (background.length()<=255) ? background : background.substring(1, 255);
     }
 
     public String getDescription() {
@@ -169,7 +192,7 @@ public class AccountDetail implements Serializable {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = (description.length()<=255) ? description : description.substring(1, 255);
     }
 
     public boolean isVerified() {
@@ -228,11 +251,11 @@ public class AccountDetail implements Serializable {
         this.fans_num = fans_num;
     }
 
-    public int getNative_place() {
+    public String getNative_place() {
         return native_place;
     }
 
-    public void setNative_place(int native_place) {
+    public void setNative_place(String native_place) {
         this.native_place = native_place;
     }
 

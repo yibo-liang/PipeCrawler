@@ -193,10 +193,16 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         return new MessageCarrier("ACK", "");
     }
 
-    private MessageCarrier handleUser(MessageCarrier mc) {
-        AccountDetail[] users = (AccountDetail[]) mc.getObj();
-
-        return null;
+    private MessageCarrier handleAcountDetail(MessageCarrier mc) {
+        AccountDetail[] details = (AccountDetail[]) mc.getObj();
+        
+        Buffer<AccountDetail> buffer=connector.getBufferStore().use("account_detail");
+        
+        for (int i=0;i<details.length;i++){
+            connector.blockedpush(buffer, details[i]);
+        }
+        
+        return new MessageCarrier("ACK", "");
     }
 
     private MessageCarrier handleMblog(MessageCarrier mc) {
@@ -242,8 +248,8 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             case "RawUser":
                 reply = handleRawUser(mc);
                 break;
-            case "User":
-                reply = handleUser(mc);
+            case "AccountDetail":
+                reply = handleAcountDetail(mc);
                 break;
             case "RawProxy":
                 reply = handleRawProxy(mc);

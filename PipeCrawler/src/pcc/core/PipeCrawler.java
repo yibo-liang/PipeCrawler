@@ -5,9 +5,13 @@
  */
 package pcc.core;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
 import jpipe.buffer.util.BufferStore;
@@ -21,6 +25,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import pcc.core.entity.AccountDetail;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
@@ -28,6 +33,7 @@ import pcc.http.CrawlerConnectionManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.client.accountdetail.ATest;
 import pcc.workers.client.accountdetail.DetailCrawler;
+import pcc.workers.client.accountdetail.DetailResultCollector;
 import pcc.workers.client.rawuser.AccountCrawler;
 import pcc.workers.client.common.ClientConnector;
 import pcc.workers.client.rawuser.UserPagePusher;
@@ -37,6 +43,8 @@ import pcc.workers.client.common.ProxyValidator;
 import pcc.workers.client.common.SignalListener;
 import pcc.workers.client.common.SignalSender;
 import pcc.workers.client.rawuser.UserResultCollector;
+import pcc.workers.server.DetailBatchInserter;
+import pcc.workers.server.RawUserBatchInserter;
 import pcc.workers.server.ServerConnector;
 import pcc.workers.server.common.ServerDisplay;
 import pcc.workers.server.common.ServerProtocol;
@@ -158,10 +166,13 @@ public class PipeCrawler {
 
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(500);
         bs1.put("rawproxies", rawproxysbuffer);
+
+        //user detail buffer
+        LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>();
+        bs1.put("account_detail", detailbuffer);
         //create worker - receiver
 
-        ServerConnector serverConeector = new ServerConnector();
-        serverConeector.setBufferStore(bs1);
+       
 
         if (CrawlerSetting.USE_PROXY) {
             ProxySupplier ps = new ProxySupplier(500);
@@ -171,10 +182,29 @@ public class PipeCrawler {
         }
 
         //create pip section
-        SinglePipeSection userReceivePip = new SinglePipeSection(serverConeector);
-        //start
+        
+        /* --- Server connector --- */
+        ServerConnector serverConnector = new ServerConnector();
+        serverConnector.setBufferStore(bs1);
+        SinglePipeSection userReceivePip = new SinglePipeSection(serverConnector);
         (new Thread(userReceivePip)).start();
+
+        /* --- RawUser Inserter --- */
+        RawUserBatchInserter ruInserter = new RawUserBatchInserter();
+        ruInserter.setBufferStore(bs1);
+        SinglePipeSection ruInserterPipe = new SinglePipeSection(ruInserter);
+        (new Thread(ruInserterPipe)).start();
+
+        /* --- Account Detail Inserter --- */
+        DetailBatchInserter adInserter = new DetailBatchInserter();
+        ruInserter.setBufferStore(bs1);
+        SinglePipeSection adInserterPipe = new SinglePipeSection(adInserter);
+        (new Thread(adInserterPipe)).start();
+
+        
+        
         String suffix = "";
+
         while (true) {
             Thread.sleep(200);
             Calendar cal = Calendar.getInstance();
@@ -205,15 +235,16 @@ public class PipeCrawler {
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
+        LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>();
 
         BufferStore bs1 = new BufferStore();
         bs1.put("msg", messageBuffer);
         bs1.put("rawusers", rawUserBuffer);
         bs1.put("rawproxies", rawproxysbuffer);
         bs1.put("proxys", proxysbuffer);
+        bs1.put("account_detail", detailbuffer);
 
         DefaultWorkerFactory<ProxyValidator> ProxyValidatorFactory = new DefaultWorkerFactory<>(ProxyValidator.class);
-
         DefaultWorkerFactory<DetailCrawler> dcFacotry = new DefaultWorkerFactory<>(DetailCrawler.class);
 
         MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
@@ -227,10 +258,17 @@ public class PipeCrawler {
         cos.setBufferStore(bs1);
         SinglePipeSection connectorSec = new SinglePipeSection(cos);
         (new Thread(connectorSec)).start();
+
+        /* Detail result collector */
+        DetailResultCollector drCol = new DetailResultCollector();
+        drCol.setBufferStore(bs1);
+        SinglePipeSection drColSec = new SinglePipeSection(drCol);
+        (new Thread(drColSec)).start();
+
         while (true) {
             Thread.sleep(2000);
             System.out.println("-----------------------------------");
-            ATest.printKs();
+            
         }
     }
 
@@ -267,8 +305,9 @@ public class PipeCrawler {
                 SignalListener sl = (new SignalListener());
                 (new Thread(sl)).start();
                 DetailCrawler();
+                //Sat Sep 25 18:45:20 +0800 2010
+
                 break;
-                        
 
         }
 

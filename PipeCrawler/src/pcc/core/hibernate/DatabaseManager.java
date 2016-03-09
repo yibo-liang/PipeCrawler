@@ -38,21 +38,21 @@ public class DatabaseManager {
     public static class DBInterface<T> {
 
         public void batchInsert(T[] arr) {
-            int dup=0;
+            int dup = 0;
             StatelessSession session = getStatelessSession();
             Transaction tx = session.beginTransaction();
             for (int i = 0; i < arr.length; i++) {
                 try {
 
                     session.insert(arr[i]);
-                    
+
                 } catch (ConstraintViolationException ex) {
                     dup++;
                 }
             }
             tx.commit();
             session.close();
-            System.out.println("*Duplicate: "+dup+"/"+arr.length);
+            System.out.println("*Duplicate: " + dup + "/" + arr.length);
         }
 
         public void Insert(T[] arr) {
@@ -60,7 +60,12 @@ public class DatabaseManager {
             Transaction tx = session.beginTransaction();
             for (int i = 0; i < arr.length; i++) {
                 session.saveOrUpdate(arr[i]);
-                session.flush();
+
+                if (i % 20 == 0) {
+                    session.flush();
+                    session.clear();
+                }
+
             }
             tx.commit();
             session.close();
