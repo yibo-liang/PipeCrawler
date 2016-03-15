@@ -134,7 +134,6 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 .add(Restrictions.gt("id", new Long(progress.getLower())))
                 .add(Restrictions.le("id", new Long(progress.getUpper())))
                 .add(Restrictions.eq("crawlstate", 0))
-                .addOrder(Order.asc("uid"))
                 .list();
         if (items.size() > 0) {
             for (int i = 0; i < items.size(); i++) {
@@ -173,13 +172,13 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         try {
             progress = (DetailCrawlProgress) session
                     .createCriteria(DetailCrawlProgress.class)
-                    .add(Restrictions.eq("id", new Long(0)))
+                    .add(Restrictions.eq("id", new Integer(0)))
                     .uniqueResult();
             if (progress == null) {
                 progress = new DetailCrawlProgress();
                 progress.setId(0);
-                progress.setLower(0);
-                progress.setUpper(4999);
+                progress.setLower(0L);
+                progress.setUpper(4999L);
                 session.saveOrUpdate(progress);
             }
             if (progress.getLower() > count) {
