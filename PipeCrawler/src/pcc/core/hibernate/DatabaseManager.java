@@ -50,8 +50,8 @@ public class DatabaseManager {
                 String DB_URL = "jdbc:mysql://192.168.1.39/ylproj"
                         + "useServerPrepStmts=false"
                         + "&rewriteBatchedStatements=true"
-                        + "&useUnicode=true"
-                        + "&characterEncoding=UTF-8";
+                        //+ "&characterEncoding=UTF-8"
+                        + "&useUnicode=true";
                 String USER = "java";
                 String PASS = "NE391NDF9";
 
