@@ -133,8 +133,9 @@ public class DetailCrawler extends Worker {
                     detail.setFans_num(Integer.parseInt((String) infoObj.get("fansNum")));
 
                     String ta = (String) infoObj.get("ta");
-                    detail.setGender(ta.equals("\\u5979") ? 0
-                            : (ta.equals("\\u4ED6") ? 1
+                    System.out.println("\u5979\u4ED6,ta="+ta);
+                    detail.setGender(ta.equals("\u5979") ? 0
+                            : (ta.equals("\u4ED6") ? 1
                                     : 2));
                     detail.setMember_rank(Integer.parseInt((String) infoObj.get("mbrank")));
                     detail.setMember_type(Integer.parseInt((String) infoObj.get("mbtype")));
