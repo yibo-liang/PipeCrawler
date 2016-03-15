@@ -196,10 +196,13 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         //RawAccount[] resbuf = new RawAccount[num];
         try {
             for (int i = 0; i < num; i++) {
-                RawAccount a = (RawAccount) raws.poll(connector);
+                Object tmp = raws.poll(connector);
 
-                //check if the buffer is empty
-                if (a == null) {
+                RawAccount a;
+                if (tmp != null) {
+                    a = (RawAccount) tmp;
+                    result.add(a);
+                } else {
                     getMoreRawAccounts(progress, session);
                     a = (RawAccount) raws.poll(connector);
                     if (a != null) {
