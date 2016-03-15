@@ -133,7 +133,9 @@ public class DatabaseManager {
                 .addAnnotatedClass(pcc.core.entity.AccountDetail.class
                 )
                 .addAnnotatedClass(pcc.core.entity.MBlogCrawlInfo.class
-                );
+                )
+                .addAnnotatedClass(pcc.core.entity.DetailCrawlProgress.class)
+                ;
 
         sessionFactory = configuration
                 .configure()
