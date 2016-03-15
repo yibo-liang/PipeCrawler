@@ -169,13 +169,11 @@ public class PipeCrawler {
 
         LUBuffer<RawAccount> rawUserBuffer_2 = new LUBuffer<>(0);
         bs1.put("rawusers_d", rawUserBuffer_2);
-        
+
         //user detail buffer
         LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>(0);
         bs1.put("account_detail", detailbuffer);
         //create worker - receiver
-
-       
 
         if (CrawlerSetting.USE_PROXY) {
             ProxySupplier ps = new ProxySupplier(500);
@@ -185,7 +183,6 @@ public class PipeCrawler {
         }
 
         //create pip section
-        
         /* --- Server connector --- */
         ServerConnector serverConnector = new ServerConnector();
         serverConnector.setBufferStore(bs1);
@@ -193,7 +190,6 @@ public class PipeCrawler {
         (new Thread(userReceivePip)).start();
 
         /* --- RawUser Inserter --- */
-        
         RawUserBatchInserter ruInserter = new RawUserBatchInserter();
         ruInserter.setBufferStore(bs1);
         SinglePipeSection ruInserterPipe = new SinglePipeSection(ruInserter);
@@ -205,8 +201,6 @@ public class PipeCrawler {
         SinglePipeSection adInserterPipe = new SinglePipeSection(adInserter);
         (new Thread(adInserterPipe)).start();
 
-        
-        
         String suffix = "";
 
         while (true) {
@@ -216,7 +210,8 @@ public class PipeCrawler {
             //System.out.println(sdf.format(cal.getTime()));
             String t = bs1.BufferStates();
             if (!t.equals(suffix)) {
-                suffix = t;
+                suffix = t + "\r\n";
+                suffix += rawproxysbuffer.getPollingRecordToString();
                 ServerDisplay.changeSuffix(suffix);
             }
 
@@ -244,11 +239,9 @@ public class PipeCrawler {
         BufferStore bs1 = new BufferStore();
         bs1.put("msg", messageBuffer);
         bs1.put("rawusers", rawUserBuffer);
-        
+
         bs1.put("rawproxies", rawproxysbuffer);
-        
-        
-        
+
         bs1.put("proxys", proxysbuffer);
         bs1.put("account_detail", detailbuffer);
 
@@ -256,7 +249,7 @@ public class PipeCrawler {
         DefaultWorkerFactory<DetailCrawler> dcFacotry = new DefaultWorkerFactory<>(DetailCrawler.class);
 
         MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
-        MultiPipeSection dcPipe = new MultiPipeSection(dcFacotry, bs1, 20);
+        MultiPipeSection dcPipe = new MultiPipeSection(dcFacotry, bs1, 40);
 
         proxyPipe.Start();
         dcPipe.Start();
@@ -277,7 +270,7 @@ public class PipeCrawler {
             Thread.sleep(2000);
             System.out.println(bs1.BufferStates());
             System.out.println("-----------------------------------");
-            
+
         }
     }
 
