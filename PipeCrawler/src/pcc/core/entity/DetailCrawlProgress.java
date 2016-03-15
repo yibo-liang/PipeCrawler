@@ -26,12 +26,7 @@ package pcc.core.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 import java.io.Serializable;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Index;
-import javax.persistence.Transient;
 /**
  *
  * @author yl9
@@ -42,6 +37,13 @@ public class DetailCrawlProgress implements Serializable {
     @Id
     private int id;
 
+    
+    @Column(name = "l")
+    private long lower;
+    
+    @Column(name = "u")
+    private long upper;
+
     public int getId() {
         return id;
     }
@@ -50,26 +52,19 @@ public class DetailCrawlProgress implements Serializable {
         this.id = id;
     }
     
-    
-    @Column(name = "lower")
-    private int lower;
-    
-    @Column(name = "upper")
-    private int upper;
-
-    public int getLower() {
+    public long getLower() {
         return lower;
     }
 
-    public void setLower(int lower) {
+    public void setLower(long lower) {
         this.lower = lower;
     }
 
-    public int getUpper() {
+    public long getUpper() {
         return upper;
     }
 
-    public void setUpper(int upper) {
+    public void setUpper(long upper) {
         this.upper = upper;
     }
     

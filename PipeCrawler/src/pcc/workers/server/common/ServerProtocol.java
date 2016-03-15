@@ -32,9 +32,11 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import pcc.core.GlobalControll;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.entity.AccountDetail;
+import pcc.core.entity.DetailCrawlProgress;
 import pcc.core.hibernate.DatabaseManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.server.ServerConnector;
@@ -118,62 +120,109 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         }
     }
 
-    private MessageCarrier handleDetailTaskRequest(MessageCarrier mc) {
-        int num = (Integer) mc.getObj();
+    //get raw accounts for details
+    private void getMoreRawAccounts(DetailCrawlProgress progress, Session session) throws Exception {
+        Buffer<RawAccount> raws = this.connector.getBufferStore().use("rawusers_d");
+        long step = progress.getUpper() - progress.getLower() + 1;
+        progress.setLower(progress.getUpper() + 1);
+        progress.setUpper(progress.getUpper() + step);
+        session.save(progress);
+        session.flush();
 
-        List<RawAccount> result = new ArrayList<>();
+        List<RawAccount> items;
+        items = session.createCriteria(RawAccount.class)
+                .add(Restrictions.gt("id", new Long(progress.getLower())))
+                .add(Restrictions.le("id", new Long(progress.getUpper())))
+                .add(Restrictions.eq("crawlstate", 0))
+                .addOrder(Order.asc("uid"))
+                .list();
+        if (items.size() > 0) {
+            for (int i = 0; i < items.size(); i++) {
+                connector.blockedpush(raws, items.get(i));
+            }
+
+        } else {
+            throw new Exception("No Raw Accounts");
+        }
+
+    }
+
+    private synchronized MessageCarrier handleDetailTaskRequest(MessageCarrier mc) {
+        int num = (Integer) mc.getObj();
+        long count;
+        String total_str = GlobalControll.VARIABLES.get("rawuser_count");
         Session session = DatabaseManager.getSession();
         Transaction tx = session.beginTransaction();
-        Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
-                + "FROM INFORMATION_SCHEMA.TABLES "
-                + "WHERE TABLE_SCHEMA = 'ylproj' "
-                + "AND TABLE_NAME = 'raw_account';");
+        List<RawAccount> result = new ArrayList<>();
 
-        long count = new Long(q.list().get(0).toString());
-        long range = (count > 100) ? 100 : count - 1;
+        //get total counjt
+        if (total_str == null) {
 
-        double pick = Math.random();
-        long lower = (long) (pick * count);
-        long upper = lower + range;
+            Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
+                    + "FROM INFORMATION_SCHEMA.TABLES "
+                    + "WHERE TABLE_SCHEMA = 'ylproj' "
+                    + "AND TABLE_NAME = 'raw_account';");
 
-        boolean error = false;
+            count = new Long(q.list().get(0).toString());
+            GlobalControll.VARIABLES.put("rawuser_count", String.valueOf(count));
+        } else {
+            count = Long.parseLong(total_str);
+        }
+        DetailCrawlProgress progress;
+        //get current progress
         try {
-            List<RawAccount> items;
-            items = session.createCriteria(RawAccount.class)
-                    .add(Restrictions.gt("id", new Long(lower)))
-                    .add(Restrictions.le("id", new Long(upper)))
-                    .add(Restrictions.eq("crawlstate", 0))
-                    .addOrder(Order.asc("uid"))
-                    .setMaxResults(num)
-                    .list();
-
-            RawAccount item;
-            /*
-             for (int i = 0; i < num; i++) {
-
-                
-             do {
-             item = (RawAccount) session
-             .createCriteria(RawAccount.class)
-             .add(Restrictions.eq("id", new Long((long) (count - Math.random() * range))))
-             .uniqueResult();
-             } while (item == null || item.getCrawlstate() == 1);
-             */
-            for (int i = 0; i < items.size(); i++) {
-                item = items.get(i);
-                result.add(item);
+            progress = (DetailCrawlProgress) session
+                    .createCriteria(DetailCrawlProgress.class)
+                    .add(Restrictions.eq("id", new Long(0)))
+                    .uniqueResult();
+            if (progress == null) {
+                progress = new DetailCrawlProgress();
+                progress.setId(0);
+                progress.setLower(0);
+                progress.setUpper(4999);
+                session.saveOrUpdate(progress);
             }
-            //}
+            if (progress.getLower() > count) {
+                throw new Exception("All raw user details are crawled.");
+            }
+
         } catch (Exception ex) {
-            error = true;
+            ServerConnector.logError(ex);
+            tx.commit();
+            session.close();
+            return new MessageCarrier("NULL", "");
+        }
+        //pull from buffer
+        Buffer<RawAccount> raws = this.connector.getBufferStore().use("rawusers_d");
+        //RawAccount[] resbuf = new RawAccount[num];
+        try {
+            for (int i = 0; i < num; i++) {
+                RawAccount a = (RawAccount) raws.poll(connector);
+
+                //check if the buffer is empty
+                if (a == null) {
+                    getMoreRawAccounts(progress, session);
+                    a = (RawAccount) raws.poll(connector);
+                    if (a != null) {
+                        result.add(a);
+                    } else {
+                        throw new Exception("Unexpected, should have a Raw Account");
+                    }
+
+                }
+            }
+        } catch (Exception ex) {
+            ServerConnector.logError(ex);
+            tx.commit();
+            session.close();
+            return new MessageCarrier("NULL", "");
         }
 
         tx.commit();
 
         session.close();
 
-        if (result.size()
-                > 0 && !error) {
+        if (result.size() > 0) {
             RawAccount[] raw_accounts = result.toArray(new RawAccount[result.size()]);
             return new MessageCarrier("RAWUSER", raw_accounts);
         } else {
@@ -185,8 +234,8 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         RawAccount[] rusers = (RawAccount[]) mc.getObj();
 
         Buffer<RawAccount> buffer = connector.getBufferStore().use("rawusers");
-        
-        for (int i=0;i<rusers.length;i++){
+
+        for (int i = 0; i < rusers.length; i++) {
             connector.blockedpush(buffer, rusers[i]);
         }
 
@@ -195,13 +244,13 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
 
     private MessageCarrier handleAcountDetail(MessageCarrier mc) {
         AccountDetail[] details = (AccountDetail[]) mc.getObj();
-        
-        Buffer<AccountDetail> buffer=connector.getBufferStore().use("account_detail");
-        
-        for (int i=0;i<details.length;i++){
+
+        Buffer<AccountDetail> buffer = connector.getBufferStore().use("account_detail");
+
+        for (int i = 0; i < details.length; i++) {
             connector.blockedpush(buffer, details[i]);
         }
-        
+
         return new MessageCarrier("ACK", "");
     }
 
@@ -240,7 +289,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         MessageCarrier reply;
         switch (msg) {
             case "DetailTask":
-                reply=handleDetailTaskRequest(mc);
+                reply = handleDetailTaskRequest(mc);
                 break;
             case "UserTask":
                 reply = handleUserTaskRequest(mc);

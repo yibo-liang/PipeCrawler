@@ -23,6 +23,7 @@
  */
 package pcc.core;
 
+import java.util.HashMap;
 import jpipe.util.Pair;
 
 /**
@@ -50,7 +51,9 @@ public class GlobalControll {
     private static int GLOBAL_STATE = STARTING;
 
     public static String PROCESS_TASK;
-    
+
+    public static HashMap<String, String> VARIABLES = new HashMap();
+
     public static synchronized void setState(int state) {
         GLOBAL_STATE = state;
     }
