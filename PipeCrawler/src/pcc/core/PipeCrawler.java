@@ -167,6 +167,9 @@ public class PipeCrawler {
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(500);
         bs1.put("rawproxies", rawproxysbuffer);
 
+        LUBuffer<RawAccount> rawUserBuffer_2 = new LUBuffer<>(0);
+        bs1.put("rawusers_d", rawUserBuffer_2);
+        
         //user detail buffer
         LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>(0);
         bs1.put("account_detail", detailbuffer);
@@ -233,8 +236,6 @@ public class PipeCrawler {
         CrawlerConnectionManager.StartConnectionMonitor();
 
         LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
-        LUBuffer<RawAccount> rawUserBuffer_2 = new LUBuffer<>(0);
-        
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
@@ -243,7 +244,6 @@ public class PipeCrawler {
         BufferStore bs1 = new BufferStore();
         bs1.put("msg", messageBuffer);
         bs1.put("rawusers", rawUserBuffer);
-        bs1.put("rawusers_d", rawUserBuffer_2);
         
         bs1.put("rawproxies", rawproxysbuffer);
         
