@@ -39,7 +39,7 @@ public class DetailTaskRequest implements ClientConnector.IClientProtocol {
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
         this.connector = connector;
-        MessageCarrier r = new MessageCarrier("DetailTask", new Integer(5));
+        MessageCarrier r = new MessageCarrier("DetailTask", new Integer(100));
         return r;
     }
 
