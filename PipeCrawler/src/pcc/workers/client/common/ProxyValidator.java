@@ -68,19 +68,19 @@ public class ProxyValidator extends Worker {
             //http://www.lagado.com/proxy-test
             //http://www2.macs.hw.ac.uk/~yl9/naivetest.php
             //http://139.196.193.188/t2.php
-            String result = client.wget("http://www2.macs.hw.ac.uk/~yl9/naivetest.php");
+            String result = client.wget("http://52.37.224.44/naive.php");
             client.close();
 
             if (result != null && 
                     (result.contains("This request appears NOT to have come via a proxy.")
                     || false && result.contains("This request appears to have come via a proxy"))) {
                 blockedpush(outputBuffer, p);
-                //System.out.println("pid="+this.getPID()+", Validated IP="+p.getHost()+","+p.getPort());
+                System.out.println("pid="+this.getPID()+", Validated IP="+p.getHost()+","+p.getPort());
                 return Worker.SUCCESS;
             } else {
                 //System.out.println(p.toString());
-                //System.out.println("pid="+this.getPID()+", Failed IP="+p.getHost()+","+p.getPort());
-                //System.out.println(result);
+                System.out.println("pid="+this.getPID()+", Failed IP="+p.getHost()+","+p.getPort());
+                System.out.println(result);
                 return Worker.FAIL;
             }
         } catch (Exception ex) {

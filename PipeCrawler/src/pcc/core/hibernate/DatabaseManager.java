@@ -47,7 +47,11 @@ public class DatabaseManager {
 
             try {
                 String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-                String DB_URL = "jdbc:mysql://192.168.1.39/ylproj?useServerPrepStmts=false&rewriteBatchedStatements=true";
+                String DB_URL = "jdbc:mysql://192.168.1.39/ylproj"
+                        + "useServerPrepStmts=false"
+                        + "&rewriteBatchedStatements=true"
+                        + "&useUnicode=true"
+                        + "&characterEncoding=UTF-8";
                 String USER = "java";
                 String PASS = "NE391NDF9";
 
