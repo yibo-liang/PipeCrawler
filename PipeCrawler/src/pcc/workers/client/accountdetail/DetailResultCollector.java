@@ -39,7 +39,7 @@ import pcc.workers.client.protocols.RawUserUploadRequest;
  */
 public class DetailResultCollector extends Worker {
 
-    int num = 20;
+    int num = 100;
 
     @Override
     public int work() {

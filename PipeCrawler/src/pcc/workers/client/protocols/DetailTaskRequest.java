@@ -39,7 +39,10 @@ public class DetailTaskRequest implements ClientConnector.IClientProtocol {
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
         this.connector = connector;
-        MessageCarrier r = new MessageCarrier("DetailTask", new Integer(100));
+        Buffer<RawAccount> user_buffer = this.connector.getBufferStore().use("rawusers");
+        int num = user_buffer.getCount();
+        num = (num < 100) ? 100 - num : 100;
+        MessageCarrier r = new MessageCarrier("DetailTask", new Integer(num));
         return r;
     }
 
@@ -56,9 +59,9 @@ public class DetailTaskRequest implements ClientConnector.IClientProtocol {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else{
-            DetailTaskRequest request=new DetailTaskRequest();
-            Buffer<ClientConnector.IClientProtocol> b= this.connector.getBufferStore().use("msg");
+        } else {
+            DetailTaskRequest request = new DetailTaskRequest();
+            Buffer<ClientConnector.IClientProtocol> b = this.connector.getBufferStore().use("msg");
             b.push(connector, request);
         }
     }

@@ -43,20 +43,24 @@ public class DetailBatchInserter extends Worker {
     public int work() {
 
         Buffer<AccountDetail> buffer = this.getBufferStore().use("account_detail");
-        
-        if (buffer.getCount() >= 20) {
-            DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
-            AccountDetail[] rusers = new AccountDetail[20];
-            for (int i = 0; i < 20; i++) {
-                rusers[i] = (AccountDetail) blockedpoll(buffer);
-            }
-            
-            dbi.Insert(rusers);
-
-        }
-
         try {
-            Thread.sleep(200);
+            int num = 200;
+            if (buffer.getCount() >= num) {
+                DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
+                AccountDetail[] rusers = new AccountDetail[num];
+                for (int i = 0; i < num; i++) {
+                    rusers[i] = (AccountDetail) blockedpoll(buffer);
+                }
+
+                dbi.Insert(rusers);
+
+            }
+
+        } catch (Exception ex) {
+            ServerConnector.logError(ex);
+        }
+        try {
+            Thread.sleep(10);
         } catch (InterruptedException ex) {
             Logger.getLogger(DetailBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
         }
