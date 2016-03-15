@@ -40,11 +40,11 @@ import java.util.logging.Logger;
  * @author yl9
  */
 public class DatabaseManager {
-
+    
     public static class DBInterface<T> {
-
+        
         public Connection getJDBC_Connection() {
-
+            
             try {
                 String JDBC_DRIVER = "com.mysql.jdbc.Driver";
                 String DB_URL = "jdbc:mysql://192.168.1.39/ylproj"
@@ -54,7 +54,7 @@ public class DatabaseManager {
                         + "&useUnicode=true";
                 String USER = "java";
                 String PASS = "NE391NDF9";
-
+                
                 Class.forName(JDBC_DRIVER);
                 Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
                 return conn;
@@ -65,16 +65,16 @@ public class DatabaseManager {
             }
             return null;
         }
-
+        
         public void batchInsert(T[] arr) {
             int dup = 0;
             StatelessSession session = getStatelessSession();
             Transaction tx = session.beginTransaction();
             for (int i = 0; i < arr.length; i++) {
                 try {
-
+                    
                     session.insert(arr[i]);
-
+                    
                 } catch (Exception ex) {
                     dup++;
                 }
@@ -83,48 +83,52 @@ public class DatabaseManager {
             session.close();
             System.out.println("*Duplicate: " + dup + "/" + arr.length);
         }
-
+        
         public void Insert(T[] arr) {
             Session session = getSession();
             Transaction tx = session.beginTransaction();
+            T item = null;
             try {
                 for (int i = 0; i < arr.length; i++) {
+                    
                     System.out.println(arr[i]);
+                    item = arr[i];
                     session.saveOrUpdate(arr[i]);
-
+                    
                     if (i % 20 == 0) {
                         session.flush();
                         session.clear();
                     }
-
+                    
                 }
-
+                
             } catch (Exception ex) {
                 ServerConnector.logError(ex);
+                ServerConnector.logError(new Exception("Error When trying to save:" + item));
             }
-
+            
             tx.commit();
             session.close();
         }
-
+        
     }
-
+    
     private DatabaseManager() {
         load();
     }
-
+    
     public static DatabaseManager INSTANCE = new DatabaseManager();
-
+    
     private static SessionFactory sessionFactory;
-
+    
     private static void load() {
-
+        
         if (!GlobalControll.PROCESS_TASK.equals("SERVER")
                 && !GlobalControll.PROCESS_TASK.equals("DBINIT")
                 && !GlobalControll.PROCESS_TASK.equals("TEST")) {
             return;
         }
-
+        
         System.out.println("Initiating DB");
         Configuration configuration
                 = new Configuration().
@@ -138,14 +142,13 @@ public class DatabaseManager {
                 )
                 .addAnnotatedClass(pcc.core.entity.MBlogCrawlInfo.class
                 )
-                .addAnnotatedClass(pcc.core.entity.DetailCrawlProgress.class)
-                ;
-
+                .addAnnotatedClass(pcc.core.entity.DetailCrawlProgress.class);
+        
         sessionFactory = configuration
                 .configure()
                 .buildSessionFactory();
     }
-
+    
     public static Session getSession()
             throws HibernateException {
         if (sessionFactory == null) {
@@ -153,12 +156,12 @@ public class DatabaseManager {
         }
         return sessionFactory.openSession();
     }
-
+    
     public static StatelessSession getStatelessSession() throws HibernateException {
         if (sessionFactory == null) {
             load();
         }
         return sessionFactory.openStatelessSession();
     }
-
+    
 }
