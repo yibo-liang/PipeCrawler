@@ -7,7 +7,7 @@
     
     
     <!--<property name="connection.url">jdbc:mysql://192.168.1.39/ylproj?useServerPrepStmts=false&amp;rewriteBatchedStatements=true</property> -->
-    <property name="connection.url">jdbc:mysql://localhost:9001/ylproj?useServerPrepStmts=false&amp;rewriteBatchedStatements=true</property> 
+    <property name="connection.url">jdbc:mysql://jove:9001/ylproj?useServerPrepStmts=false&amp;rewriteBatchedStatements=true</property> 
     <property name="connection.username">java</property>
     <property name="connection.password">NE391NDF9</property>
     <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
