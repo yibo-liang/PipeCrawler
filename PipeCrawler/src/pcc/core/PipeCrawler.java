@@ -26,6 +26,8 @@ import org.hibernate.Transaction;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import pcc.core.entity.AccountDetail;
+import pcc.core.entity.DetailCrawlProgress;
+import pcc.core.entity.MBlogCrawlInfo;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
@@ -310,6 +312,15 @@ public class PipeCrawler {
                 //Sat Sep 25 18:45:20 +0800 2010
 
                 break;
+            case "TEST":
+                Session s = DatabaseManager.getSession();
+                Transaction tx = s.beginTransaction();
+                DetailCrawlProgress ci = (DetailCrawlProgress) s.createSQLQuery("select * from DetailCrawlProgress where id=0").uniqueResult();
+                tx.commit();
+                s.close();
+                System.out.println("ci="+ci.getId()+","+ci.getLower()+","+ci.getUpper());
+                
+                        
 
         }
 
