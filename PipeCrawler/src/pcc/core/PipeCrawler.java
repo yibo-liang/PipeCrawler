@@ -62,54 +62,54 @@ public class PipeCrawler {
      * @throws java.lang.InterruptedException
      */
     private static void ClientRawUserCrawler() throws InterruptedException {
-
+        
         CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
         LUBuffer<String> containeridbuffer = new LUBuffer<>(15);
         LUBuffer<String> Failedcontaineridbuffer = new LUBuffer<>(200);
-
+        
         LUBuffer<Triplet<IWorkerLazy, String, String>> pagelistbuffer = new LUBuffer<>(500);
         LUBuffer<Triplet<IWorkerLazy, String, String>> Failedpagelistbuffer = new LUBuffer<>(100);
-
+        
         LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
         LUBuffer<RawAccount> initUserbuffer = new LUBuffer<>(0);
-
+        
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
-
+        
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
         //Message Buffer
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
-
+        
         BufferStore bs1 = new BufferStore();
-
+        
         bs1.put("msg", messageBuffer);
-
+        
         bs1.put("containerid", containeridbuffer);
         bs1.put("failedcontainerid", Failedcontaineridbuffer);
-
+        
         bs1.put("pagelist", pagelistbuffer);
         bs1.put("failedpagelist", Failedpagelistbuffer);
-
+        
         bs1.put("initusers", initUserbuffer);
-
+        
         bs1.put("rawusers", rawUserBuffer);
-
+        
         bs1.put("rawproxies", rawproxysbuffer);
-
+        
         bs1.put("proxys", proxysbuffer);
-
+        
         DefaultWorkerFactory<ProxyValidator> ProxyValidatorFactory = new DefaultWorkerFactory<>(ProxyValidator.class);
         DefaultWorkerFactory<Initialiser> InitFacotry = new DefaultWorkerFactory<>(Initialiser.class);
         DefaultWorkerFactory<UserPagePusher> PagePusherFactory = new DefaultWorkerFactory<>(UserPagePusher.class);
         DefaultWorkerFactory<AccountCrawler> CrawlerFactory = new DefaultWorkerFactory<>(AccountCrawler.class);
-
+        
         MultiPipeSection pipsec1 = new MultiPipeSection(InitFacotry, bs1, 5);
         MultiPipeSection pipsec2 = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
         MultiPipeSection pipsec3 = new MultiPipeSection(PagePusherFactory, bs1, 20);
         MultiPipeSection pipsec4 = new MultiPipeSection(CrawlerFactory, bs1, 40);
-
+        
         pipsec1.Start();
-
+        
         if (CrawlerSetting.USE_PROXY) {
             pipsec2.Start();
         }
@@ -127,7 +127,7 @@ public class PipeCrawler {
         cos.setBufferStore(bs1);
         SinglePipeSection connectorSec = new SinglePipeSection(cos);
         (new Thread(connectorSec)).start();
-
+        
         while (true) {
             Thread.sleep(3000);
             System.out.println("=============================");
@@ -139,36 +139,36 @@ public class PipeCrawler {
             //System.out.println(cp0.GetSectionAnalyseResult());
             System.out.println(pipsec2.GetSectionAnalyseResult());
             System.out.println(pipsec3.GetSectionAnalyseResult());
-
+            
             System.out.println(pipsec4.GetSectionAnalyseResult());
-
+            
             System.out.println("  ----------------------------");
             System.out.println(proxysbuffer.getPushingRecordToString());
-
+            
             System.out.println("    - - - ");
             System.out.println(proxysbuffer.getPollingRecordToString());
-
+            
             if (GlobalControll.getState() == GlobalControll.STOPPING) {
                 break;
             }
         }
         System.exit(0);
     }
-
+    
     public static void ServerCrawler() throws InterruptedException {
         //buffer store 
         CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
-
+        
         BufferStore bs1 = new BufferStore();
 
         //user buffer
         LUBuffer<RawAccount> resultUserbuffer = new LUBuffer<>(0);
         bs1.put("rawusers", resultUserbuffer);
-
+        
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(500);
         bs1.put("rawproxies", rawproxysbuffer);
-
+        
         LUBuffer<RawAccount> rawUserBuffer_2 = new LUBuffer<>(0);
         bs1.put("rawusers_d", rawUserBuffer_2);
 
@@ -202,9 +202,9 @@ public class PipeCrawler {
         adInserter.setBufferStore(bs1);
         SinglePipeSection adInserterPipe = new SinglePipeSection(adInserter);
         (new Thread(adInserterPipe)).start();
-
+        
         String suffix = "";
-
+        
         while (true) {
             Thread.sleep(200);
             Calendar cal = Calendar.getInstance();
@@ -216,7 +216,7 @@ public class PipeCrawler {
                 suffix += rawproxysbuffer.getPollingRecordToString();
                 ServerDisplay.changeSuffix(suffix);
             }
-
+            
             if (ServerDisplay.isUpdated()) {
                 ServerDisplay.show();
             }
@@ -226,33 +226,33 @@ public class PipeCrawler {
             }
         }
     }
-
+    
     public static void DetailCrawler() throws InterruptedException {
-
+        
         CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
-
+        
         LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
         LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>();
-
+        
         BufferStore bs1 = new BufferStore();
         bs1.put("msg", messageBuffer);
         bs1.put("rawusers", rawUserBuffer);
-
+        
         bs1.put("rawproxies", rawproxysbuffer);
-
+        
         bs1.put("proxys", proxysbuffer);
         bs1.put("account_detail", detailbuffer);
-
+        
         DefaultWorkerFactory<ProxyValidator> ProxyValidatorFactory = new DefaultWorkerFactory<>(ProxyValidator.class);
         DefaultWorkerFactory<DetailCrawler> dcFacotry = new DefaultWorkerFactory<>(DetailCrawler.class);
-
+        
         MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
         MultiPipeSection dcPipe = new MultiPipeSection(dcFacotry, bs1, 40);
-
+        
         proxyPipe.Start();
         dcPipe.Start();
 
@@ -267,15 +267,15 @@ public class PipeCrawler {
         drCol.setBufferStore(bs1);
         SinglePipeSection drColSec = new SinglePipeSection(drCol);
         (new Thread(drColSec)).start();
-
+        
         while (true) {
             Thread.sleep(2000);
             System.out.println(bs1.BufferStates());
             System.out.println("-----------------------------------");
-
+            
         }
     }
-
+    
     public static void main(String[] args) throws InterruptedException {
         String arg = args[0].toUpperCase();
         GlobalControll.PROCESS_TASK = arg;
@@ -315,15 +315,13 @@ public class PipeCrawler {
             case "TEST":
                 Session s = DatabaseManager.getSession();
                 Transaction tx = s.beginTransaction();
-                DetailCrawlProgress ci = (DetailCrawlProgress) s.createSQLQuery("select * from DetailCrawlProgress where id=0").uniqueResult();
+                DetailCrawlProgress ci = (DetailCrawlProgress) s.createSQLQuery("select * from DetailCrawlProgress where id=0").list().get(0);
                 tx.commit();
                 s.close();
-                System.out.println("ci="+ci.getId()+","+ci.getLower()+","+ci.getUpper());
-                
-                        
-
+                System.out.println("ci=" + ci.getId() + "," + ci.getLower() + "," + ci.getUpper());
+            
         }
-
+        
     }
-
+    
 }
