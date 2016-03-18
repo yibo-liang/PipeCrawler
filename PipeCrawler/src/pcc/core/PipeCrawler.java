@@ -316,7 +316,7 @@ public class PipeCrawler {
                 Session s = DatabaseManager.getSession();
                 Transaction tx = s.beginTransaction();
                 Object a = s.createCriteria(RawAccount.class)
-                        .add(Restrictions.eq("id", 1)).uniqueResult();
+                        .add(Restrictions.eq("id", 1L)).uniqueResult();
                 tx.commit();
                 s.close();
                 System.out.println("obj=" + a);
