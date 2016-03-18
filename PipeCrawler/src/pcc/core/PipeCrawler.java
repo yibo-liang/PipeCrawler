@@ -315,9 +315,11 @@ public class PipeCrawler {
             case "TEST":
                 Session s = DatabaseManager.getSession();
                 Transaction tx = s.beginTransaction();
-                DetailCrawlProgress ci = (DetailCrawlProgress) s.createQuery("select * from DetailCrawlProgress where id=0").uniqueResult();
+                Object a= s.createSQLQuery("select * from DetailCrawlProgress where id=0").list().get(0);
                 tx.commit();
                 s.close();
+                System.out.println("obj="+a);
+                DetailCrawlProgress ci=(DetailCrawlProgress) a;
                 System.out.println("ci=" + ci.getId() + "," + ci.getLower() + "," + ci.getUpper());
             
         }
