@@ -315,7 +315,7 @@ public class PipeCrawler {
             case "TEST":
                 Session s = DatabaseManager.getSession();
                 Transaction tx = s.beginTransaction();
-                Object a= s.createSQLQuery("select * from raw_account where id=0").list().get(0);
+                Object a= s.createSQLQuery("select * from raw_account where id=1").list().get(0);
                 tx.commit();
                 s.close();
                 System.out.println("obj="+a);
