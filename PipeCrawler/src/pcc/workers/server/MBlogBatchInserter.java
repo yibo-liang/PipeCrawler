@@ -95,7 +95,7 @@ public class MBlogBatchInserter extends Worker {
                 ps.setString(15, b.getPage_title());
                 ps.setString(16, b.getText());
                 ps.addBatch();
-                System.out.println("Add Batch" + b.getPost_id() + ":" + b.getText());
+                //System.out.println("Add Batch" + b.getPost_id() + ":" + b.getText());
                 if (i % 100 == 0 || i == mblogs.length - 1) {
                     ps.executeBatch();
                 }
@@ -103,7 +103,7 @@ public class MBlogBatchInserter extends Worker {
             if (ps != null) {
                 ps.executeBatch();
             }
-            ServerConnector.log("LOG: Saved to MySQL for uid="+task.getUser_id());
+            //ServerConnector.log("LOG: Saved to MySQL for uid="+task.getUser_id());
             conn.close();
             
         } catch (Exception ex) {

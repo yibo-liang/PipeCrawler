@@ -76,7 +76,7 @@ public class ServerConnector extends Worker {
     public static void log(String str) {
         try {
             String userHome = System.getProperty("user.home");
-            FileWriter fw = new FileWriter(userHome + "/err.txt", true);
+            FileWriter fw = new FileWriter(userHome + "/log.txt", true);
             PrintWriter pw = new PrintWriter(fw);
             pw.append(str+"\r\n");
 
