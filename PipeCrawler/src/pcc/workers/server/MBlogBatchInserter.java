@@ -111,7 +111,7 @@ public class MBlogBatchInserter extends Worker {
     }
 
     private void saveToMongDB(MBlogTask task) {
-        MongoClient mongoClient = new MongoClient(CrawlerSetting.getHost().getFirst(), CrawlerSetting.getHost().getSecond());
+        MongoClient mongoClient = new MongoClient("192.168.1.39");
         MongoDatabase db = mongoClient.getDatabase("ylproj");
         Document doc = new Document(task.getAccount().toMongDBObj());
         doc.append("mblogs", task.getResults());
