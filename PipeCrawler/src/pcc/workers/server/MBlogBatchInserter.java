@@ -95,9 +95,12 @@ public class MBlogBatchInserter extends Worker {
                 ps.setString(15, b.getPage_title());
                 ps.setString(16, b.getText());
                 ps.addBatch();
-                if (i % 1000 == 0 || i == mblogs.length - 1) {
+                if (i % 100 == 0 || i == mblogs.length - 1) {
                     ps.executeBatch();
                 }
+            }
+            if (ps != null) {
+                ps.executeBatch();
             }
             conn.close();
 
