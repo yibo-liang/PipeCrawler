@@ -95,7 +95,7 @@ public class MBlogBatchInserter extends Worker {
                 ps.setString(15, b.getPage_title());
                 ps.setString(16, b.getText());
                 ps.addBatch();
-                System.out.println("Add Batch" + b.getPost_id() + ":" + b.getText());
+                //System.out.println("Add Batch" + b.getPost_id() + ":" + b.getText());
                 ps.executeBatch();
             }
             if (ps != null) {
