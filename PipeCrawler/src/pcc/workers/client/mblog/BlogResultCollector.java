@@ -37,7 +37,7 @@ import pcc.workers.client.protocols.MBlogUploadRequest;
  */
 public class BlogResultCollector extends Worker {
 
-    int num = 40;
+    int num = 5;
 
     @Override
     public int work() {

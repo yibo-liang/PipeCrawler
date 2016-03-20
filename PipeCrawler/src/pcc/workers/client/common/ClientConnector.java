@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,7 +45,9 @@ import pcc.core.entity.MessageCarrier;
  */
 public class ClientConnector extends Worker {
 
-    public interface IClientProtocol {
+    public interface IClientProtocol extends Serializable {
+
+        static final long serialVersionUID = 7513452012352313647L;
 
         public MessageCarrier messageToServer(ClientConnector connector);
 
@@ -71,7 +74,7 @@ public class ClientConnector extends Worker {
 
             oos.writeObject(cp.messageToServer(this));
             oos.flush();
-            
+
             InputStream is = socket.getInputStream();
             ObjectInputStream ois = new ObjectInputStream(is);
             MessageCarrier r = (MessageCarrier) ois.readObject();
@@ -93,11 +96,11 @@ public class ClientConnector extends Worker {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex);
         }
-         try {
-                Thread.sleep(200);
-            } catch (InterruptedException ex1) {
-                Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException ex1) {
+            Logger.getLogger(ClientConnector.class.getName()).log(Level.SEVERE, null, ex1);
+        }
         return Worker.FAIL;
     }
 

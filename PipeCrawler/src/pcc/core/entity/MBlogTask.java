@@ -36,7 +36,8 @@ import java.util.Set;
 public class MBlogTask implements Serializable {
 
     public class SubTaskController implements Serializable {
-
+        
+        private static final long serialVersionUID = 7513452012352776147L;
         private boolean[] subtasks = null;
 
         private int max_page_num;
@@ -149,7 +150,7 @@ public class MBlogTask implements Serializable {
         this.account = account;
     }
 
-    public boolean AllDone() {
+    public synchronized boolean AllDone() {
         return this.subtask.allDone();
     }
 

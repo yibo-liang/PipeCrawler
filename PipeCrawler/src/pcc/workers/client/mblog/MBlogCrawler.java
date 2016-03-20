@@ -177,8 +177,8 @@ public class MBlogCrawler extends Worker {
                     //this account does not have any blog, return empty list
                     task.getSubtask().setSubTask_done(num, new ArrayList<>());
                     task.getSubtask().printStatus();
-                    blockedpush(outputBuffer, task);
                     System.out.println("User id=" + task.getUser_id() + " with no mblog");
+                    blockedpush(outputBuffer, task);
                     try {
                         Thread.sleep(4000);
                     } catch (Exception ex) {
@@ -201,13 +201,12 @@ public class MBlogCrawler extends Worker {
                 blogs.add(b);
             }
             task.getSubtask().setSubTask_done(num, blogs);
-            task.getSubtask().printStatus();
             //System.out.println("Task done id=" + task.getUser_id() + ", pagenum=" + num + "");
             if (task.getPage_num() == 1) {
                 //if this is the first page of the user
                 //check if there are more pages to crawl
-                if (num > 10) {
-                    int total = num / 10 + 1;
+                if (count > 10) {
+                    int total = count / 10 + 1;
                     task.getSubtask().setMax_page_num(total);
                     for (int i = 2; i <= total; i++) {
 
@@ -222,6 +221,8 @@ public class MBlogCrawler extends Worker {
 
             }
             if (task.AllDone()) {
+                System.out.println("User id="+task.getUser_id()+" Done, n="+task.getResults().size());
+                task.getSubtask().printStatus();
                 task.removeDupResult();
                 blockedpush(outputBuffer, task);
             }
