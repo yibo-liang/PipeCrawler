@@ -206,7 +206,7 @@ public class MBlogCrawler extends Worker {
                 //if this is the first page of the user
                 //check if there are more pages to crawl
                 if (count > 10) {
-                    int total = count / 10 + 1;
+                    int total = (count-1) / 10 + 1;
                     task.getSubtask().setMax_page_num(total);
                     for (int i = 2; i <= total; i++) {
 
