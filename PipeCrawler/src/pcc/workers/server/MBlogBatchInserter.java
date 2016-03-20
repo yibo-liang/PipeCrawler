@@ -133,8 +133,33 @@ public class MBlogBatchInserter extends Worker {
         Document doc = task.getAccount().toBSONDocument();
         List<MBlog> mblogs = task.getResults();
         List<Document> mblog_docs = new ArrayList<>();
+
+        String[] neededFields = {
+            "post_id",
+        //    "user_id",
+            "create_timestamp",
+            "update_timestamp",
+            "repost_count",
+            "comments_count",
+            "attitudes_count",
+            "like_count",
+            "picture_count",
+            "is_video",
+            "is_retweet",
+            "retweet_post_id",
+            "mblogtype",
+            "is_long_text"
+        //"page_title",
+        //"text "
+        };
+
         for (MBlog m : mblogs) {
-            mblog_docs.add(m.toDocument());
+            Document full = m.toDocument();
+            Document simplified = new Document();
+            for (String k : neededFields) {
+                simplified.put(k, full.get(k));
+            }
+            mblog_docs.add(simplified);
         }
         doc.append("mblogs", mblog_docs);
         db.getCollection("accounts").insertOne(doc);
