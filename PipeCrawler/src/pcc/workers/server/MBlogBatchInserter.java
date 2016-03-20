@@ -156,7 +156,7 @@ public class MBlogBatchInserter extends Worker {
             for (MBlogTask task : finishedTasks) {
 
                 try {
-                    //saveToMySQL(task);
+                    saveToMySQL(task);
                     saveToMongDB(task);
                 } catch (Exception ex) {
                     Logger.getLogger(MBlogBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
