@@ -36,6 +36,8 @@ import pcc.workers.client.common.ClientConnector;
  */
 public class MBlogUploadRequest implements ClientConnector.IClientProtocol {
 
+    private static final long serialVersionUID = 7513452012352313647L;
+
     MBlogTask[] data;
 
     public MBlogUploadRequest(MBlogTask[] data) {

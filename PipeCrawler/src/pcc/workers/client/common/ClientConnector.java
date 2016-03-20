@@ -47,7 +47,6 @@ public class ClientConnector extends Worker {
 
     public interface IClientProtocol extends Serializable {
 
-        static final long serialVersionUID = 7513452012352313647L;
 
         public MessageCarrier messageToServer(ClientConnector connector);
 
@@ -70,6 +69,7 @@ public class ClientConnector extends Worker {
             Socket socket = new Socket(host.getFirst(), host.getSecond());
             OutputStream os = socket.getOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(os);
+            oos.flush();
             IClientProtocol cp = (IClientProtocol) this.blockedpoll(cpbuffer);
 
             oos.writeObject(cp.messageToServer(this));

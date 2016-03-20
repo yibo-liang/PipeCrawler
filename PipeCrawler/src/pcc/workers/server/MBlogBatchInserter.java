@@ -123,7 +123,7 @@ public class MBlogBatchInserter extends Worker {
 
         Buffer<MBlogTask> buffer = this.getBufferStore().use("mblogresult");
 
-        if (buffer.getCount() >= 20) {
+        if (buffer.getCount() >= 1) {
 
             int num = buffer.getCount();
             MBlogTask[] finishedTasks = new MBlogTask[num];
