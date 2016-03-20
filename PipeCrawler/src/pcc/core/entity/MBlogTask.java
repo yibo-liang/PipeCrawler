@@ -35,13 +35,15 @@ import java.util.Set;
  */
 public class MBlogTask implements Serializable {
 
-    public class SubTaskController implements Serializable {
-        
+    public class TaskController implements Serializable {
+
         private static final long serialVersionUID = 7513452012352776147L;
         private boolean[] subtasks = null;
 
+        private List<MBlog> taskresult = new ArrayList<>();
         private int max_page_num;
 
+        
         public int getMax_page_num() {
             return max_page_num;
         }
@@ -82,14 +84,13 @@ public class MBlogTask implements Serializable {
 
     private static final long serialVersionUID = 1213452215622776147L;
     private long user_id;
-    private List<MBlog> taskresult = new ArrayList<>();
     private AccountDetail account;
-    private SubTaskController subtask = null;
+    private TaskController subtask = null;
 
     private int page_num;
 
     public MBlogTask() {
-        this.subtask = new SubTaskController();
+        this.subtask = new TaskController();
 
         this.subtask.setMax_page_num(1);
         this.setPage_num(1);
@@ -103,13 +104,14 @@ public class MBlogTask implements Serializable {
 
     public synchronized void removeDupResult() {
         Set<MBlog> tmp = new HashSet<MBlog>();
-        tmp.addAll(taskresult);
-        taskresult.clear();
-        taskresult.addAll(tmp);
+        
+        tmp.addAll(this.subtask.taskresult);
+        this.subtask.taskresult.clear();
+        this.subtask.taskresult.addAll(tmp);
     }
 
     public synchronized List<MBlog> getResults() {
-        return taskresult;
+        return this.subtask.taskresult;
     }
 
     public synchronized int getMax_page_num() {
@@ -136,11 +138,11 @@ public class MBlogTask implements Serializable {
         this.user_id = user_id;
     }
 
-    public SubTaskController getSubtask() {
+    public TaskController getSubtask() {
         return subtask;
     }
 
-    public void setSubtask(SubTaskController subtask) {
+    public void setSubtask(TaskController subtask) {
         this.subtask = subtask;
     }
 

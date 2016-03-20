@@ -391,7 +391,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             for (int i = 0; i < result.size(); i++) {
                 MBlogTask t = new MBlogTask();
                 t.setUser_id(result.get(i).getUid());
-                MBlogTask.SubTaskController st = t.new SubTaskController();
+                MBlogTask.TaskController st = t.new TaskController();
                 st.setMax_page_num(1);
                 t.setPage_num(1);
                 t.setAccount(result.get(i));
