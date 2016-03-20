@@ -49,9 +49,9 @@ import pcc.core.hibernate.DatabaseManager;
  * @author yl9
  */
 public class MBlogBatchInserter extends Worker {
-
+    
     private void saveToMySQL(MBlogTask task) throws Exception {
-
+        
         MBlog[] mblogs = task.getResults().toArray(new MBlog[task.getResults().size()]);
         DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
         try (Connection conn = dbi.getJDBC_Connection()) {
@@ -95,7 +95,7 @@ public class MBlogBatchInserter extends Worker {
                 ps.setString(15, b.getPage_title());
                 ps.setString(16, b.getText());
                 ps.addBatch();
-                System.out.println("Add Batch"+b.getPost_id()+":"+b.getText());
+                System.out.println("Add Batch" + b.getPost_id() + ":" + b.getText());
                 if (i % 100 == 0 || i == mblogs.length - 1) {
                     ps.executeBatch();
                 }
@@ -103,19 +103,20 @@ public class MBlogBatchInserter extends Worker {
             if (ps != null) {
                 ps.executeBatch();
             }
+            ServerConnector.log("LOG: Saved to MySQL for uid="+task.getUser_id());
             conn.close();
-
+            
         } catch (Exception ex) {
             Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
             ServerConnector.logError(ex);
             throw ex;
         }
     }
-
+    
     MongoClient mongoClient;
-
+    
     private boolean mongoInit = false;
-
+    
     private void MongoInit() {
         if (!mongoInit) {
             mongoClient = new MongoClient("192.168.1.39");
@@ -127,7 +128,7 @@ public class MBlogBatchInserter extends Worker {
             mongoInit = true;
         }
     }
-
+    
     private void saveToMongDB(MBlogTask task) {
         MongoInit();
         MongoDatabase db = mongoClient.getDatabase("ylproj");
@@ -140,23 +141,23 @@ public class MBlogBatchInserter extends Worker {
         doc.append("mblogs", mblog_docs);
         db.getCollection("accounts").insertOne(doc);
     }
-
+    
     @Override
     public int work() {
-
+        
         Buffer<MBlogTask> buffer = this.getBufferStore().use("mblogresult");
-
+        
         if (buffer.getCount() >= 1) {
-
+            
             int num = buffer.getCount();
             MBlogTask[] finishedTasks = new MBlogTask[num];
             for (int i = 0; i < num; i++) {
                 finishedTasks[i] = (MBlogTask) blockedpoll(buffer);
-
+                
             }
-
+            
             for (MBlogTask task : finishedTasks) {
-
+                
                 try {
                     saveToMySQL(task);
                     saveToMongDB(task);
@@ -164,9 +165,9 @@ public class MBlogBatchInserter extends Worker {
                     Logger.getLogger(MBlogBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
                     ServerConnector.logError(ex);
                 }
-
+                
             }
-
+            
         }
         try {
             Thread.sleep(10);
@@ -174,6 +175,6 @@ public class MBlogBatchInserter extends Worker {
             Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
         }
         return Worker.SUCCESS;
-
+        
     }
 }
