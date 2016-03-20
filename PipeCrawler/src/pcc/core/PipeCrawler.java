@@ -321,7 +321,7 @@ public class PipeCrawler {
         DefaultWorkerFactory<MBlogCrawler> MBlogCrawlerFactory = new DefaultWorkerFactory<>(MBlogCrawler.class);
 
         MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
-        MultiPipeSection mcPipe = new MultiPipeSection(MBlogCrawlerFactory, bs1, 40);
+        MultiPipeSection mcPipe = new MultiPipeSection(MBlogCrawlerFactory, bs1, 10);
 
         proxyPipe.Start();
         mcPipe.Start();
@@ -341,6 +341,7 @@ public class PipeCrawler {
         while (true) {
             Thread.sleep(2000);
             System.out.println(bs1.BufferStates());
+            System.out.println(mcPipe.GetSectionAnalyseResult().toString());
             System.out.println("-----------------------------------");
 
         }

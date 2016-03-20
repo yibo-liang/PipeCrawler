@@ -83,7 +83,9 @@ public class MBlogTask implements Serializable {
 
     public MBlogTask() {
         this.subtask = new SubTaskController();
+        
         this.subtask.setMax_page_num(1);
+        this.setPage_num(1);
     }
 
     public MBlogTask(SubTaskController subtask) {

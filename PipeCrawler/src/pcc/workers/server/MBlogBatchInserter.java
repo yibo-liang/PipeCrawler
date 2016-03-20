@@ -23,6 +23,9 @@
  */
 package pcc.workers.server;
 
+import com.mongodb.DB;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -32,6 +35,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
+import org.bson.Document;
+import pcc.core.CrawlerSetting;
+import pcc.core.GlobalControll;
 import pcc.core.entity.AccountDetail;
 import pcc.core.entity.MBlog;
 import pcc.core.entity.MBlogTask;
@@ -44,8 +50,9 @@ import pcc.core.hibernate.DatabaseManager;
  */
 public class MBlogBatchInserter extends Worker {
 
-    private void saveToMySQL(MBlog[] mblogs) {
+    private void saveToMySQL(MBlogTask task) throws Exception {
 
+        MBlog[] mblogs = task.getResults().toArray(new MBlog[task.getResults().size()]);
         DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
         try (Connection conn = dbi.getJDBC_Connection()) {
             PreparedStatement ps = null;
@@ -98,34 +105,45 @@ public class MBlogBatchInserter extends Worker {
             //dbi.batchInsert(rusers);
         } catch (Exception ex) {
             Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
-
             ServerConnector.logError(ex);
+            throw ex;
         }
+    }
+
+    private void saveToMongDB(MBlogTask task) {
+        MongoClient mongoClient = new MongoClient(CrawlerSetting.getHost().getFirst(), CrawlerSetting.getHost().getSecond());
+        MongoDatabase db = mongoClient.getDatabase("ylproj");
+        Document doc = new Document(task.getAccount().toMongDBObj());
+        doc.append("mblogs", task.getResults());
+        db.getCollection("accounts").insertOne(doc);
     }
 
     @Override
     public int work() {
 
         Buffer<MBlogTask> buffer = this.getBufferStore().use("mblogresult");
-        try {
-            if (buffer.getCount() >= 20) {
 
-                int num = buffer.getCount();
-                MBlogTask[] finishedTasks = new MBlogTask[num];
-                for (int i = 0; i < num; i++) {
-                    finishedTasks[i] = (MBlogTask) blockedpoll(buffer);
+        if (buffer.getCount() >= 20) {
 
-                }
+            int num = buffer.getCount();
+            MBlogTask[] finishedTasks = new MBlogTask[num];
+            for (int i = 0; i < num; i++) {
+                finishedTasks[i] = (MBlogTask) blockedpoll(buffer);
 
-                for (MBlogTask task : finishedTasks) {
-                    MBlog[] mblogs = task.getResults().toArray(new MBlog[task.getResults().size()]);
-                    saveToMySQL(mblogs);
+            }
+
+            for (MBlogTask task : finishedTasks) {
+
+                try {
+                    //saveToMySQL(task);
+                    saveToMongDB(task);
+                } catch (Exception ex) {
+                    Logger.getLogger(MBlogBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
+                    ServerConnector.logError(ex);
                 }
 
             }
-        } catch (Exception ex) {
-            Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
-            ServerConnector.logError(ex);
+
         }
         try {
             Thread.sleep(10);

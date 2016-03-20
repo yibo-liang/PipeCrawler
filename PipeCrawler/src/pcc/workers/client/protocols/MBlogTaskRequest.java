@@ -33,7 +33,7 @@ import pcc.workers.client.common.ClientConnector;
  *
  * @author yl9
  */
-public class MBloglTaskRequest implements ClientConnector.IClientProtocol {
+public class MBlogTaskRequest implements ClientConnector.IClientProtocol {
 
     ClientConnector connector;
 
@@ -42,10 +42,11 @@ public class MBloglTaskRequest implements ClientConnector.IClientProtocol {
         this.connector = connector;
         Buffer<MBlogTask> taskbuffer = this.connector.getBufferStore().use("tasks");
         int num = taskbuffer.getCount();
-        num = (num < 100) ? 100 - num : 100;
+        num = (num < 5) ? 5 - num : 1;
         MessageCarrier r = new MessageCarrier("MBlogTask", new Integer(num));
         return r;
     }
+    
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
@@ -61,7 +62,7 @@ public class MBloglTaskRequest implements ClientConnector.IClientProtocol {
                 e.printStackTrace();
             }
         } else {
-            MBloglTaskRequest request = new MBloglTaskRequest();
+            MBlogTaskRequest request = new MBlogTaskRequest();
             Buffer<ClientConnector.IClientProtocol> b = this.connector.getBufferStore().use("msg");
             b.push(connector, request);
         }

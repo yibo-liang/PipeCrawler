@@ -49,7 +49,7 @@ import pcc.http.CrawlerConnectionManager;
 import pcc.http.UserAgentHelper;
 import pcc.http.entity.Proxy;
 import pcc.workers.client.common.ClientConnector;
-import pcc.workers.client.protocols.MBloglTaskRequest;
+import pcc.workers.client.protocols.MBlogTaskRequest;
 
 /**
  *
@@ -109,7 +109,7 @@ public class MBlogCrawler extends Worker {
         Object retweeted_status = jobj.get("retweeted_status");
         if (retweeted_status != null) {
             result.setIs_retweet(true);
-            int id = Integer.valueOf(((JSONObject) retweeted_status).get("id").toString());
+            long id = Long.valueOf(((JSONObject) retweeted_status).get("id").toString());
             result.setRetweet_post_id(id);
         }
         result.setMblogtype(Integer.valueOf(jobj.get("mblogtype").toString()));
@@ -139,7 +139,7 @@ public class MBlogCrawler extends Worker {
         }
         if (task == null) {
             //no user in the input inituser buffer, add a request msg to msgbuffer
-            MBloglTaskRequest request = new MBloglTaskRequest();
+            MBlogTaskRequest request = new MBlogTaskRequest();
             blockedpush(messageBuffer, request);
             //now wait for input buffer to be filled with init users
             task = (MBlogTask) blockedpoll(taskBuffer);
@@ -159,16 +159,18 @@ public class MBlogCrawler extends Worker {
             proxy = new Proxy(proxy.getHost(), proxy.getPort());
 
             client.setProxy(proxy);
-            // System.out.println("Connecting using proxy = " + proxy);
+            //System.out.println("Connecting using proxy = " + proxy);
         }
 
         String json = null;
         int count;
+        //System.out.println("Crawling id=" + task.getUser_id());
         //m.weibo.cn/page/json?containerid=100505"+ id +"_-_WEIBO_SECOND_PROFILE_WEIBO&page="+num
+        String url = null;
         try {
             int num = task.getPage_num();
-
-            json = client.wget("m.weibo.cn/page/json?containerid=100505" + task.getUser_id() + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + num);
+            url = "http://m.weibo.cn/page/json?containerid=100505" + task.getUser_id() + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + num;
+            json = client.wget(url);
 
             if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
                 throw new Exception("Empty content respond");
@@ -177,14 +179,16 @@ public class MBlogCrawler extends Worker {
             JSONParser parser = new JSONParser();
             JSONObject doc = ((JSONObject) parser.parse(json));
             count = Integer.valueOf(doc.get("count").toString());
-            JSONArray cards = (JSONArray) ((JSONObject) doc.get("cards")).get("card_group");
+            JSONArray cards = (JSONArray) doc.get("cards");
+            JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
             List<MBlog> blogs = new ArrayList<>();
-            for (int i = 0; i < cards.size(); i++) {
-                JSONObject mblog = (JSONObject) ((JSONObject) cards.get(i)).get("mblog");
+            for (int i = 0; i < cards_grouop.size(); i++) {
+                JSONObject mblog = (JSONObject) ((JSONObject) cards_grouop.get(i)).get("mblog");
                 MBlog b = fromJSON(mblog, task.getUser_id());
                 blogs.add(b);
             }
             task.getSubtask().setSubTask_done(num, blogs);
+            //System.out.println("Task done id=" + task.getUser_id() + ", pagenum=" + num + "");
             if (task.getPage_num() == 1) {
                 //if this is the first page of the user
                 //check if there are more pages to crawl
@@ -198,6 +202,7 @@ public class MBlogCrawler extends Worker {
                         blockedpush(taskBuffer, newTask);
 
                     }
+                    //System.out.println("Initiated " + (total - 1) + " sub tasks");
                 }
             } else {
                 if (task.AllDone()) {
@@ -205,9 +210,21 @@ public class MBlogCrawler extends Worker {
                     blockedpush(outputBuffer, task);
                 }
             }
+            try {
+
+                Thread.sleep(4000);
+            } catch (Exception ex) {
+
+            }
+
             return Worker.SUCCESS;
         } catch (Exception ex) {
-            Logger.getLogger(MBlogCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            this.proxy = null;
+            if (json != null) {
+                //Logger.getLogger(MBlogCrawler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            //System.out.println("url=" + url);
+            //System.out.println("JSON = " + json);
             blockedpush(failed_taskBuffer, task);
             return Worker.FAIL;
         }
