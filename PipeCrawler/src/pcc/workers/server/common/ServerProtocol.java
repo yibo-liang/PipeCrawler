@@ -156,7 +156,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         session.flush();
 
         List<AccountDetail> items;
-        items = session.createCriteria(RawAccount.class)
+        items = session.createCriteria(AccountDetail.class)
                 .add(Restrictions.gt("id", new Long(progress.getLower())))
                 .add(Restrictions.le("id", new Long(progress.getUpper())))
                 //only get 1/10 account due to time/space limitation
@@ -354,11 +354,11 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             return new MessageCarrier("NULL", "");
         }
         //pull from buffer
-        Buffer<AccountDetail> accounts = this.connector.getBufferStore().use("account_detail_d");
+        Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
         //RawAccount[] resbuf = new RawAccount[num];
         try {
             for (int i = 0; i < num; i++) {
-                Object tmp = accounts.poll(connector);
+                Object tmp = raws.poll(connector);
 
                 AccountDetail a;
                 if (tmp != null) {
@@ -366,7 +366,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                     result.add(a);
                 } else {
                     getMoreAccounts(progress, session);
-                    a = (AccountDetail) accounts.poll(connector);
+                    a = (AccountDetail) raws.poll(connector);
                     if (a != null) {
                         result.add(a);
                     } else {
