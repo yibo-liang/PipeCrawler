@@ -57,7 +57,7 @@ public class MBlogTask implements Serializable {
         }
 
         public synchronized void setSubTask_done(int index, List<MBlog> mblogs) {
-            subtasks[index-1] = true;
+            subtasks[index - 1] = true;
             taskresult.addAll(mblogs);
         }
 
@@ -69,6 +69,12 @@ public class MBlogTask implements Serializable {
                 }
             }
             return true;
+        }
+
+        public synchronized void printStatus() {
+            for (int i = 0; i < this.subtasks.length; i++) {
+                System.out.println("[" + i + "]=" + subtasks[i]);
+            }
         }
 
     }
@@ -83,7 +89,7 @@ public class MBlogTask implements Serializable {
 
     public MBlogTask() {
         this.subtask = new SubTaskController();
-        
+
         this.subtask.setMax_page_num(1);
         this.setPage_num(1);
     }

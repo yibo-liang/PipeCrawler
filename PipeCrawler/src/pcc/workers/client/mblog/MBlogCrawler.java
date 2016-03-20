@@ -173,7 +173,20 @@ public class MBlogCrawler extends Worker {
             json = client.wget(url);
 
             if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
-                throw new Exception("Empty content respond");
+                if (num == 1) {
+                    //this account does not have any blog, return empty list
+                    task.getSubtask().setSubTask_done(num, new ArrayList<>());
+                    task.getSubtask().printStatus();
+                    blockedpush(outputBuffer, task);
+                    System.out.println("User id=" + task.getUser_id() + " with no mblog");
+                    try {
+                        Thread.sleep(4000);
+                    } catch (Exception ex) {
+                    }
+                    return Worker.SUCCESS;
+                } else {
+                    throw new Exception("Empty content respond");
+                }
             }
 
             JSONParser parser = new JSONParser();
@@ -188,6 +201,7 @@ public class MBlogCrawler extends Worker {
                 blogs.add(b);
             }
             task.getSubtask().setSubTask_done(num, blogs);
+            task.getSubtask().printStatus();
             //System.out.println("Task done id=" + task.getUser_id() + ", pagenum=" + num + "");
             if (task.getPage_num() == 1) {
                 //if this is the first page of the user
@@ -205,10 +219,11 @@ public class MBlogCrawler extends Worker {
                     //System.out.println("Initiated " + (total - 1) + " sub tasks");
                 }
             } else {
-                if (task.AllDone()) {
-                    task.removeDupResult();
-                    blockedpush(outputBuffer, task);
-                }
+
+            }
+            if (task.AllDone()) {
+                task.removeDupResult();
+                blockedpush(outputBuffer, task);
             }
             try {
 
