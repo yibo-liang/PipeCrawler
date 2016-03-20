@@ -333,7 +333,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         //get current progress
         try {
             progress = (MBlogProgress) session
-                    .createCriteria(DetailCrawlProgress.class)
+                    .createCriteria(MBlogProgress.class)
                     .add(Restrictions.eq("id", new Integer(0)))
                     .uniqueResult();
             if (progress == null) {

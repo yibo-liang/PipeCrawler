@@ -376,13 +376,22 @@ public class PipeCrawler {
                 as[3] = new RawAccount(3807667648L);
                 dbi.Insert(as);
                 break;
-            case "DETAIL":
+            case "DETAIL": {
                 SignalListener sl = (new SignalListener());
                 (new Thread(sl)).start();
                 DetailCrawler();
                 //Sat Sep 25 18:45:20 +0800 2010
 
                 break;
+            }
+            case "MBLOG": {
+                SignalListener sl = (new SignalListener());
+                (new Thread(sl)).start();
+                MBlogCrawler();
+                //Sat Sep 25 18:45:20 +0800 2010
+
+                break;
+            }
             case "TEST":
 
                 MBlog b = new MBlog();
