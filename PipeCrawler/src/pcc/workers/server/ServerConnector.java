@@ -60,11 +60,26 @@ public class ServerConnector extends Worker {
 
     public static void logError(Exception ex) {
         try {
-            String userHome = System.getProperty( "user.home" );
-            FileWriter fw = new FileWriter(userHome+"/err.txt",true);
+            String userHome = System.getProperty("user.home");
+            FileWriter fw = new FileWriter(userHome + "/err.txt", true);
             PrintWriter pw = new PrintWriter(fw);
             ex.printStackTrace(pw);
-            
+
+            pw.close();
+        } catch (FileNotFoundException ex1) {
+            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
+        } catch (IOException ex1) {
+            Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);
+        }
+    }
+
+    public static void log(String str) {
+        try {
+            String userHome = System.getProperty("user.home");
+            FileWriter fw = new FileWriter(userHome + "/err.txt", true);
+            PrintWriter pw = new PrintWriter(fw);
+            pw.append(str+"\r\n");
+
             pw.close();
         } catch (FileNotFoundException ex1) {
             Logger.getLogger(ServerConnector.class.getName()).log(Level.SEVERE, null, ex1);

@@ -58,7 +58,7 @@ public class MBlogBatchInserter extends Worker {
             PreparedStatement ps = null;
             for (int i = 0; i < mblogs.length; i++) {
                 ps = conn.prepareStatement(
-                        "INSERT IGNORE INTO mblog "
+                        "INSERT INTO mblog "
                         + "(post_id,"
                         + "user_id,"
                         + "create_timestamp,"
