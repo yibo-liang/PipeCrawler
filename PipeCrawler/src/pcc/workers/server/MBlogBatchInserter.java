@@ -118,7 +118,10 @@ public class MBlogBatchInserter extends Worker {
         if (!mongoInit) {
             mongoClient = new MongoClient("192.168.1.39");
             MongoDatabase db = mongoClient.getDatabase("ylproj");
-            db.getCollection("accounts").createIndex(new Document("uid", 1));
+            try {
+                db.getCollection("accounts").createIndex(new Document("uid", 1));
+            } catch (Exception ex) {
+            }
             mongoInit = true;
         }
     }
