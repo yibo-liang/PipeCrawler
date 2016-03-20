@@ -127,7 +127,12 @@ public class MBlogBatchInserter extends Worker {
         MongoInit();
         MongoDatabase db = mongoClient.getDatabase("ylproj");
         Document doc = task.getAccount().toBSONDocument();
-        doc.append("mblogs", task.getResults());
+        List<MBlog> mblogs = task.getResults();
+        List<Document> mblog_docs = new ArrayList<>();
+        for (MBlog m : mblogs) {
+            mblog_docs.add(m.toDocument());
+        }
+        doc.append("mblogs", mblog_docs);
         db.getCollection("accounts").insertOne(doc);
     }
 

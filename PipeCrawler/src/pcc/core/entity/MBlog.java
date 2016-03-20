@@ -32,6 +32,7 @@ import java.io.Serializable;
 import javax.persistence.Transient;
 import java.io.Serializable;
 import javax.persistence.Index;
+import org.bson.Document;
 import org.hibernate.annotations.Type;
 
 /**
@@ -90,8 +91,8 @@ public class MBlog implements Serializable {
     private String text;
 
     //
-    public BasicDBObject toDocument() {
-        BasicDBObject doc = new BasicDBObject();
+    public Document toDocument() {
+        Document doc = new Document();
         doc.put("post_id", post_id);
         doc.put("user_id", user_id);
         doc.put("create_timestamp", create_timestamp);
@@ -114,20 +115,20 @@ public class MBlog implements Serializable {
     public MBlog() {
     }
 
-    public MBlog(BasicDBObject doc) {
+    public MBlog(Document doc) {
         this.post_id = doc.getLong("post_id");
         this.user_id = doc.getLong("user_id");
-        this.create_timestamp = doc.getInt("create_timestamp");
-        this.update_timestamp = doc.getInt("update_timestamp");
-        this.repost_count = doc.getInt("repost_count");
-        this.comments_count = doc.getInt("comments_count");
-        this.attitudes_count = doc.getInt("attitudes_count");
-        this.like_count = doc.getInt("like_count");
-        this.picture_count = doc.getInt("picture_count");
+        this.create_timestamp = doc.getInteger("create_timestamp");
+        this.update_timestamp = doc.getInteger("update_timestamp");
+        this.repost_count = doc.getInteger("repost_count");
+        this.comments_count = doc.getInteger("comments_count");
+        this.attitudes_count = doc.getInteger("attitudes_count");
+        this.like_count = doc.getInteger("like_count");
+        this.picture_count = doc.getInteger("picture_count");
         this.is_video = doc.getBoolean("is_video");
         this.is_retweet = doc.getBoolean("is_retweet");
         this.retweet_post_id = doc.getLong("retweet_post_id");
-        this.mblogtype = doc.getInt("mblogtype");
+        this.mblogtype = doc.getInteger("mblogtype");
         this.is_long_text = doc.getBoolean("is_long_text");
         this.page_title = doc.getString("page_title");
         this.text = doc.getString("text");
