@@ -95,8 +95,10 @@ public class MBlogTask implements Serializable {
         this.setPage_num(1);
     }
 
-    public MBlogTask(SubTaskController subtask) {
-        this.subtask = subtask;
+    public MBlogTask(MBlogTask superTask) {
+        this.subtask = superTask.getSubtask();
+        this.setAccount(superTask.getAccount());
+        this.setUser_id(superTask.getUser_id());
     }
 
     public synchronized void removeDupResult() {

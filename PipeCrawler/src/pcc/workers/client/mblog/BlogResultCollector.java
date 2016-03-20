@@ -37,7 +37,7 @@ import pcc.workers.client.protocols.MBlogUploadRequest;
  */
 public class BlogResultCollector extends Worker {
 
-    int num = 5;
+    int num = 1;
 
     @Override
     public int work() {
@@ -45,7 +45,7 @@ public class BlogResultCollector extends Worker {
         Buffer<MBlogTask> inputbuffer = (Buffer<MBlogTask>) getBufferStore().use("finishedtasks");
         Buffer<ClientConnector.IClientProtocol> msgbuffer = getBufferStore().use("msg");
 
-        if (inputbuffer.getCount() > num) {
+        if (inputbuffer.getCount() >= num) {
 
             MBlogTask[] data = new MBlogTask[num];
             for (int i = 0; i < num; i++) {

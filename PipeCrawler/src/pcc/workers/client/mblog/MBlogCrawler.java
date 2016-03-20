@@ -210,8 +210,9 @@ public class MBlogCrawler extends Worker {
                     task.getSubtask().setMax_page_num(total);
                     for (int i = 2; i <= total; i++) {
 
-                        MBlogTask newTask = new MBlogTask(task.getSubtask());
+                        MBlogTask newTask = new MBlogTask(task);
                         newTask.setPage_num(i);
+                        
                         blockedpush(taskBuffer, newTask);
 
                     }
@@ -221,7 +222,7 @@ public class MBlogCrawler extends Worker {
 
             }
             if (task.AllDone()) {
-                System.out.println("User id="+task.getUser_id()+" Done, n="+task.getResults().size());
+                System.out.println("User id=" + task.getUser_id() + " Done, n=" + task.getResults().size());
                 task.getSubtask().printStatus();
                 task.removeDupResult();
                 blockedpush(outputBuffer, task);
