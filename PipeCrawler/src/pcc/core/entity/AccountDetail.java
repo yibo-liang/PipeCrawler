@@ -23,6 +23,8 @@
  */
 package pcc.core.entity;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -50,48 +52,35 @@ public class AccountDetail implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     //user id
     @Column(name = "uid", unique = true)
     private long uid;
-
     //container id that is used to get the user page
     @Column(name = "container_id")
     private long container_id;
-
     //last time the info of this user is crawled
     @Column(name = "update_time")
     private int update_time;
-
     @Column(name = "create_time")
     private int create_time;
-
     @Column(name = "name")
     private String name;
-
     @Column(name = "avatar_img", length = 127)
     private String avatar_img;
-
     @Column(name = "background")
     private String background;
-
     @Column(name = "description")
     private String description;
-
     //verification, used to help distinguish
     //member type, also can be used as filters
     @Column(name = "verified", columnDefinition = "TINYINT(1)")
     private boolean verified;
-
     @Column(name = "v_type")
     private int v_type;
-
     @Column(name = "member_type")
     private int member_type;
-
     @Column(name = "member_rank")
     private int member_rank;
-
     //numbers 
     @Column(name = "blog_num")
     private int blog_num;
@@ -100,7 +89,6 @@ public class AccountDetail implements Serializable {
     private int att_num;
     @Column(name = "fans_num")
     private int fans_num;
-
     //other info
     @Column(name = "native_place", length = 10)
     private String native_place;
@@ -108,6 +96,50 @@ public class AccountDetail implements Serializable {
     //0 femail, 1 male, 2 other
     @Column(name = "gender")
     private int gender;
+
+    public AccountDetail(){}
+    
+    public AccountDetail(BasicDBObject obj){
+       this.id=obj.getLong("id");
+       this.uid=obj.getLong("uid");
+       this.container_id=obj.getLong("container_id");
+       this.update_time=obj.getInt("update_time");
+       this.create_time=obj.getInt("create_time");
+       this.name=obj.getString("name");
+       this.avatar_img=obj.getString("avatar_img");
+       this.background=obj.getString("background");
+       this.description=obj.getString("description");
+       this.verified=obj.getBoolean("verified");
+       this.v_type=obj.getInt("v_type");
+       this.member_type=obj.getInt("member_type");
+       this.blog_num=obj.getInt("blog_num");
+       this.att_num=obj.getInt("att_num");
+       this.fans_num=obj.getInt("fans_num");
+       this.native_place=obj.getString("native_place");
+       this.gender=obj.getInt("gender");
+    }
+    
+    public BasicDBObject toMongDBObj() {
+        BasicDBObject result = new BasicDBObject();
+        result.put("id", id);
+        result.put("uid", uid);
+        result.put("container_id", container_id);
+        result.put("update_time", update_time);
+        result.put("create_time", create_time);
+        result.put("name", name);
+        result.put("avatar_img", avatar_img);
+        result.put("background", background);
+        result.put("description", description);
+        result.put("verified", verified);
+        result.put("v_type", v_type);
+        result.put("member_type", member_type);
+        result.put("blog_num", blog_num);
+        result.put("att_num", att_num);
+        result.put("fans_num", fans_num);
+        result.put("native_place", native_place);
+        result.put("gender", gender);
+        return result;
+    }
 
     public long getId() {
         return id;

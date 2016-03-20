@@ -24,7 +24,7 @@
 package pcc.workers.client.protocols;
 
 import jpipe.abstractclass.buffer.Buffer;
-import pcc.core.entity.MBlog;
+import pcc.core.entity.MBlogTask;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.workers.client.common.ClientConnector;
@@ -33,35 +33,35 @@ import pcc.workers.client.common.ClientConnector;
  *
  * @author yl9
  */
-public class DetailTaskRequest implements ClientConnector.IClientProtocol {
+public class MBloglTaskRequest implements ClientConnector.IClientProtocol {
 
     ClientConnector connector;
 
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
         this.connector = connector;
-        Buffer<MBlog> user_buffer = this.connector.getBufferStore().use("rawusers");
-        int num = user_buffer.getCount();
+        Buffer<MBlogTask> taskbuffer = this.connector.getBufferStore().use("tasks");
+        int num = taskbuffer.getCount();
         num = (num < 100) ? 100 - num : 100;
-        MessageCarrier r = new MessageCarrier("DetailTask", new Integer(num));
+        MessageCarrier r = new MessageCarrier("MBlogTask", new Integer(num));
         return r;
     }
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
         if (!msg.getMsg().equals("NULL")) {
-            Buffer<RawAccount> user_buffer = this.connector.getBufferStore().use("rawusers");
+            Buffer<MBlogTask> taskbuffer = this.connector.getBufferStore().use("tasks");
 
             try {
-                RawAccount[] rusers = (RawAccount[]) msg.getObj();
-                for (int i = 0; i < rusers.length; i++) {
-                    this.connector.blockedpush(user_buffer, rusers[i]);
+                MBlogTask[] tasks = (MBlogTask[]) msg.getObj();
+                for (int i = 0; i < tasks.length; i++) {
+                    this.connector.blockedpush(taskbuffer, tasks[i]);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            DetailTaskRequest request = new DetailTaskRequest();
+            MBloglTaskRequest request = new MBloglTaskRequest();
             Buffer<ClientConnector.IClientProtocol> b = this.connector.getBufferStore().use("msg");
             b.push(connector, request);
         }

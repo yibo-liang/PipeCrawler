@@ -5,6 +5,9 @@
  */
 package pcc.core;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,7 +30,9 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import pcc.core.entity.AccountDetail;
 import pcc.core.entity.DetailCrawlProgress;
+import pcc.core.entity.MBlog;
 import pcc.core.entity.MBlogCrawlInfo;
+import pcc.core.entity.MBlogTask;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
@@ -44,8 +49,11 @@ import pcc.workers.server.ProxySupplier;
 import pcc.workers.client.common.ProxyValidator;
 import pcc.workers.client.common.SignalListener;
 import pcc.workers.client.common.SignalSender;
+import pcc.workers.client.mblog.BlogResultCollector;
+import pcc.workers.client.mblog.MBlogCrawler;
 import pcc.workers.client.rawuser.UserResultCollector;
 import pcc.workers.server.DetailBatchInserter;
+import pcc.workers.server.MBlogBatchInserter;
 import pcc.workers.server.RawUserBatchInserter;
 import pcc.workers.server.ServerConnector;
 import pcc.workers.server.common.ServerDisplay;
@@ -175,8 +183,16 @@ public class PipeCrawler {
         //user detail buffer
         LUBuffer<AccountDetail> detailbuffer = new LUBuffer<>(0);
         bs1.put("account_detail", detailbuffer);
-        //create worker - receiver
 
+        //blog crawl task buffer
+        LUBuffer<AccountDetail> mblogtaskbuffer = new LUBuffer<>(0);
+        bs1.put("account_detail_d", mblogtaskbuffer);
+
+        //blog crawl result buffer
+        LUBuffer<MBlogTask> mblog_result = new LUBuffer<>(0);
+        bs1.put("mblogresult", mblog_result);
+
+        //create worker - receiver
         if (CrawlerSetting.USE_PROXY) {
             ProxySupplier ps = new ProxySupplier(500);
             ps.setBufferStore(bs1);
@@ -202,6 +218,12 @@ public class PipeCrawler {
         adInserter.setBufferStore(bs1);
         SinglePipeSection adInserterPipe = new SinglePipeSection(adInserter);
         (new Thread(adInserterPipe)).start();
+
+        /* --- MBlog Inserter --- */
+        MBlogBatchInserter mbInserter = new MBlogBatchInserter();
+        mbInserter.setBufferStore(bs1);
+        SinglePipeSection mbInserterPipe = new SinglePipeSection(mbInserter);
+        (new Thread(mbInserterPipe)).start();
 
         String suffix = "";
 
@@ -276,9 +298,59 @@ public class PipeCrawler {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void MBlogCrawler() throws InterruptedException {
+        CrawlerConnectionManager.setMaxConnection(1000);
+        CrawlerConnectionManager.StartConnectionMonitor();
+        LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
+        LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
+        LUBuffer<MBlogTask> taskbuffer = new LUBuffer<>();
+        LUBuffer<MBlogTask> failedtaskbuffer = new LUBuffer<>();
+
+        LUBuffer<MBlogTask> resultbuffer = new LUBuffer<>();
+        LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
+
+        BufferStore bs1 = new BufferStore();
+        bs1.put("rawproxies", rawproxysbuffer);
+        bs1.put("proxys", proxysbuffer);
+        bs1.put("tasks", taskbuffer);
+        bs1.put("failedtasks", failedtaskbuffer);
+        bs1.put("finishedtasks", resultbuffer);
+        bs1.put("msg", messageBuffer);
+
+        DefaultWorkerFactory<ProxyValidator> ProxyValidatorFactory = new DefaultWorkerFactory<>(ProxyValidator.class);
+        DefaultWorkerFactory<MBlogCrawler> MBlogCrawlerFactory = new DefaultWorkerFactory<>(MBlogCrawler.class);
+
+        MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
+        MultiPipeSection mcPipe = new MultiPipeSection(MBlogCrawlerFactory, bs1, 40);
+
+        proxyPipe.Start();
+        mcPipe.Start();
+
+        //client side message sender
+        ClientConnector cos = new ClientConnector("msg");
+        cos.setBufferStore(bs1);
+        SinglePipeSection connectorSec = new SinglePipeSection(cos);
+        (new Thread(connectorSec)).start();
+
+        /* Detail result collector */
+        BlogResultCollector brCol = new BlogResultCollector();
+        brCol.setBufferStore(bs1);
+        SinglePipeSection drColSec = new SinglePipeSection(brCol);
+        (new Thread(drColSec)).start();
+
+        while (true) {
+            Thread.sleep(2000);
+            System.out.println(bs1.BufferStates());
+            System.out.println("-----------------------------------");
+
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException, SQLException {
         String arg = args[0].toUpperCase();
         GlobalControll.PROCESS_TASK = arg;
+
+        DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
         switch (arg) {
             case "USERCRAWLER": {
                 SignalListener sl = (new SignalListener());
@@ -297,7 +369,6 @@ public class PipeCrawler {
                 (new Thread(ss)).start();
                 break;
             case "DBINIT":
-                DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
                 RawAccount[] as = new RawAccount[4];
                 as[0] = new RawAccount(5623352990L);
                 as[1] = new RawAccount(5135808743L);
@@ -313,15 +384,34 @@ public class PipeCrawler {
 
                 break;
             case "TEST":
-                Session s = DatabaseManager.getSession();
-                Transaction tx = s.beginTransaction();
-                Object a = s.createCriteria(RawAccount.class)
-                        .add(Restrictions.eq("id", 1L)).uniqueResult();
-                tx.commit();
-                s.close();
-                System.out.println("obj=" + a);
-                RawAccount ci = (RawAccount) a;
-                System.out.println("ci=" + ci.getId());
+
+                MBlog b = new MBlog();
+                /*
+                 Session s = DatabaseManager.getSession();
+                 Transaction tx = s.beginTransaction();
+                 b.setUser_id(0);
+                 s.save(b);
+                 tx.commit();
+                 s.close();
+                 Connection conn = dbi.getJDBC_Connection();
+                 PreparedStatement ps=conn.prepareStatement("INSERT INTO mblog (post_id, user_id) values (?,?)");
+                 ps.setLong(1, 1000L);
+                
+                 ps.setLong(2,b.getUser_id());
+                 ps.execute();
+                 conn.close();
+
+                 */
+                break;
+            case "DBINIT2":
+                Session s2 = DatabaseManager.getSession();
+                Transaction tx2 = s2.beginTransaction();
+                MBlog initobj = new MBlog();
+                initobj.setUser_id(0);
+                s2.saveOrUpdate(initobj);
+                tx2.commit();
+                s2.close();
+                break;
 
         }
 

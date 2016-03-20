@@ -47,7 +47,7 @@ public class DatabaseManager {
             
             try {
                 String JDBC_DRIVER = "com.mysql.jdbc.Driver";
-                String DB_URL = "jdbc:mysql://192.168.1.39/ylproj"
+                String DB_URL = "jdbc:mysql://192.168.1.39/ylproj?"
                         + "useServerPrepStmts=false"
                         + "&rewriteBatchedStatements=true"
                         //+ "&characterEncoding=UTF-8"
@@ -125,6 +125,8 @@ public class DatabaseManager {
         
         if (!GlobalControll.PROCESS_TASK.equals("SERVER")
                 && !GlobalControll.PROCESS_TASK.equals("DBINIT")
+                && !GlobalControll.PROCESS_TASK.equals("DBINIT2")
+                
                 && !GlobalControll.PROCESS_TASK.equals("TEST")) {
             return;
         }
@@ -140,7 +142,7 @@ public class DatabaseManager {
                 )
                 .addAnnotatedClass(pcc.core.entity.AccountDetail.class
                 )
-                .addAnnotatedClass(pcc.core.entity.MBlogCrawlInfo.class
+                .addAnnotatedClass(pcc.core.entity.MBlogProgress.class
                 )
                 .addAnnotatedClass(pcc.core.entity.DetailCrawlProgress.class);
         

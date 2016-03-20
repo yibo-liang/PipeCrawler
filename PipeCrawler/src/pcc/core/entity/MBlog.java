@@ -23,6 +23,7 @@
  */
 package pcc.core.entity;
 
+import com.mongodb.BasicDBObject;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -39,84 +40,101 @@ import org.hibernate.annotations.Type;
  */
 @Entity
 @Table(name = "mblog", indexes = {
-    @Index ( columnList = "user_id", name="post_user_id_idx"),
-    @Index ( columnList = "create_timestamp", name="ctime_idx")
-    
-    
+    @Index(columnList = "user_id", name = "post_user_id_idx"),
+    @Index(columnList = "post_id", name = "post_id_idx"),
+    @Index(columnList = "create_timestamp", name = "ctime_idx")
+
 })
-public class MBlog implements Serializable{
-    
+public class MBlog implements Serializable {
+
     @Transient
     private static final long serialVersionUID = 7513452215622776111L;
-    
+
     @Id
     @Column(name = "post_id")
     private long post_id;
-    
+
     @Column(name = "user_id")
     private long user_id;
-    
-    @Column(name="create_timestamp")
+
+    @Column(name = "create_timestamp")
     private int create_timestamp;
-    @Column(name="update_timestamp")
+    @Column(name = "update_timestamp")
     private int update_timestamp;
-    
-    
     /* Social counts */
     //zhuan fa
-    @Column(name="repost_count")
+    @Column(name = "repost_count")
     private int repost_count;
-    
-    @Column(name="comments_count")
+    @Column(name = "comments_count")
     private int comments_count;
-    
-    @Column(name="attitudes_count")
+    @Column(name = "attitudes_count")
     private int attitudes_count;
-    
-    @Column(name="like_count")
+    @Column(name = "like_count")
     private int like_count;
-    
-    //
-    @Column(name="picture_count")
+    @Column(name = "picture_count")
     private int picture_count;
-    
-    @Column(name="is_video",columnDefinition = "TINYINT(1)")
+    @Column(name = "is_video", columnDefinition = "TINYINT(1)")
     private boolean is_video;
-    @Column(name="is_retweet",columnDefinition = "TINYINT(1)")
+    @Column(name = "is_retweet", columnDefinition = "TINYINT(1)")
     private boolean is_retweet;
-    @Column(name="retweet_post_id")
+    @Column(name = "retweet_post_id")
     private long retweet_post_id;
-    
-    //
-    @Column(name="mblogtype", columnDefinition = "TINYINT(1)")
-    private byte mblogtype;
-    @Column(name="is_long_text",columnDefinition = "TINYINT(1)")
+    @Column(name = "mblogtype", columnDefinition = "TINYINT(1)")
+    private int mblogtype;
+    @Column(name = "is_long_text", columnDefinition = "TINYINT(1)")
     private boolean is_long_text;
-    
-    @Column(name="page_title")
+    @Column(name = "page_title")
     private String page_title;
-    
-    
+    @Column(name = "text")
+    @Type(type = "text")
+    private String text;
+
     //
+    public BasicDBObject toDocument() {
+        BasicDBObject doc = new BasicDBObject();
+        doc.put("post_id", post_id);
+        doc.put("user_id", user_id);
+        doc.put("create_timestamp", create_timestamp);
+        doc.put("update_timestamp", update_timestamp);
+        doc.put("repost_count", repost_count);
+        doc.put("comments_count", comments_count);
+        doc.put("attitudes_count", attitudes_count);
+        doc.put("like_count", like_count);
+        doc.put("picture_count", picture_count);
+        doc.put("is_video", is_video);
+        doc.put("is_retweet", is_retweet);
+        doc.put("retweet_post_id", retweet_post_id);
+        doc.put("mblogtype", mblogtype);
+        doc.put("is_long_text", is_long_text);
+        doc.put("page_title", page_title);
+        doc.put("text", text);
+        return doc;
+    }
 
-    
+    public MBlog() {
+    }
+
+    public MBlog(BasicDBObject doc) {
+        this.post_id = doc.getLong("post_id");
+        this.user_id = doc.getLong("user_id");
+        this.create_timestamp = doc.getInt("create_timestamp");
+        this.update_timestamp = doc.getInt("update_timestamp");
+        this.repost_count = doc.getInt("repost_count");
+        this.comments_count = doc.getInt("comments_count");
+        this.attitudes_count = doc.getInt("attitudes_count");
+        this.like_count = doc.getInt("like_count");
+        this.picture_count = doc.getInt("picture_count");
+        this.is_video = doc.getBoolean("is_video");
+        this.is_retweet = doc.getBoolean("is_retweet");
+        this.retweet_post_id = doc.getLong("retweet_post_id");
+        this.mblogtype = doc.getInt("mblogtype");
+        this.is_long_text = doc.getBoolean("is_long_text");
+        this.page_title = doc.getString("page_title");
+        this.text = doc.getString("text");
+
+    }
+
     //getter and setters
-    public long getPostid() {
-        return post_id;
-    }
-
-    public void setPostid(long postid) {
-        this.post_id = postid;
-    }
-
-    public long getUserid() {
-        return user_id;
-    }
-
-    public void setUserid(long userid) {
-        this.user_id = userid;
-    }
-
     public int getCreate_timestamp() {
         return create_timestamp;
     }
@@ -189,11 +207,11 @@ public class MBlog implements Serializable{
         this.retweet_post_id = retweet_post_id;
     }
 
-    public byte getMblogtype() {
+    public int getMblogtype() {
         return mblogtype;
     }
 
-    public void setMblogtype(byte mblogtype) {
+    public void setMblogtype(int mblogtype) {
         this.mblogtype = mblogtype;
     }
 
@@ -221,6 +239,41 @@ public class MBlog implements Serializable{
         this.is_video = is_video;
     }
 
-    
-    
+    public long getPost_id() {
+        return post_id;
+    }
+
+    public void setPost_id(long post_id) {
+        this.post_id = post_id;
+    }
+
+    public long getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(long user_id) {
+        this.user_id = user_id;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MBlog) {
+            return (this.hashCode() == ((MBlog) obj).hashCode());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(post_id);
+    }
+
 }

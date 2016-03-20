@@ -29,14 +29,15 @@ import jpipe.abstractclass.buffer.Buffer;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import pcc.core.GlobalControll;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.entity.AccountDetail;
 import pcc.core.entity.DetailCrawlProgress;
+import pcc.core.entity.MBlog;
+import pcc.core.entity.MBlogProgress;
+import pcc.core.entity.MBlogTask;
 import pcc.core.hibernate.DatabaseManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.server.ServerConnector;
@@ -144,6 +145,56 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             throw new Exception("No Raw Accounts");
         }
 
+    }
+
+    private void getMoreAccounts(MBlogProgress progress, Session session) throws Exception {
+        Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
+        long step = progress.getUpper() - progress.getLower() + 1;
+        progress.setLower(progress.getUpper() + 1);
+        progress.setUpper(progress.getUpper() + step);
+        session.save(progress);
+        session.flush();
+
+        List<AccountDetail> items;
+        items = session.createCriteria(RawAccount.class)
+                .add(Restrictions.gt("id", new Long(progress.getLower())))
+                .add(Restrictions.le("id", new Long(progress.getUpper())))
+                //only get 1/10 account due to time/space limitation
+                .add(Restrictions.sqlRestriction("10>rand()*100"))
+                .list();
+        if (items.size() > 0) {
+            for (int i = 0; i < items.size(); i++) {
+                connector.blockedpush(raws, items.get(i));
+            }
+
+        } else {
+            throw new Exception("No Raw Accounts");
+        }
+
+    }
+
+    private MessageCarrier handleRawProxy(MessageCarrier mc) {
+        Buffer<Proxy> proxy_buffer = connector.getBufferStore().use("rawproxies");
+        int num = (Integer) mc.getObj();
+        //Proxy[] ps = new Proxy[num];
+        List<Proxy> ps = new ArrayList<>();
+
+        for (int i = 0; i < num; i++) {
+            //ps[i] = (Proxy) this.connector.blockedpoll(proxy_buffer);
+            Proxy p = (Proxy) proxy_buffer.poll(connector);
+            if (p != null) {
+                ps.add(p);
+            } else {
+                break;
+            }
+        }
+        if (ps.size() > 0) {
+            Proxy[] result = ps.toArray(new Proxy[ps.size()]);
+
+            return new MessageCarrier("rawproxies", result);
+        } else {
+            return new MessageCarrier("NULL", "");
+        }
     }
 
     private synchronized MessageCarrier handleDetailTaskRequest(MessageCarrier mc) {
@@ -256,33 +307,113 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         return new MessageCarrier("ACK", "");
     }
 
-    private MessageCarrier handleMblog(MessageCarrier mc) {
+    private MessageCarrier _handleMBlogTaskRequest(MessageCarrier mc) {
 
-        return null;
-    }
-
-    private MessageCarrier handleRawProxy(MessageCarrier mc) {
-        Buffer<Proxy> proxy_buffer = connector.getBufferStore().use("rawproxies");
         int num = (Integer) mc.getObj();
-        //Proxy[] ps = new Proxy[num];
-        List<Proxy> ps = new ArrayList<>();
+        long count;
+        String total_str = GlobalControll.VARIABLES.get("detail_count");
+        Session session = DatabaseManager.getSession();
+        Transaction tx = session.beginTransaction();
+        List<AccountDetail> result = new ArrayList<>();
 
-        for (int i = 0; i < num; i++) {
-            //ps[i] = (Proxy) this.connector.blockedpoll(proxy_buffer);
-            Proxy p = (Proxy) proxy_buffer.poll(connector);
-            if (p != null) {
-                ps.add(p);
-            } else {
-                break;
-            }
+        //get total counjt
+        if (total_str == null) {
+
+            Query q = session.createSQLQuery("SELECT `AUTO_INCREMENT` "
+                    + "FROM INFORMATION_SCHEMA.TABLES "
+                    + "WHERE TABLE_SCHEMA = 'ylproj' "
+                    + "AND TABLE_NAME = 'account_detail';");
+
+            count = new Long(q.list().get(0).toString());
+            GlobalControll.VARIABLES.put("detail_count", String.valueOf(count));
+        } else {
+            count = Long.parseLong(total_str);
         }
-        if (ps.size() > 0) {
-            Proxy[] result = ps.toArray(new Proxy[ps.size()]);
+        MBlogProgress progress;
+        //get current progress
+        try {
+            progress = (MBlogProgress) session
+                    .createCriteria(DetailCrawlProgress.class)
+                    .add(Restrictions.eq("id", new Integer(0)))
+                    .uniqueResult();
+            if (progress == null) {
+                progress = new MBlogProgress();
+                progress.setId(0);
+                progress.setLower(0L);
+                progress.setUpper(4999L);
+                session.saveOrUpdate(progress);
+            }
+            if (progress.getLower() > count) {
+                throw new Exception("All raw user details are crawled.");
+            }
 
-            return new MessageCarrier("rawproxies", result);
+        } catch (Exception ex) {
+            ServerConnector.logError(ex);
+            tx.commit();
+            session.close();
+            return new MessageCarrier("NULL", "");
+        }
+        //pull from buffer
+        Buffer<AccountDetail> accounts = this.connector.getBufferStore().use("account_detail_d");
+        //RawAccount[] resbuf = new RawAccount[num];
+        try {
+            for (int i = 0; i < num; i++) {
+                Object tmp = accounts.poll(connector);
+
+                AccountDetail a;
+                if (tmp != null) {
+                    a = (AccountDetail) tmp;
+                    result.add(a);
+                } else {
+                    getMoreAccounts(progress, session);
+                    a = (AccountDetail) accounts.poll(connector);
+                    if (a != null) {
+                        result.add(a);
+                    } else {
+                        throw new Exception("Unexpected, should have a Account");
+                    }
+
+                }
+            }
+        } catch (Exception ex) {
+            ServerConnector.logError(ex);
+            tx.commit();
+            session.close();
+            return new MessageCarrier("NULL", "");
+        }
+
+        tx.commit();
+
+        session.close();
+
+        if (result.size() > 0) {
+            MBlogTask[] tasks = new MBlogTask[result.size()];
+            for (int i = 0; i < result.size(); i++) {
+                MBlogTask t = new MBlogTask();
+                t.setUser_id(result.get(i).getUid());
+                MBlogTask.SubTaskController st = t.new SubTaskController();
+                st.setMax_page_num(1);
+                t.setAccount(result.get(i));
+                t.setSubtask(st);
+                tasks[i] = t;
+            }
+            return new MessageCarrier("MBlogTasks", tasks);
         } else {
             return new MessageCarrier("NULL", "");
         }
+    }
+
+    private MessageCarrier handleMBlogTaskRequest(MessageCarrier mc) {
+        return _handleMBlogTaskRequest(mc);
+    }
+
+    private MessageCarrier handleMBlog(MessageCarrier mc) {
+        MBlogTask[] finished = (MBlogTask[]) mc.getObj();
+        for (MBlogTask task : finished) {
+            Buffer taskbuffer=this.connector.getBufferStore().use("mblogresult");
+            this.connector.blockedpush(taskbuffer, task);
+        }
+        return null;
     }
 
     @Override
@@ -306,7 +437,9 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 reply = handleRawProxy(mc);
                 break;
             case "MBlog":
-                reply = handleMblog(mc);
+                reply = handleMBlog(mc);
+            case "MBlogTask":
+                reply = handleMBlogTaskRequest(mc);
                 break;
             default:
                 reply = new MessageCarrier();

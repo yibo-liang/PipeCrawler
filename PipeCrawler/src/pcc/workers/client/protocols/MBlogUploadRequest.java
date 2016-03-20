@@ -23,48 +23,33 @@
  */
 package pcc.workers.client.protocols;
 
-import jpipe.abstractclass.buffer.Buffer;
+import jpipe.util.Pair;
+import pcc.core.entity.AccountDetail;
 import pcc.core.entity.MBlog;
+import pcc.core.entity.MBlogTask;
 import pcc.core.entity.MessageCarrier;
-import pcc.core.entity.RawAccount;
 import pcc.workers.client.common.ClientConnector;
 
 /**
  *
  * @author yl9
  */
-public class DetailTaskRequest implements ClientConnector.IClientProtocol {
+public class MBlogUploadRequest implements ClientConnector.IClientProtocol {
 
-    ClientConnector connector;
+    MBlogTask[] data;
+
+    public MBlogUploadRequest(MBlogTask[] data) {
+        this.data = data;
+    }
 
     @Override
     public MessageCarrier messageToServer(ClientConnector connector) {
-        this.connector = connector;
-        Buffer<MBlog> user_buffer = this.connector.getBufferStore().use("rawusers");
-        int num = user_buffer.getCount();
-        num = (num < 100) ? 100 - num : 100;
-        MessageCarrier r = new MessageCarrier("DetailTask", new Integer(num));
-        return r;
+        return new MessageCarrier("MBlog", data);
     }
 
     @Override
     public void messageFromServer(MessageCarrier msg) {
-        if (!msg.getMsg().equals("NULL")) {
-            Buffer<RawAccount> user_buffer = this.connector.getBufferStore().use("rawusers");
-
-            try {
-                RawAccount[] rusers = (RawAccount[]) msg.getObj();
-                for (int i = 0; i < rusers.length; i++) {
-                    this.connector.blockedpush(user_buffer, rusers[i]);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            DetailTaskRequest request = new DetailTaskRequest();
-            Buffer<ClientConnector.IClientProtocol> b = this.connector.getBufferStore().use("msg");
-            b.push(connector, request);
-        }
+        System.out.println("Successfully uploaded " + data.length + " data.");
     }
 
 }
