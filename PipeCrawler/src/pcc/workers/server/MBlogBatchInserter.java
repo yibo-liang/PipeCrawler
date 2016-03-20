@@ -110,10 +110,23 @@ public class MBlogBatchInserter extends Worker {
         }
     }
 
+    MongoClient mongoClient;
+
+    private boolean mongoInit = false;
+
+    private void MongoInit() {
+        if (!mongoInit) {
+            mongoClient = new MongoClient("192.168.1.39");
+            MongoDatabase db = mongoClient.getDatabase("ylproj");
+            db.getCollection("accounts").createIndex(new Document("uid", 1));
+            mongoInit = true;
+        }
+    }
+
     private void saveToMongDB(MBlogTask task) {
-        MongoClient mongoClient = new MongoClient("192.168.1.39");
+        MongoInit();
         MongoDatabase db = mongoClient.getDatabase("ylproj");
-        Document doc = new Document(task.getAccount().toMongDBObj());
+        Document doc = task.getAccount().toBSONDocument();
         doc.append("mblogs", task.getResults());
         db.getCollection("accounts").insertOne(doc);
     }

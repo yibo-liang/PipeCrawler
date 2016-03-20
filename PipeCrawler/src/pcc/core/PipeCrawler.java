@@ -5,6 +5,11 @@
  */
 package pcc.core;
 
+import com.mongodb.Block;
+import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -23,6 +28,7 @@ import jpipe.core.pipeline.DefaultWorkerFactory;
 import jpipe.core.pipeline.SinglePipeSection;
 import jpipe.interfaceclass.IWorkerLazy;
 import jpipe.util.Triplet;
+import org.bson.Document;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -394,8 +400,7 @@ public class PipeCrawler {
                 break;
             }
             case "TEST":
-
-                MBlog b = new MBlog();
+                //MBlog b = new MBlog();
                 /*
                  Session s = DatabaseManager.getSession();
                  Transaction tx = s.beginTransaction();

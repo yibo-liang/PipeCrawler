@@ -34,6 +34,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Index;
 import javax.persistence.Transient;
+import org.bson.Document;
 
 /**
  *
@@ -99,29 +100,29 @@ public class AccountDetail implements Serializable {
 
     public AccountDetail(){}
     
-    public AccountDetail(BasicDBObject obj){
-       this.id=obj.getLong("id");
+    public AccountDetail(Document obj){
+       this.id=obj.getLong("mysql_id");
        this.uid=obj.getLong("uid");
        this.container_id=obj.getLong("container_id");
-       this.update_time=obj.getInt("update_time");
-       this.create_time=obj.getInt("create_time");
+       this.update_time=obj.getInteger("update_time");
+       this.create_time=obj.getInteger("create_time");
        this.name=obj.getString("name");
        this.avatar_img=obj.getString("avatar_img");
        this.background=obj.getString("background");
        this.description=obj.getString("description");
        this.verified=obj.getBoolean("verified");
-       this.v_type=obj.getInt("v_type");
-       this.member_type=obj.getInt("member_type");
-       this.blog_num=obj.getInt("blog_num");
-       this.att_num=obj.getInt("att_num");
-       this.fans_num=obj.getInt("fans_num");
+       this.v_type=obj.getInteger("v_type");
+       this.member_type=obj.getInteger("member_type");
+       this.blog_num=obj.getInteger("blog_num");
+       this.att_num=obj.getInteger("att_num");
+       this.fans_num=obj.getInteger("fans_num");
        this.native_place=obj.getString("native_place");
-       this.gender=obj.getInt("gender");
+       this.gender=obj.getInteger("gender");
     }
     
-    public BasicDBObject toMongDBObj() {
-        BasicDBObject result = new BasicDBObject();
-        result.put("id", id);
+    public Document toBSONDocument() {
+        Document result = new Document();
+        result.put("mysql_id", id);
         result.put("uid", uid);
         result.put("container_id", container_id);
         result.put("update_time", update_time);
