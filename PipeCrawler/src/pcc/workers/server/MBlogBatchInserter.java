@@ -95,6 +95,7 @@ public class MBlogBatchInserter extends Worker {
                 ps.setString(15, b.getPage_title());
                 ps.setString(16, b.getText());
                 ps.addBatch();
+                System.out.println("Add Batch"+b.getPost_id()+":"+b.getText());
                 if (i % 100 == 0 || i == mblogs.length - 1) {
                     ps.executeBatch();
                 }
@@ -104,7 +105,6 @@ public class MBlogBatchInserter extends Worker {
             }
             conn.close();
 
-            //dbi.batchInsert(rusers);
         } catch (Exception ex) {
             Logger.getLogger(RawUserBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
             ServerConnector.logError(ex);
