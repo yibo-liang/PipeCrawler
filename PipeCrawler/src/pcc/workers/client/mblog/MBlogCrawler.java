@@ -221,10 +221,10 @@ public class MBlogCrawler extends Worker {
         } catch (Exception ex) {
             this.proxy = null;
             if (json != null) {
-                //Logger.getLogger(MBlogCrawler.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(MBlogCrawler.class.getName()).log(Level.SEVERE, null, ex);
             }
-            //System.out.println("url=" + url);
-            //System.out.println("JSON = " + json);
+            System.out.println("url=" + url);
+            System.out.println("JSON = " + json);
             blockedpush(failed_taskBuffer, task);
             return Worker.FAIL;
         }

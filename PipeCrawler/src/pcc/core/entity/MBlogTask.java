@@ -57,7 +57,7 @@ public class MBlogTask implements Serializable {
         }
 
         public synchronized void setSubTask_done(int index, List<MBlog> mblogs) {
-            subtasks[index] = true;
+            subtasks[index-1] = true;
             taskresult.addAll(mblogs);
         }
 
