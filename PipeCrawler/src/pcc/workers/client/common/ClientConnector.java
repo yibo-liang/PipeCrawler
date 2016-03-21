@@ -23,12 +23,16 @@
  */
 package pcc.workers.client.common;
 
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +41,7 @@ import jpipe.abstractclass.worker.Worker;
 import jpipe.util.Pair;
 import pcc.core.CrawlerSetting;
 import pcc.core.entity.MessageCarrier;
+import pcc.workers.server.ServerConnector;
 
 /**
  *
@@ -47,13 +52,26 @@ public class ClientConnector extends Worker {
 
     public interface IClientProtocol extends Serializable {
 
-
         public MessageCarrier messageToServer(ClientConnector connector);
 
         public void messageFromServer(MessageCarrier msg);
     }
 
     private final String protocolBuffer;
+
+    public static void log(String str) {
+
+        try {
+            String userHome = System.getProperty("user.home");
+            FileWriter fw = new FileWriter(userHome + "/" + InetAddress.getLocalHost().getHostName() + ".txt", true);
+            PrintWriter pw = new PrintWriter(fw);
+            pw.append(str + "\r\n");
+
+            pw.close();
+        } catch (FileNotFoundException ex1) {
+        } catch (IOException ex1) {
+        }
+    }
 
     public ClientConnector(String protocolBuffer) {
         this.protocolBuffer = protocolBuffer;

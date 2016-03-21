@@ -191,7 +191,7 @@ public class MBlogCrawler extends Worker {
 
             JSONParser parser = new JSONParser();
             JSONObject doc = ((JSONObject) parser.parse(json));
-            count = Integer.valueOf(doc.get("count").toString());
+            count = Integer.parseInt(doc.get("count").toString());
             JSONArray cards = (JSONArray) doc.get("cards");
             JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
             List<MBlog> blogs = new ArrayList<>();
@@ -203,7 +203,9 @@ public class MBlogCrawler extends Worker {
 
             task.getSubtask().setSubTask_done(num, blogs);
             //System.out.println("Task done id=" + task.getUser_id() + ", pagenum=" + num + "");
-            if (task.getPage_num() == 1 && task.getMax_page_num() == 1) {
+            if (task.getPage_num() == 1) {
+
+                ClientConnector.log("--------------------------------------------\r\n" + url + "\r\n" + "count:" + count + "\r\n" + json + "\r\n");
                 //if this is the first page of the user
                 //check if there are more pages to crawl
                 if (count > 10) {
@@ -213,9 +215,7 @@ public class MBlogCrawler extends Worker {
 
                         MBlogTask newTask = new MBlogTask(task);
                         newTask.setPage_num(i);
-
                         blockedpush(taskBuffer, newTask);
-
                     }
                     //System.out.println("Initiated " + (total - 1) + " sub tasks");
                 }
