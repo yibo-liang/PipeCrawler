@@ -160,7 +160,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 .add(Restrictions.gt("id", new Long(progress.getLower())))
                 .add(Restrictions.le("id", new Long(progress.getUpper())))
                 //only get 1/10 account due to time/space limitation
-                .add(Restrictions.sqlRestriction("10>rand()*100"))
+                .add(Restrictions.sqlRestriction("50>rand()*1000"))
                 .list();
         if (items.size() > 0) {
             for (int i = 0; i < items.size(); i++) {
@@ -229,7 +229,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 progress = new DetailCrawlProgress();
                 progress.setId(0);
                 progress.setLower(0L);
-                progress.setUpper(4999L);
+                progress.setUpper(9999L);
                 session.saveOrUpdate(progress);
             }
             if (progress.getLower() > count) {
