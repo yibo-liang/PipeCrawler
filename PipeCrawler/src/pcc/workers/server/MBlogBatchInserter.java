@@ -101,7 +101,7 @@ public class MBlogBatchInserter extends Worker {
             if (ps != null) {
                 ps.executeBatch();
             }
-            ServerConnector.log("LOG: Saved to MySQL for uid=" + task.getUser_id() + ", n=" + mblogs.length);
+            ServerConnector.log("LOG: Saved to MySQL for uid=" + task.getUser_id() + ", n=" + mblogs.length + ", maxn=" + task.getMax_page_num());
             conn.close();
 
         } catch (Exception ex) {
@@ -137,7 +137,7 @@ public class MBlogBatchInserter extends Worker {
 
         String[] neededFields = {
             "post_id",
-        //    "user_id",
+            //    "user_id",
             "create_timestamp",
             "update_timestamp",
             "repost_count",
