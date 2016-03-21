@@ -267,7 +267,7 @@ public class MBlog implements Serializable {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof MBlog) {
-            return (this.hashCode() == ((MBlog) obj).hashCode());
+            return (this.post_id == ((MBlog) obj).post_id);
         }
         return false;
     }
