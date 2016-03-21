@@ -200,26 +200,27 @@ public class MBlogCrawler extends Worker {
                 MBlog b = fromJSON(mblog, task.getUser_id());
                 blogs.add(b);
             }
+            
             task.getSubtask().setSubTask_done(num, blogs);
             //System.out.println("Task done id=" + task.getUser_id() + ", pagenum=" + num + "");
-            if (task.getPage_num() == 1) {
+            if (task.getPage_num() == 1 && task.getMax_page_num() == 1) {
                 //if this is the first page of the user
                 //check if there are more pages to crawl
                 if (count > 10) {
-                    int total = (count-1) / 10 + 1;
+                    int total = (count - 1) / 10 + 1;
                     task.getSubtask().setMax_page_num(total);
                     for (int i = 2; i <= total; i++) {
 
                         MBlogTask newTask = new MBlogTask(task);
                         newTask.setPage_num(i);
-                        
+
                         blockedpush(taskBuffer, newTask);
 
                     }
                     //System.out.println("Initiated " + (total - 1) + " sub tasks");
                 }
-            } else {
 
+            } else {
             }
             if (task.AllDone()) {
                 System.out.println("User id=" + task.getUser_id() + " Done, n=" + task.getResults().size());

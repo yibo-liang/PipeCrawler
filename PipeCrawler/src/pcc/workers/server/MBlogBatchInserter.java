@@ -131,6 +131,7 @@ public class MBlogBatchInserter extends Worker {
         MongoInit();
         MongoDatabase db = mongoClient.getDatabase("ylproj");
         Document doc = task.getAccount().toBSONDocument();
+        doc.append("blog_pagenum", task.getMax_page_num());
         List<MBlog> mblogs = task.getResults();
         List<Document> mblog_docs = new ArrayList<>();
 
