@@ -210,6 +210,8 @@ public class MBlogCrawler extends Worker {
                 //check if there are more pages to crawl
                 if (count > 10) {
                     int total = Math.floorDiv((count - 1), 10) + 1;
+                    //only get first 1000 micro blogs, for space and time limit
+                    if (total>100) total=100;
                     task.getSubtask().setMax_page_num(total);
                     for (int i = 2; i <= total; i++) {
 
