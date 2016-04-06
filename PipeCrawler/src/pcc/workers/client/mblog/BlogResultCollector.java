@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import pcc.core.entity.MBlogTask;
+import pcc.core.entity.MBlogTaskResult;
 import pcc.workers.client.common.ClientConnector;
 import pcc.workers.client.protocols.MBlogUploadRequest;
 
@@ -42,14 +43,14 @@ public class BlogResultCollector extends Worker {
     @Override
     public int work() {
 
-        Buffer<MBlogTask> inputbuffer = (Buffer<MBlogTask>) getBufferStore().use("finishedtasks");
+        Buffer<MBlogTaskResult> inputbuffer = (Buffer<MBlogTaskResult>) getBufferStore().use("finishedtasks");
         Buffer<ClientConnector.IClientProtocol> msgbuffer = getBufferStore().use("msg");
 
         if (inputbuffer.getCount() >= num) {
 
-            MBlogTask[] data = new MBlogTask[num];
+            MBlogTaskResult[] data = new MBlogTaskResult[num];
             for (int i = 0; i < num; i++) {
-                data[i] = (MBlogTask) blockedpoll(inputbuffer);
+                data[i] = (MBlogTaskResult) blockedpoll(inputbuffer);
             }
             MBlogUploadRequest request=new MBlogUploadRequest(data);
             blockedpush(msgbuffer, request);

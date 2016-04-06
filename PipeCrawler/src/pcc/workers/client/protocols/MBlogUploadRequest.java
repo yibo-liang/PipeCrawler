@@ -23,10 +23,7 @@
  */
 package pcc.workers.client.protocols;
 
-import jpipe.util.Pair;
-import pcc.core.entity.AccountDetail;
-import pcc.core.entity.MBlog;
-import pcc.core.entity.MBlogTask;
+import pcc.core.entity.MBlogTaskResult;
 import pcc.core.entity.MessageCarrier;
 import pcc.workers.client.common.ClientConnector;
 
@@ -38,9 +35,9 @@ public class MBlogUploadRequest implements ClientConnector.IClientProtocol {
 
     private static final long serialVersionUID = 7513452012352313647L;
 
-    MBlogTask[] data;
+    MBlogTaskResult[] data;
 
-    public MBlogUploadRequest(MBlogTask[] data) {
+    public MBlogUploadRequest(MBlogTaskResult[] data) {
         this.data = data;
     }
 

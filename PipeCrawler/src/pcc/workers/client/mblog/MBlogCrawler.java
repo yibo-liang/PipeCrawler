@@ -35,14 +35,18 @@ import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import jpipe.buffer.LUBuffer;
 import jpip.singletons.WorkerStates;
+import jpipe.util.Pair;
 import jpipe.util.Triplet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import pcc.core.CrawlerSetting;
+import pcc.core.entity.AccountDetail;
 import pcc.core.entity.MBlog;
 import pcc.core.entity.MBlogTask;
+import pcc.core.entity.MBlogTaskResult;
+import pcc.core.entity.MBlogTaskResult.PostInfo;
 import pcc.core.entity.RawAccount;
 import pcc.http.CrawlerClient;
 import pcc.http.CrawlerConnectionManager;
@@ -119,38 +123,8 @@ public class MBlogCrawler extends Worker {
 
     }
 
-    @Override
-    @SuppressWarnings("empty-statement")
-    public int work() {
-        Buffer<MBlogTask> outputBuffer = (Buffer<MBlogTask>) getBufferStore().use("finishedtasks");
-        Buffer<MBlogTask> taskBuffer = (Buffer<MBlogTask>) getBufferStore().use("tasks");
-        Buffer<MBlogTask> failed_taskBuffer = (Buffer<MBlogTask>) getBufferStore().use("failedtasks");
-
+    private void switchProxy() {
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
-
-        LUBuffer<ClientConnector.IClientProtocol> messageBuffer
-                = (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
-
-        MBlogTask task = null;
-
-        task = (MBlogTask) failed_taskBuffer.poll(this);
-        if (task == null) {
-            task = (MBlogTask) taskBuffer.poll(this);
-        }
-        if (task == null) {
-            //no user in the input inituser buffer, add a request msg to msgbuffer
-            MBlogTaskRequest request = new MBlogTaskRequest();
-            blockedpush(messageBuffer, request);
-            //now wait for input buffer to be filled with init users
-            task = (MBlogTask) blockedpoll(taskBuffer);
-        }
-
-        CrawlerClient client = CrawlerConnectionManager.getNewClient();
-        client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
-        client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
-        client.addHeader("X-Requested-With", "XMLHttpRequest");
-        client.addHeader(UserAgentHelper.iphone6plusAgent());
-
         if (CrawlerSetting.USE_PROXY) {
             if (proxy == null) {
 
@@ -158,97 +132,103 @@ public class MBlogCrawler extends Worker {
             }
             proxy = new Proxy(proxy.getHost(), proxy.getPort());
 
-            client.setProxy(proxy);
             //System.out.println("Connecting using proxy = " + proxy);
         }
+    }
 
-        String json = null;
-        int count;
-        //System.out.println("Crawling id=" + task.getUser_id());
-        //m.weibo.cn/page/json?containerid=100505"+ id +"_-_WEIBO_SECOND_PROFILE_WEIBO&page="+num
-        String url = null;
-        try {
-            int num = task.getPage_num();
-            url = "http://m.weibo.cn/page/json?containerid=100505" + task.getUser_id() + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + num;
-            json = client.wget(url);
+    private Pair<Integer, ArrayList<PostInfo>> analysePage(String userid, int page) throws ParseException {
+        ArrayList<PostInfo> results = new ArrayList<>();
 
-            if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
-                if (num == 1) {
-                    //this account does not have any blog, return empty list
-                    task.getSubtask().setSubTask_done(num, new ArrayList<>());
-                    task.getSubtask().printStatus();
-                    System.out.println("User id=" + task.getUser_id() + " with no mblog");
-                    blockedpush(outputBuffer, task);
-                    try {
-                        Thread.sleep(4000);
-                    } catch (Exception ex) {
-                    }
-                    return Worker.SUCCESS;
-                } else {
-                    throw new Exception("Empty content respond");
-                }
-            }
+        String url = "http://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
 
-            JSONParser parser = new JSONParser();
-            JSONObject doc = ((JSONObject) parser.parse(json));
-            count = Integer.parseInt(doc.get("count").toString());
-            JSONArray cards = (JSONArray) doc.get("cards");
-            JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
-            List<MBlog> blogs = new ArrayList<>();
-            for (int i = 0; i < cards_grouop.size(); i++) {
-                JSONObject mblog = (JSONObject) ((JSONObject) cards_grouop.get(i)).get("mblog");
-                MBlog b = fromJSON(mblog, task.getUser_id());
-                blogs.add(b);
-            }
-
-            task.getSubtask().setSubTask_done(num, blogs);
-            //System.out.println("Task done id=" + task.getUser_id() + ", pagenum=" + num + "");
-            if (task.getPage_num() == 1) {
-
-                ClientConnector.log("--------------------------------------------\r\n" + url + "\r\n" + "count:" + count + "\r\n" + json + "\r\n");
-                //if this is the first page of the user
-                //check if there are more pages to crawl
-                if (count > 10) {
-                    int total = Math.floorDiv((count - 1), 10) + 1;
-                    //only get first 1000 micro blogs, for space and time limit
-                    if (total>50) total=50;
-                    task.getSubtask().setMax_page_num(total);
-                    for (int i = 2; i <= total; i++) {
-
-                        MBlogTask newTask = new MBlogTask(task);
-                        newTask.setPage_num(i);
-                        blockedpush(taskBuffer, newTask);
-                    }
-                    //System.out.println("Initiated " + (total - 1) + " sub tasks");
-                }
-
-            } else {
-            }
-            if (task.AllDone()) {
-                System.out.println("User id=" + task.getUser_id() + " Done, n=" + task.getResults().size());
-                task.getSubtask().printStatus();
-                task.removeDupResult();
-                blockedpush(outputBuffer, task);
-            }
-            try {
-
-                Thread.sleep(4000);
-            } catch (Exception ex) {
-
-            }
-
-            return Worker.SUCCESS;
-        } catch (Exception ex) {
-            this.proxy = null;
-            if (json != null) {
-                //Logger.getLogger(MBlogCrawler.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            System.out.println("url=" + url);
-            //System.out.println("JSON = " + json);
-            blockedpush(failed_taskBuffer, task);
-            return Worker.FAIL;
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
+        client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
+        client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
+        client.addHeader("X-Requested-With", "XMLHttpRequest");
+        client.addHeader(UserAgentHelper.iphone6plusAgent());
+        client.setProxy(proxy);
+        String json = json = client.wget(url);
+        if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
+            return new Pair<>(new Integer(0), results);
         }
 
+        JSONParser parser = new JSONParser();
+        JSONObject doc;
+        int count = 0;
+        doc = ((JSONObject) parser.parse(json));
+        count = Integer.parseInt(doc.get("count").toString());
+        JSONArray cards = (JSONArray) doc.get("cards");
+        JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
+        for (int i = 0; i < cards_grouop.size(); i++) {
+            JSONObject mblog = (JSONObject) ((JSONObject) cards_grouop.get(i)).get("mblog");
+            MBlog b = fromJSON(mblog, Integer.parseInt(userid));
+            MBlogTaskResult.PostInfo info = new MBlogTaskResult.PostInfo();
+            info.setPostid(b.getPost_id());
+            info.setTimestamp(b.getCreate_timestamp());
+            results.add(info);
+            System.out.println("Got " + info.getTimestamp());
+        }
+        return new Pair<>(new Integer(count), results);
+
+    }
+
+    @Override
+    @SuppressWarnings("empty-statement")
+    public int work() {
+        Buffer<MBlogTaskResult> outputBuffer = (Buffer<MBlogTaskResult>) getBufferStore().use("finishedtasks");
+        Buffer<AccountDetail> taskBuffer = (Buffer<AccountDetail>) getBufferStore().use("tasks");
+
+        AccountDetail acc;
+
+        acc = (AccountDetail) taskBuffer.poll(this);
+        if (acc == null) {
+            LUBuffer<ClientConnector.IClientProtocol> messageBuffer
+                    = (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
+
+            MBlogTaskRequest request = new MBlogTaskRequest();
+            blockedpush(messageBuffer, request);
+        }
+
+        acc = (AccountDetail) blockedpoll(taskBuffer);
+        MBlogTaskResult result = new MBlogTaskResult();
+        result.setAccount(acc);
+
+        long id = acc.getUid();
+        boolean err = false;
+        boolean done = false;
+        switchProxy();
+        int k = 1;
+        int max = 1;
+        do {
+            try {
+                Pair<Integer, ArrayList<PostInfo>> p1 = analysePage(String.valueOf(id), k);
+                result.getPostinfo().addAll(p1.getSecond());
+
+                if (k == 1) {
+                    int count = p1.getFirst();
+                    if (count > 10) {
+                        max = (count - 1) / 10 + 1;
+                    }
+                    if (max > 100) {
+                        max = 100;
+                    }
+                }
+                k++;
+                if (k > max) {
+                    done = true;
+                }
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ex) {
+                }
+            } catch (ParseException ex) {
+                err = true;
+                switchProxy();
+            }
+        } while (!err && !done);
+        blockedpush(outputBuffer, result);
+
+        return Worker.SUCCESS;
     }
 
 }

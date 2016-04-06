@@ -39,6 +39,7 @@ import pcc.core.entity.DetailCrawlProgress;
 import pcc.core.entity.MBlog;
 import pcc.core.entity.MBlogCrawlInfo;
 import pcc.core.entity.MBlogTask;
+import pcc.core.entity.MBlogTaskResult;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
 import pcc.core.hibernate.DatabaseManager;
@@ -309,17 +310,14 @@ public class PipeCrawler {
         CrawlerConnectionManager.StartConnectionMonitor();
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);
-        LUBuffer<MBlogTask> taskbuffer = new LUBuffer<>();
-        LUBuffer<MBlogTask> failedtaskbuffer = new LUBuffer<>();
-
-        LUBuffer<MBlogTask> resultbuffer = new LUBuffer<>();
+        LUBuffer<AccountDetail> taskbuffer = new LUBuffer<>();
+        LUBuffer<MBlogTaskResult> resultbuffer = new LUBuffer<>();
         LUBuffer<ClientConnector.IClientProtocol> messageBuffer = new LUBuffer<>(0);
 
         BufferStore bs1 = new BufferStore();
         bs1.put("rawproxies", rawproxysbuffer);
         bs1.put("proxys", proxysbuffer);
         bs1.put("tasks", taskbuffer);
-        bs1.put("failedtasks", failedtaskbuffer);
         bs1.put("finishedtasks", resultbuffer);
         bs1.put("msg", messageBuffer);
 
