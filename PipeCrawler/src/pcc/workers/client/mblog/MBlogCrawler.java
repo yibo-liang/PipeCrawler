@@ -136,7 +136,7 @@ public class MBlogCrawler extends Worker {
         }
     }
 
-    private Pair<Integer, ArrayList<PostInfo>> analysePage(String userid, int page) throws ParseException {
+    private Pair<Integer, ArrayList<PostInfo>> analysePage(String userid, int page) throws Exception {
         ArrayList<PostInfo> results = new ArrayList<>();
 
         String url = "http://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
@@ -148,6 +148,10 @@ public class MBlogCrawler extends Worker {
         client.addHeader(UserAgentHelper.iphone6plusAgent());
         client.setProxy(proxy);
         String json = client.wget(url);
+        
+        if (json==null){
+            throw new Exception("wget null");
+        }
         if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
             return new Pair<>(new Integer(0), results);
         }
@@ -194,7 +198,6 @@ public class MBlogCrawler extends Worker {
         result.setAccount(acc);
 
         long id = acc.getUid();
-        boolean err = false;
         boolean done = false;
         switchProxy();
         int k = 1;
@@ -221,13 +224,14 @@ public class MBlogCrawler extends Worker {
                     Thread.sleep(3000);
                 } catch (InterruptedException ex) {
                 }
-            } catch (ParseException ex) {
-                err = true;
+            } catch (Exception ex) {
+                
                 switchProxy();
             }
-        } while (!err && !done);
+        } while (!done);
+        result.removeDup();
         blockedpush(outputBuffer, result);
-
+        System.out.println("Get mblog info count="+result.getPostinfo().size()+" for ID= "+result.getAccount().getUid());
         return Worker.SUCCESS;
     }
 
