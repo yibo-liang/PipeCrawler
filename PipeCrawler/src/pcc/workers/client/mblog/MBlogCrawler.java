@@ -147,7 +147,7 @@ public class MBlogCrawler extends Worker {
         client.addHeader("X-Requested-With", "XMLHttpRequest");
         client.addHeader(UserAgentHelper.iphone6plusAgent());
         client.setProxy(proxy);
-        String json = json = client.wget(url);
+        String json = client.wget(url);
         if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
             return new Pair<>(new Integer(0), results);
         }

@@ -124,12 +124,12 @@ public class MBlogBatchInserter extends Worker {
         }
     }
 
-    private void saveToMongDB(MBlogTaskResult task) {
+    private void saveToMongDB(MBlogTaskResult result) {
         MongoInit();
         MongoDatabase db = mongoClient.getDatabase("ylproj");
-        Document doc = task.getAccount().toBSONDocument();
-        doc.append("blog_num", task.getAccount().getBlog_num());
-        List<PostInfo> postinfo = task.getPostinfo();
+        Document doc = result.getAccount().toBSONDocument();
+        doc.append("blog_num", result.getAccount().getBlog_num());
+        List<PostInfo> postinfo = result.getPostinfo();
         List<Document> mblog_docs = new ArrayList<>();
         /*
         String[] neededFields = {
@@ -176,11 +176,11 @@ public class MBlogBatchInserter extends Worker {
 
             }
 
-            for (MBlogTaskResult task : finishedTasks) {
+            for (MBlogTaskResult result : finishedTasks) {
 
                 try {
                     //saveToMySQL(task);
-                    saveToMongDB(task);
+                    saveToMongDB(result);
                 } catch (Exception ex) {
                     Logger.getLogger(MBlogBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
                     ServerConnector.logError(ex);
