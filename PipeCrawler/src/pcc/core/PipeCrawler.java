@@ -196,7 +196,7 @@ public class PipeCrawler {
         bs1.put("account_detail_d", mblogtaskbuffer);
 
         //blog crawl result buffer
-        LUBuffer<MBlogTask> mblog_result = new LUBuffer<>(0);
+        LUBuffer<MBlogTaskResult> mblog_result = new LUBuffer<>(0);
         bs1.put("mblogresult", mblog_result);
 
         //create worker - receiver

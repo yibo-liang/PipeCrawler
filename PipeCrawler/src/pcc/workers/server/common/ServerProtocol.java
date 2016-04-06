@@ -38,6 +38,7 @@ import pcc.core.entity.DetailCrawlProgress;
 import pcc.core.entity.MBlog;
 import pcc.core.entity.MBlogProgress;
 import pcc.core.entity.MBlogTask;
+import pcc.core.entity.MBlogTaskResult;
 import pcc.core.hibernate.DatabaseManager;
 import pcc.http.entity.Proxy;
 import pcc.workers.server.ServerConnector;
@@ -398,8 +399,8 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
     }
 
     private MessageCarrier handleMBlog(MessageCarrier mc) {
-        MBlogTask[] finished = (MBlogTask[]) mc.getObj();
-        for (MBlogTask task : finished) {
+        MBlogTaskResult[] finished = (MBlogTaskResult[]) mc.getObj();
+        for (MBlogTaskResult task : finished) {
             Buffer taskbuffer=this.connector.getBufferStore().use("mblogresult");
             this.connector.blockedpush(taskbuffer, task);
         }
