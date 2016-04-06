@@ -37,7 +37,7 @@ public class MBlogTaskResult implements Serializable {
 
     private static final long serialVersionUID = 3313452215126776147L;
 
-    public static class PostInfo {
+    public static class PostInfo implements Serializable{
 
         private static final long serialVersionUID = 7213452255622713147L;
         private long postid;
