@@ -68,7 +68,7 @@ public class MBlogTaskResult implements Serializable {
             if (!(obj instanceof PostInfo)) {
                 return false;
             }
-            return ((PostInfo) obj).hashCode() == this.hashCode();
+            return ((PostInfo) obj).postid == this.postid;
         }
 
     }

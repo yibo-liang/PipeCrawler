@@ -161,12 +161,12 @@ public class MBlogCrawler extends Worker {
         JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
         for (int i = 0; i < cards_grouop.size(); i++) {
             JSONObject mblog = (JSONObject) ((JSONObject) cards_grouop.get(i)).get("mblog");
-            MBlog b = fromJSON(mblog, Integer.parseInt(userid));
+            MBlog b = fromJSON(mblog, Long.parseLong(userid));
             MBlogTaskResult.PostInfo info = new MBlogTaskResult.PostInfo();
             info.setPostid(b.getPost_id());
             info.setTimestamp(b.getCreate_timestamp());
             results.add(info);
-            System.out.println("Got " + info.getTimestamp());
+            System.out.println("Got for id=" + userid + " time= " + info.getTimestamp());
         }
         return new Pair<>(new Integer(count), results);
 

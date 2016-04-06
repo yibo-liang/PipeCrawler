@@ -28,7 +28,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -36,12 +35,10 @@ import java.util.logging.Logger;
 import jpipe.abstractclass.buffer.Buffer;
 import jpipe.abstractclass.worker.Worker;
 import org.bson.Document;
-import pcc.core.CrawlerSetting;
-import pcc.core.GlobalControll;
-import pcc.core.entity.AccountDetail;
 import pcc.core.entity.MBlog;
 import pcc.core.entity.MBlogTask;
-import pcc.core.entity.RawAccount;
+import pcc.core.entity.MBlogTaskResult;
+import pcc.core.entity.MBlogTaskResult.PostInfo;
 import pcc.core.hibernate.DatabaseManager;
 
 /**
@@ -127,14 +124,14 @@ public class MBlogBatchInserter extends Worker {
         }
     }
 
-    private void saveToMongDB(MBlogTask task) {
+    private void saveToMongDB(MBlogTaskResult task) {
         MongoInit();
         MongoDatabase db = mongoClient.getDatabase("ylproj");
         Document doc = task.getAccount().toBSONDocument();
-        doc.append("blog_pagenum", task.getMax_page_num());
-        List<MBlog> mblogs = task.getResults();
+        doc.append("blog_num", task.getAccount().getBlog_num());
+        List<PostInfo> postinfo = task.getPostinfo();
         List<Document> mblog_docs = new ArrayList<>();
-
+        /*
         String[] neededFields = {
             "post_id",
             //    "user_id",
@@ -153,37 +150,36 @@ public class MBlogBatchInserter extends Worker {
         //"page_title",
         //"text "
         };
-
-        for (MBlog m : mblogs) {
-            Document full = m.toDocument();
-            Document simplified = new Document();
-            for (String k : neededFields) {
-                simplified.put(k, full.get(k));
-            }
-            mblog_docs.add(simplified);
+        */
+        
+        for (PostInfo p : postinfo) {
+            Document full = new Document();
+            full.append("post_id", p.getPostid());
+            full.append("timestamp", p.getTimestamp());
+            mblog_docs.add(full);
         }
-        doc.append("mblogs", mblog_docs);
+        doc.append("mblog_timestamps", mblog_docs);
         db.getCollection("accounts").insertOne(doc);
     }
 
     @Override
     public int work() {
 
-        Buffer<MBlogTask> buffer = this.getBufferStore().use("mblogresult");
+        Buffer<MBlogTaskResult> buffer = this.getBufferStore().use("mblogresult");
 
         if (buffer.getCount() >= 1) {
 
             int num = buffer.getCount();
-            MBlogTask[] finishedTasks = new MBlogTask[num];
+            MBlogTaskResult[] finishedTasks = new MBlogTaskResult[num];
             for (int i = 0; i < num; i++) {
-                finishedTasks[i] = (MBlogTask) blockedpoll(buffer);
+                finishedTasks[i] = (MBlogTaskResult) blockedpoll(buffer);
 
             }
 
-            for (MBlogTask task : finishedTasks) {
+            for (MBlogTaskResult task : finishedTasks) {
 
                 try {
-                    saveToMySQL(task);
+                    //saveToMySQL(task);
                     saveToMongDB(task);
                 } catch (Exception ex) {
                     Logger.getLogger(MBlogBatchInserter.class.getName()).log(Level.SEVERE, null, ex);
