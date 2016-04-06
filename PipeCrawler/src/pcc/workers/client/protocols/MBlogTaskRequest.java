@@ -24,6 +24,7 @@
 package pcc.workers.client.protocols;
 
 import jpipe.abstractclass.buffer.Buffer;
+import pcc.core.entity.AccountDetail;
 import pcc.core.entity.MBlogTask;
 import pcc.core.entity.MessageCarrier;
 import pcc.core.entity.RawAccount;
@@ -51,10 +52,10 @@ public class MBlogTaskRequest implements ClientConnector.IClientProtocol {
     @Override
     public void messageFromServer(MessageCarrier msg) {
         if (!msg.getMsg().equals("NULL")) {
-            Buffer<MBlogTask> taskbuffer = this.connector.getBufferStore().use("tasks");
+            Buffer<AccountDetail> taskbuffer = this.connector.getBufferStore().use("tasks");
 
             try {
-                MBlogTask[] tasks = (MBlogTask[]) msg.getObj();
+                AccountDetail[] tasks = (AccountDetail[]) msg.getObj();
                 for (int i = 0; i < tasks.length; i++) {
                     this.connector.blockedpush(taskbuffer, tasks[i]);
                 }
