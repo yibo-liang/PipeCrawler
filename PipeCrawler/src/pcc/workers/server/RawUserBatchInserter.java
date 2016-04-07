@@ -45,7 +45,7 @@ public class RawUserBatchInserter extends Worker {
 
         Buffer<RawAccount> buffer = this.getBufferStore().use("rawusers");
         try {
-            if (buffer.getCount() >= 2000) {
+            if (buffer.getCount() >= 10) {
                 DatabaseManager.DBInterface dbi = new DatabaseManager.DBInterface();
                 int num = buffer.getCount();
                 RawAccount[] rusers = new RawAccount[num];
