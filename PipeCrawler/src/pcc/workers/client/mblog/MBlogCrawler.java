@@ -225,7 +225,7 @@ public class MBlogCrawler extends Worker {
                 } catch (InterruptedException ex) {
                 }
             } catch (Exception ex) {
-                
+                proxy=null;
                 switchProxy();
             }
         } while (!done);

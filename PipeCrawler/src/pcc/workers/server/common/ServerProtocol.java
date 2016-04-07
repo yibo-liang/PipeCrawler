@@ -153,7 +153,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         long step = progress.getUpper() - progress.getLower() + 1;
         progress.setLower(progress.getUpper() + 1);
         progress.setUpper(progress.getUpper() + step);
-        session.save(progress);
+        session.saveOrUpdate(progress);
         session.flush();
 
         List<AccountDetail> items;
