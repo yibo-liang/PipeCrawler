@@ -125,7 +125,7 @@ public class AccountCrawler extends Worker {
                  // System.out.println(userObj.toString());
                 //while (!outputBuffer.push(userObj.toString()));
                 RawAccount user= new RawAccount(Long.parseLong(userObj.get("id").toString()));
-                
+                user.setCrawlstate(1);
                 blockedpush(outputBuffer, user);
                 
             }

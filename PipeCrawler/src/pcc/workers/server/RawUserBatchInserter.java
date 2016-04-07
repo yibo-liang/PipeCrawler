@@ -57,7 +57,7 @@ public class RawUserBatchInserter extends Worker {
                     Statement stmt = conn.createStatement();
                     String sql = "INSERT IGNORE into raw_account (id, crawlstate, uid) values";
                     for (int i = 0; i < num; i++) {
-                        sql += "(null, 0, " + rusers[i].getUid() + ")";
+                        sql += "(null, " + rusers[i].getCrawlstate() + ", " + rusers[i].getUid() + ")";
                         if (i < num - 1) {
                             sql += ",";
                         }

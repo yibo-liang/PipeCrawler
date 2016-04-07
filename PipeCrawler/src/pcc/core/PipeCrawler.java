@@ -10,12 +10,16 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
@@ -351,7 +355,7 @@ public class PipeCrawler {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException, SQLException {
+    public static void main(String[] args) throws InterruptedException, SQLException, IOException {
         String arg = args[0].toUpperCase();
         GlobalControll.PROCESS_TASK = arg;
 
@@ -398,23 +402,27 @@ public class PipeCrawler {
                 break;
             }
             case "TEST":
-                //MBlog b = new MBlog();
-                /*
-                 Session s = DatabaseManager.getSession();
-                 Transaction tx = s.beginTransaction();
-                 b.setUser_id(0);
-                 s.save(b);
-                 tx.commit();
-                 s.close();
-                 Connection conn = dbi.getJDBC_Connection();
-                 PreparedStatement ps=conn.prepareStatement("INSERT INTO mblog (post_id, user_id) values (?,?)");
-                 ps.setLong(1, 1000L);
-                
-                 ps.setLong(2,b.getUser_id());
-                 ps.execute();
-                 conn.close();
+                //used to input raw data 
+                Connection con = dbi.getJDBC_Connection();
+                FileReader fileReader = new FileReader("GT_real_raw.txt");
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+                List<String> lines = new ArrayList<String>();
+                String line = null;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.length() > 1) {
+                        lines.add(line);
+                    }
+                }
+                bufferedReader.close();
 
-                 */
+                for (int i = 0; i < lines.size(); i++) {
+                    String sql = "INSERT IGNORE into raw_account (id, crawlstate, uid) values";
+                    sql += "(null, 0, " + lines.get(i) + ")";
+                    con.createStatement().execute(sql);
+                    
+                }
+                con.commit();
+                con.close();
                 break;
             case "DBINIT2":
                 Session s2 = DatabaseManager.getSession();
