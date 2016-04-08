@@ -135,7 +135,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         items = session.createCriteria(RawAccount.class)
                 .add(Restrictions.gt("id", new Long(progress.getLower())))
                 .add(Restrictions.le("id", new Long(progress.getUpper())))
-                .add(Restrictions.eq("crawlstate", 0))
+                //.add(Restrictions.eq("crawlstate", 0))
                 .list();
         if (items.size() > 0) {
             for (int i = 0; i < items.size(); i++) {
