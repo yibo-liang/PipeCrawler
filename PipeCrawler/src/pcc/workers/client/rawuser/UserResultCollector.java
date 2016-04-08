@@ -37,7 +37,7 @@ import pcc.workers.client.protocols.RawUserUploadRequest;
  */
 public class UserResultCollector extends Worker {
 
-    int num = 500;
+    int num = 50;
 
     @Override
     public int work() {

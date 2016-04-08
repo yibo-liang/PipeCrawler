@@ -132,30 +132,35 @@ public class MBlogBatchInserter extends Worker {
         List<PostInfo> postinfo = result.getPostinfo();
         List<Document> mblog_docs = new ArrayList<>();
         /*
-        String[] neededFields = {
-            "post_id",
-            //    "user_id",
-            "create_timestamp",
-            "update_timestamp",
-            "repost_count",
-            "comments_count",
-            "attitudes_count",
-            "like_count",
-            "picture_count",
-            "is_video",
-            "is_retweet",
-            "retweet_post_id",
-            "mblogtype",
-            "is_long_text"
-        //"page_title",
-        //"text "
-        };
-        */
-        
+         String[] neededFields = {
+         "post_id",
+         //    "user_id",
+         "create_timestamp",
+         "update_timestamp",
+         "repost_count",
+         "comments_count",
+         "attitudes_count",
+         "like_count",
+         "picture_count",
+         "is_video",
+         "is_retweet",
+         "retweet_post_id",
+         "mblogtype",
+         "is_long_text"
+         //"page_title",
+         //"text "
+         };
+         */
+
         for (PostInfo p : postinfo) {
             Document full = new Document();
             full.append("post_id", p.getPostid());
             full.append("timestamp", p.getTimestamp());
+            full.append("att_count", p.getAttitudes_count());
+            full.append("comm_count", p.getComments_count());
+            full.append("like_count", p.getLike_count());
+            full.append("repost_count", p.getRepost_count());
+            full.append("is_retweet", p.isIs_retweet() ? 1 : 0);
             mblog_docs.add(full);
         }
         doc.append("mblog_timestamps", mblog_docs);

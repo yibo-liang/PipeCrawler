@@ -169,6 +169,13 @@ public class MBlogCrawler extends Worker {
             MBlogTaskResult.PostInfo info = new MBlogTaskResult.PostInfo();
             info.setPostid(b.getPost_id());
             info.setTimestamp(b.getCreate_timestamp());
+            info.setAttitudes_count(b.getAttitudes_count());
+            info.setComments_count(b.getComments_count());
+            info.setIs_retweet(b.isIs_retweet());
+            info.setLike_count(b.getLike_count());
+            info.setRepost_count(b.getRepost_count());
+             
+            
             results.add(info);
             System.out.println("Got for id=" + userid + " time= " + info.getTimestamp());
         }

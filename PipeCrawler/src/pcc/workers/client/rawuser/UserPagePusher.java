@@ -128,7 +128,8 @@ public class UserPagePusher extends Worker {
             json1 = client.wget(url);
             //System.out.println(json1);
             if (json1 != null) {
-                if (json1.contains("{\"mod_type\":\"mod\\/empty\",\"msg\":\"\\u6ca1\\u6709\\u5185\\u5bb9\"}")) {
+                if (json1.contains("{\"mod_type\":\"mod\\/empty\",\"msg\":\"\\u6ca1\\u6709\\u5185\\u5bb9\"}")
+                        || json1.contains("\"ok\":1,\"count\":null,")) {
                     System.out.println("No Contents. http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1");
                     this.setState(WorkerStates.POST_SUCCESS);
                     Thread.sleep(2000);
@@ -149,6 +150,7 @@ public class UserPagePusher extends Worker {
             this.proxy = null;
             return Worker.FAIL;
         }
+        /*
         url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1";
         try {
             json2 = client.wget(url);
@@ -174,6 +176,7 @@ public class UserPagePusher extends Worker {
             this.proxy = null;
             return Worker.FAIL;
         }
+                */
         client.close();
         //System.out.println("pushing");
         //followNum = followNum > 100 ? 100 : followNum;

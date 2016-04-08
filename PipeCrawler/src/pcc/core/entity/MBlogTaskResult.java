@@ -37,11 +37,16 @@ public class MBlogTaskResult implements Serializable {
 
     private static final long serialVersionUID = 3313452215126776147L;
 
-    public static class PostInfo implements Serializable{
+    public static class PostInfo implements Serializable {
 
         private static final long serialVersionUID = 7213452255622713147L;
         private long postid;
         private int timestamp;
+        private boolean is_retweet;
+        private int repost_count;
+        private int comments_count;
+        private int attitudes_count;
+        private int like_count;
 
         public long getPostid() {
             return postid;
@@ -59,6 +64,49 @@ public class MBlogTaskResult implements Serializable {
             this.timestamp = timestamp;
         }
 
+        public boolean isIs_retweet() {
+            return is_retweet;
+        }
+
+        public void setIs_retweet(boolean is_retweet) {
+            this.is_retweet = is_retweet;
+        }
+
+        public int getRepost_count() {
+            return repost_count;
+        }
+
+        public void setRepost_count(int repost_count) {
+            this.repost_count = repost_count;
+        }
+
+        public int getComments_count() {
+            return comments_count;
+        }
+
+        public void setComments_count(int comments_count) {
+            this.comments_count = comments_count;
+        }
+
+        public int getAttitudes_count() {
+            return attitudes_count;
+        }
+
+        public void setAttitudes_count(int attitudes_count) {
+            this.attitudes_count = attitudes_count;
+        }
+
+        public int getLike_count() {
+            return like_count;
+        }
+
+        public void setLike_count(int like_count) {
+            this.like_count = like_count;
+        }
+        
+        
+        
+
         @Override
         public int hashCode() {
             return (int) ((this.postid >> 32) ^ this.postid);
@@ -75,7 +123,7 @@ public class MBlogTaskResult implements Serializable {
     }
 
     private AccountDetail account;
-    private List<PostInfo> postinfo=new ArrayList<>();
+    private List<PostInfo> postinfo = new ArrayList<>();
 
     public AccountDetail getAccount() {
         return account;
@@ -85,7 +133,6 @@ public class MBlogTaskResult implements Serializable {
         this.account = account;
     }
 
-    
     public List<PostInfo> getPostinfo() {
         return postinfo;
     }
