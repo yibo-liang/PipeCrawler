@@ -123,6 +123,7 @@ public class UserPagePusher extends Worker {
         Long fanNum = new Long(0);
         Long followNum = new Long(0);
         String url;
+        /*
         url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FOLLOWERS&page=1";
         try {
             json1 = client.wget(url);
@@ -150,7 +151,7 @@ public class UserPagePusher extends Worker {
             this.proxy = null;
             return Worker.FAIL;
         }
-        /*
+        */
         url = "http://m.weibo.cn/page/json?containerid=" + containerid + "_-_FANS&page=1";
         try {
             json2 = client.wget(url);
@@ -176,11 +177,11 @@ public class UserPagePusher extends Worker {
             this.proxy = null;
             return Worker.FAIL;
         }
-                */
+                
         client.close();
         //System.out.println("pushing");
         //followNum = followNum > 100 ? 100 : followNum;
-        //fanNum = fanNum > 100 ? 100 : fanNum;
+        fanNum = 1L; //only for ZOMBIE_raw
         assignNum = followNum + fanNum;
         for (long i = 1; i <= followNum; i++) {
 

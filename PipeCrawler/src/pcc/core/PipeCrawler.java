@@ -404,7 +404,7 @@ public class PipeCrawler {
             case "TEST":
                 //used to input raw data 
                 Connection con = dbi.getJDBC_Connection();
-                FileReader fileReader = new FileReader("GT_real_raw.txt");
+                FileReader fileReader = new FileReader("GT_zombie_raw.txt");
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 List<String> lines = new ArrayList<String>();
                 String line = null;
@@ -414,14 +414,17 @@ public class PipeCrawler {
                     }
                 }
                 bufferedReader.close();
-
-                for (int i = 0; i < lines.size(); i++) {
+                
+                RawAccount[] tmp=new RawAccount[1];
+                tmp[0]=(new RawAccount(Long.valueOf(lines.get(0))));
+                dbi.Insert(tmp);
+                for (int i = 1; i < lines.size(); i++) {
                     String sql = "INSERT IGNORE into raw_account (id, crawlstate, uid) values";
                     sql += "(null, 0, " + lines.get(i) + ")";
                     con.createStatement().execute(sql);
                     
                 }
-                con.commit();
+                //con.commit();
                 con.close();
                 break;
             case "DBINIT2":
