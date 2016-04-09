@@ -37,7 +37,7 @@ import pcc.workers.client.protocols.RawUserUploadRequest;
  */
 public class UserResultCollector extends Worker {
 
-    int num = 50;
+    int num = 20;
 
     @Override
     public int work() {
@@ -55,7 +55,7 @@ public class UserResultCollector extends Worker {
             blockedpush(msgbuffer, request);
         } else {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(20);
             } catch (InterruptedException ex) {
                 Logger.getLogger(UserResultCollector.class.getName()).log(Level.SEVERE, null, ex);
             }
