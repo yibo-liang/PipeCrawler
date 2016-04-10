@@ -212,6 +212,10 @@ public class MBlogCrawler extends Worker {
         do {
             try {
                 Pair<Integer, ArrayList<PostInfo>> p1 = analysePage(String.valueOf(id), k);
+                if (p1.getSecond().size()==0 && acc.getBlog_num()>0){
+                    System.out.println("********* count= "+p1.getFirst());
+                    break;
+                }
                 result.getPostinfo().addAll(p1.getSecond());
 
                 if (k == 1) {

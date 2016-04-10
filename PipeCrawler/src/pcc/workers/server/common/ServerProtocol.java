@@ -171,7 +171,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             for (int i = 0; i < items.size(); i++) {
                 connector.blockedpush(raws, items.get(i));
             }
-
+            updateMBlogProgress(progress, session);
         } else {
             throw new Exception("No Raw Accounts");
         }
@@ -373,7 +373,6 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                     a = (AccountDetail) tmp;
                     result.add(a);
                 } else {
-                    updateMBlogProgress(progress, session);
                     getMoreAccounts(progress, session);
                     a = (AccountDetail) raws.poll(connector);
                     if (a != null) {
