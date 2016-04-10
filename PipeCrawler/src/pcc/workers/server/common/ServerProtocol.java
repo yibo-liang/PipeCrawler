@@ -364,8 +364,9 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         //pull from buffer
         //RawAccount[] resbuf = new RawAccount[num];
         try {
-
-            getMoreAccounts(progress, session);
+            if (raws.getCount() == 0) {
+                getMoreAccounts(progress, session);
+            }
             for (int i = 0; i < num; i++) {
                 Object tmp = raws.poll(connector);
 
