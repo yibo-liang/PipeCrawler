@@ -404,7 +404,7 @@ public class PipeCrawler {
             case "TEST":
                 //used to input raw data 
                 Connection con = dbi.getJDBC_Connection();
-                FileReader fileReader = new FileReader("GT_zombie_raw.txt");
+                FileReader fileReader = new FileReader("GT_real_raw.txt");
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 List<String> lines = new ArrayList<String>();
                 String line = null;

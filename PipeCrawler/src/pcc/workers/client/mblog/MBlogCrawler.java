@@ -130,7 +130,7 @@ public class MBlogCrawler extends Worker {
 
                 proxy = (Proxy) blockedpoll(proxybuffer);
             }
-            proxy = new Proxy(proxy.getHost(), proxy.getPort());
+            //proxy = new Proxy(proxy.getHost(), proxy.getPort());
 
             //System.out.println("Connecting using proxy = " + proxy);
         }
@@ -177,7 +177,7 @@ public class MBlogCrawler extends Worker {
              
             
             results.add(info);
-            System.out.println("Got for id=" + userid + " time= " + info.getTimestamp());
+            //System.out.println("Got for id=" + userid + " time= " + info.getTimestamp());
         }
         return new Pair<>(new Integer(count), results);
 
@@ -236,6 +236,12 @@ public class MBlogCrawler extends Worker {
                 switchProxy();
             }
         } while (!done);
+        
+        if (result.getPostinfo().size()==0 && acc.getBlog_num()>0){
+            System.out.println("ERROR");
+            System.out.println(acc.toBSONDocument().toJson());
+            
+        }
         result.removeDup();
         blockedpush(outputBuffer, result);
         System.out.println("Get mblog info count="+result.getPostinfo().size()+" for ID= "+result.getAccount().getUid());

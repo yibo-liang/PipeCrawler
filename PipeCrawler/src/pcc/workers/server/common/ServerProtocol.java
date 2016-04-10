@@ -148,14 +148,16 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
 
     }
 
-    private void getMoreAccounts(MBlogProgress progress, Session session) throws Exception {
-        Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
+    private void updateMBlogProgress(MBlogProgress progress, Session session) {
         long step = progress.getUpper() - progress.getLower() + 1;
         progress.setLower(progress.getUpper() + 1);
         progress.setUpper(progress.getUpper() + step);
         session.saveOrUpdate(progress);
         session.flush();
+    }
 
+    private void getMoreAccounts(MBlogProgress progress, Session session) throws Exception {
+        Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
         List<AccountDetail> items;
         items = session.createCriteria(AccountDetail.class)
                 .add(Restrictions.gt("id", new Long(progress.getLower())))
@@ -164,6 +166,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 //comment out to get all for ground truth data
                 //.add(Restrictions.sqlRestriction("50>rand()*1000"))
                 .list();
+
         if (items.size() > 0) {
             for (int i = 0; i < items.size(); i++) {
                 connector.blockedpush(raws, items.get(i));
@@ -355,10 +358,13 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
             session.close();
             return new MessageCarrier("NULL", "");
         }
+
         //pull from buffer
         Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
         //RawAccount[] resbuf = new RawAccount[num];
         try {
+
+            getMoreAccounts(progress, session);
             for (int i = 0; i < num; i++) {
                 Object tmp = raws.poll(connector);
 
@@ -367,6 +373,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                     a = (AccountDetail) tmp;
                     result.add(a);
                 } else {
+                    updateMBlogProgress(progress, session);
                     getMoreAccounts(progress, session);
                     a = (AccountDetail) raws.poll(connector);
                     if (a != null) {
@@ -402,7 +409,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
     private MessageCarrier handleMBlog(MessageCarrier mc) {
         MBlogTaskResult[] finished = (MBlogTaskResult[]) mc.getObj();
         for (MBlogTaskResult task : finished) {
-            Buffer taskbuffer=this.connector.getBufferStore().use("mblogresult");
+            Buffer taskbuffer = this.connector.getBufferStore().use("mblogresult");
             this.connector.blockedpush(taskbuffer, task);
         }
         return null;
