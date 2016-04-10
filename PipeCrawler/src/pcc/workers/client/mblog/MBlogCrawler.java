@@ -123,6 +123,8 @@ public class MBlogCrawler extends Worker {
 
     }
 
+    CrawlerClient client = CrawlerConnectionManager.getNewClient();
+
     private void switchProxy() {
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
         if (CrawlerSetting.USE_PROXY) {
@@ -141,7 +143,6 @@ public class MBlogCrawler extends Worker {
 
         String url = "http://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
 
-        CrawlerClient client = CrawlerConnectionManager.getNewClient();
         client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
         client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
         client.addHeader("X-Requested-With", "XMLHttpRequest");
@@ -235,9 +236,9 @@ public class MBlogCrawler extends Worker {
                     if (count > 10) {
                         max = (count - 1) / 10 + 1;
                     }
-                    // max 50 pages, 500 posts
-                    if (max > 50) {
-                        max = 50;
+                    // max 35 pages, 350 posts
+                    if (max > 35) {
+                        max = 35;
                     }
                 }
                 k++;
