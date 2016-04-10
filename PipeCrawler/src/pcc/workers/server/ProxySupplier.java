@@ -69,15 +69,15 @@ public class ProxySupplier extends Worker {
                 }
             }
             //System.out.println("Pushed "+num+" proxies.");
-            Thread.sleep(1000);
+            Thread.sleep(2000);
             return Worker.SUCCESS;
 
         } catch (Exception ex) {
-             Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
             ex.printStackTrace();
             System.out.println(temp);
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException ex1) {
                 Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex1);
             }
