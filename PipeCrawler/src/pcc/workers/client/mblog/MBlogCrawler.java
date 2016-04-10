@@ -123,8 +123,6 @@ public class MBlogCrawler extends Worker {
 
     }
 
-    CrawlerClient client = CrawlerConnectionManager.getNewClient();
-
     private void switchProxy() {
         Buffer<Proxy> proxybuffer = (Buffer<Proxy>) getBufferStore().use("proxys");
         if (CrawlerSetting.USE_PROXY) {
@@ -143,6 +141,7 @@ public class MBlogCrawler extends Worker {
 
         String url = "http://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
 
+        CrawlerClient client = CrawlerConnectionManager.getNewClient();
         client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
         client.addHeader("Accept-Encoding", "gzip, deflate, sdch");
         client.addHeader("X-Requested-With", "XMLHttpRequest");
@@ -150,6 +149,7 @@ public class MBlogCrawler extends Worker {
         client.setProxy(proxy);
         String json = client.wget(url);
 
+        client.close();
         if (json == null) {
             throw new Exception("wget null");
         }
@@ -160,7 +160,7 @@ public class MBlogCrawler extends Worker {
             } else {
 
                 System.out.println("************* found empty id=" + userid);
-                System.out.println(json);
+                //System.out.println(json);
                 throw new Exception("Proxy expired or not valid");
             }
         }
@@ -256,8 +256,9 @@ public class MBlogCrawler extends Worker {
                 try {
                     this.setState(WorkerStates.POST_SUCCESS);
                     Thread.sleep(5000);
-                    
+
                 } catch (InterruptedException ex) {
+                    ex.printStackTrace();
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
