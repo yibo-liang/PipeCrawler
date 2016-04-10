@@ -76,6 +76,11 @@ public class ProxySupplier extends Worker {
              Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex);
             ex.printStackTrace();
             System.out.println(temp);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex1) {
+                Logger.getLogger(ProxySupplier.class.getName()).log(Level.SEVERE, null, ex1);
+            }
             client.close();
             return Worker.FAIL;
         }
