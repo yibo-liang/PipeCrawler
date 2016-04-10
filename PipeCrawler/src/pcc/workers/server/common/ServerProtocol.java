@@ -125,11 +125,6 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
     //get raw accounts for details
     private void getMoreRawAccounts(DetailCrawlProgress progress, Session session) throws Exception {
         Buffer<RawAccount> raws = this.connector.getBufferStore().use("rawusers_d");
-        long step = progress.getUpper() - progress.getLower() + 1;
-        progress.setLower(progress.getUpper() + 1);
-        progress.setUpper(progress.getUpper() + step);
-        session.save(progress);
-        session.flush();
 
         List<RawAccount> items;
         items = session.createCriteria(RawAccount.class)
@@ -137,6 +132,12 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 .add(Restrictions.le("id", new Long(progress.getUpper())))
                 //.add(Restrictions.eq("crawlstate", 0))
                 .list();
+
+        long step = progress.getUpper() - progress.getLower() + 1;
+        progress.setLower(progress.getUpper() + 1);
+        progress.setUpper(progress.getUpper() + step);
+        session.save(progress);
+        session.flush();
         if (items.size() > 0) {
             for (int i = 0; i < items.size(); i++) {
                 connector.blockedpush(raws, items.get(i));
@@ -164,7 +165,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 .add(Restrictions.le("id", new Long(progress.getUpper())))
                 //only get 1/10 account due to time/space limitation
                 //comment out to get all for ground truth data
-                //.add(Restrictions.sqlRestriction("50>rand()*1000"))
+                .add(Restrictions.sqlRestriction("50>rand()*1000"))
                 .list();
 
         updateMBlogProgress(progress, session);
@@ -251,6 +252,9 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         Buffer<RawAccount> raws = this.connector.getBufferStore().use("rawusers_d");
         //RawAccount[] resbuf = new RawAccount[num];
         try {
+            if (raws.getCount() == 0) {
+                getMoreRawAccounts(progress, session);
+            }
             for (int i = 0; i < num; i++) {
                 Object tmp = raws.poll(connector);
 

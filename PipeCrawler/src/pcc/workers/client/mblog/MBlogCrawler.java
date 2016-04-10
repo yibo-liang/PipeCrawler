@@ -136,7 +136,7 @@ public class MBlogCrawler extends Worker {
         }
     }
 
-    private Pair<Integer, ArrayList<PostInfo>> analysePage(String userid, int page) throws Exception {
+    private Pair<Integer, ArrayList<PostInfo>> analysePage(AccountDetail acc, String userid, int page) throws Exception {
         ArrayList<PostInfo> results = new ArrayList<>();
 
         String url = "http://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
@@ -148,19 +148,30 @@ public class MBlogCrawler extends Worker {
         client.addHeader(UserAgentHelper.iphone6plusAgent());
         client.setProxy(proxy);
         String json = client.wget(url);
-        
-        if (json==null){
+
+        if (json == null) {
             throw new Exception("wget null");
         }
         if (json.contains("\"mod_type\":\"mod\\/empty\"")) {
-            return new Pair<>(new Integer(0), results);
+            if (acc.getBlog_num() == 0) {
+
+                return new Pair<>(new Integer(0), results);
+            } else {
+
+                System.out.println("************* found empty id=" + userid);
+                System.out.println(json);
+                throw new Exception("Proxy expired or not valid");
+            }
         }
 
         JSONParser parser = new JSONParser();
         JSONObject doc;
-        int count = 0;
         doc = ((JSONObject) parser.parse(json));
-        count = Integer.parseInt(doc.get("count").toString());
+        int count = Integer.parseInt(doc.get("count").toString());
+        if (count == 0) {
+            System.out.println("--------------ERROR");
+            System.out.println(doc.toJSONString());
+        }
         JSONArray cards = (JSONArray) doc.get("cards");
         JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
         for (int i = 0; i < cards_grouop.size(); i++) {
@@ -174,8 +185,7 @@ public class MBlogCrawler extends Worker {
             info.setIs_retweet(b.isIs_retweet());
             info.setLike_count(b.getLike_count());
             info.setRepost_count(b.getRepost_count());
-             
-            
+
             results.add(info);
             //System.out.println("Got for id=" + userid + " time= " + info.getTimestamp());
         }
@@ -211,10 +221,12 @@ public class MBlogCrawler extends Worker {
         int max = 1;
         do {
             try {
-                Pair<Integer, ArrayList<PostInfo>> p1 = analysePage(String.valueOf(id), k);
-                if (p1.getSecond().size()==0 && acc.getBlog_num()>0){
-                    System.out.println("********* count= "+p1.getFirst());
-                    break;
+                Pair<Integer, ArrayList<PostInfo>> p1 = analysePage(acc, String.valueOf(id), k);
+                if (p1.getSecond().size() == 0 && acc.getBlog_num() > 0) {
+                    System.out.println("********* count= " + p1.getFirst());
+                    System.out.println("******** ERROR");
+                    System.out.println(acc.toBSONDocument().toJson());
+                    //break;
                 }
                 result.getPostinfo().addAll(p1.getSecond());
 
@@ -232,23 +244,21 @@ public class MBlogCrawler extends Worker {
                     done = true;
                 }
                 try {
-                    Thread.sleep(3000);
+                    Thread.sleep(4000);
                 } catch (InterruptedException ex) {
                 }
             } catch (Exception ex) {
-                proxy=null;
+                proxy = null;
                 switchProxy();
             }
         } while (!done);
-        
-        if (result.getPostinfo().size()==0 && acc.getBlog_num()>0){
-            System.out.println("ERROR");
-            System.out.println(acc.toBSONDocument().toJson());
-            
+
+        if (result.getPostinfo().size() == 0 && acc.getBlog_num() > 0) {
+
         }
         result.removeDup();
         blockedpush(outputBuffer, result);
-        System.out.println("Get mblog info count="+result.getPostinfo().size()+" for ID= "+result.getAccount().getUid());
+        System.out.println("Get mblog info count=" + result.getPostinfo().size() + " for ID= " + result.getAccount().getUid());
         return Worker.SUCCESS;
     }
 
