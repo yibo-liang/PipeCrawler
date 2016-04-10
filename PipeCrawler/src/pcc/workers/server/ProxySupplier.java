@@ -55,10 +55,10 @@ public class ProxySupplier extends Worker {
         CrawlerClient client = CrawlerConnectionManager.getNewClient();
 
         try {
-            String temp = client.wget("http://b.tkdaili.com/api/getiplist.aspx?vkey=22207159506CEC21A5DD188A458AE121&num=" + num + "&high=1&style=7");
+            String temp = client.wget("http://b.tkdaili.com/api/getiplist.aspx?vkey=22207159506CEC21A5DD188A458AE121&num=" + num + "&high=1&style=3");
             //String temp = client.wget("http://qsdrk.daili666api.com/ip/?tid=559179489916758&num="+num+"&delay=3&category=2&filter=on");
             client.close();
-            String[] proxyarray = temp.split("|");
+            String[] proxyarray = temp.split("\\r?\\n");
             for (String proxyarray1 : proxyarray) {
                 //System.out.println("Obtained Proxy = " + proxyarray1);
                 if (proxyarray1.length() > 8) {
