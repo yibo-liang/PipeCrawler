@@ -315,6 +315,8 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
     private MessageCarrier _handleMBlogTaskRequest(MessageCarrier mc) {
 
         int num = (Integer) mc.getObj();
+
+        Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
         long count;
         String total_str = GlobalControll.VARIABLES.get("detail_count");
         Session session = DatabaseManager.getSession();
@@ -348,7 +350,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 progress.setUpper(4999L);
                 session.saveOrUpdate(progress);
             }
-            if (progress.getLower() > count) {
+            if (progress.getLower() > count && raws.getCount() == 0) {
                 throw new Exception("All raw user details are crawled.");
             }
 
@@ -360,7 +362,6 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         }
 
         //pull from buffer
-        Buffer<AccountDetail> raws = this.connector.getBufferStore().use("account_detail_d");
         //RawAccount[] resbuf = new RawAccount[num];
         try {
 
