@@ -209,9 +209,10 @@ public class MBlogCrawler extends Worker {
 
             MBlogTaskRequest request = new MBlogTaskRequest();
             blockedpush(messageBuffer, request);
+            acc = (AccountDetail) blockedpoll(taskBuffer);
         }
 
-        acc = (AccountDetail) blockedpoll(taskBuffer);
+        
         MBlogTaskResult result = new MBlogTaskResult();
         result.setAccount(acc);
 
