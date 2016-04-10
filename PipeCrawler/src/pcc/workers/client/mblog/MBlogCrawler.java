@@ -244,9 +244,9 @@ public class MBlogCrawler extends Worker {
                     if (count > 10) {
                         max = (count - 1) / 10 + 1;
                     }
-                    // max 35 pages, 350 posts
-                    if (max > 35) {
-                        max = 35;
+                    // max 10 pages, 100 posts
+                    if (max > 10) {
+                        max = 10;
                     }
                 }
                 k++;
