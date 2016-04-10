@@ -205,7 +205,7 @@ public class PipeCrawler {
 
         //create worker - receiver
         if (CrawlerSetting.USE_PROXY) {
-            ProxySupplier ps = new ProxySupplier(500);
+            ProxySupplier ps = new ProxySupplier(1000);
             ps.setBufferStore(bs1);
             SinglePipeSection proxySupplier = new SinglePipeSection(ps);
             (new Thread(proxySupplier)).start();

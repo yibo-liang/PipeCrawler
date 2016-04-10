@@ -167,7 +167,15 @@ public class MBlogCrawler extends Worker {
 
         JSONParser parser = new JSONParser();
         JSONObject doc;
-        doc = ((JSONObject) parser.parse(json));
+        try {
+            doc = ((JSONObject) parser.parse(json));
+
+        } catch (Exception ex) {
+            System.out.println(" - -  - - - -Parse ERROR - - - - ");
+            System.out.println(json);
+            throw ex;
+        }
+
         int count = Integer.parseInt(doc.get("count").toString());
         if (count == 0) {
             System.out.println("--------------ERROR");
@@ -198,7 +206,7 @@ public class MBlogCrawler extends Worker {
     @SuppressWarnings("empty-statement")
     public int work() {
         Buffer<MBlogTaskResult> outputBuffer = (Buffer<MBlogTaskResult>) getBufferStore().use("finishedtasks");
-        Buffer<AccountDetail> taskBuffer = (Buffer<AccountDetail>) getBufferStore().use("tasks");
+        LUBuffer<AccountDetail> taskBuffer = (LUBuffer<AccountDetail>) getBufferStore().use("tasks");
 
         AccountDetail acc;
 
@@ -212,7 +220,6 @@ public class MBlogCrawler extends Worker {
             acc = (AccountDetail) blockedpoll(taskBuffer);
         }
 
-        
         MBlogTaskResult result = new MBlogTaskResult();
         result.setAccount(acc);
 
@@ -247,10 +254,11 @@ public class MBlogCrawler extends Worker {
                     done = true;
                 }
                 try {
-                    Thread.sleep(4000);
+                    Thread.sleep(5000);
                 } catch (InterruptedException ex) {
                 }
             } catch (Exception ex) {
+                ex.printStackTrace();
                 proxy = null;
                 switchProxy();
             }
