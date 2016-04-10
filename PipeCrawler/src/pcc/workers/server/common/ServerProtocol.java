@@ -167,11 +167,11 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
                 //.add(Restrictions.sqlRestriction("50>rand()*1000"))
                 .list();
 
+        updateMBlogProgress(progress, session);
         if (items.size() > 0) {
             for (int i = 0; i < items.size(); i++) {
                 connector.blockedpush(raws, items.get(i));
             }
-            updateMBlogProgress(progress, session);
         } else {
             throw new Exception("No Raw Accounts");
         }
