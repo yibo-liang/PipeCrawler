@@ -172,14 +172,14 @@ public class MBlogCrawler extends Worker {
 
         } catch (Exception ex) {
             System.out.println(" - -  - - - -Parse ERROR - - - - ");
-            System.out.println(json);
+            //System.out.println(json);
             throw ex;
         }
 
         int count = Integer.parseInt(doc.get("count").toString());
         if (count == 0) {
             System.out.println("--------------ERROR");
-            System.out.println(doc.toJSONString());
+            //System.out.println(doc.toJSONString());
         }
         JSONArray cards = (JSONArray) doc.get("cards");
         JSONArray cards_grouop = ((JSONArray) ((JSONObject) cards.get(0)).get("card_group"));
@@ -254,7 +254,9 @@ public class MBlogCrawler extends Worker {
                     done = true;
                 }
                 try {
+                    this.setState(WorkerStates.POST_SUCCESS);
                     Thread.sleep(5000);
+                    
                 } catch (InterruptedException ex) {
                 }
             } catch (Exception ex) {
