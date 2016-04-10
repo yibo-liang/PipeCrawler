@@ -329,7 +329,7 @@ public class PipeCrawler {
         DefaultWorkerFactory<MBlogCrawler> MBlogCrawlerFactory = new DefaultWorkerFactory<>(MBlogCrawler.class);
 
         MultiPipeSection proxyPipe = new MultiPipeSection(ProxyValidatorFactory, bs1, 10);
-        MultiPipeSection mcPipe = new MultiPipeSection(MBlogCrawlerFactory, bs1, 40);
+        MultiPipeSection mcPipe = new MultiPipeSection(MBlogCrawlerFactory, bs1, 80);
 
         proxyPipe.Start();
         mcPipe.Start();
