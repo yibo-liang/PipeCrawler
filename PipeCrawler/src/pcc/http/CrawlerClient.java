@@ -23,7 +23,9 @@
  */
 package pcc.http;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.logging.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -47,7 +50,7 @@ import pcc.http.entity.Proxy;
 public class CrawlerClient {
 
     private final CloseableHttpClient client;
-    private int timeout = 15 * 1000;
+    private int timeout = 5 * 1000;
     private RequestConfig requestConfig;
     private final List<Header> headers = new ArrayList<>();
 
@@ -103,19 +106,24 @@ public class CrawlerClient {
         String result = null;
         try {
             HttpGet request = new HttpGet(url);
-            
+
             request.setConfig(requestConfig);
-            for (Iterator<Header> h = headers.iterator(); h.hasNext();) {
-                request.setHeader(h.next());
+            for (int i = 0; i < headers.size(); i++) {
+                request.setHeader(headers.get(i));
             }
             //request.setHeader("Connection", "close");
-            try (CloseableHttpResponse response = client.execute(request)) {
-                HttpEntity entity = response.getEntity();
-                result = entity != null ? EntityUtils.toString(entity) : null;
-                EntityUtils.consume(entity);
-                response.close();
+            HttpResponse response = client.execute(request);
 
+            BufferedReader rd = new BufferedReader(
+                    new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuffer rbuffer = new StringBuffer();
+            String line = "";
+            while ((line = rd.readLine()) != null) {
+                rbuffer.append(line);
             }
+            result = rbuffer.toString();
+
             return result;
         } catch (IOException ex) {
             //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
