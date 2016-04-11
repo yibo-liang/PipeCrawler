@@ -63,8 +63,6 @@ public class MBlogCrawler extends Worker {
 
     private Proxy proxy = null;
 
-    int failCount = 0;
-
     private int currentTimestamp() {
         return (int) (System.currentTimeMillis() / 1000L);
     }
@@ -147,8 +145,9 @@ public class MBlogCrawler extends Worker {
         client.addHeader("X-Requested-With", "XMLHttpRequest");
         client.addHeader(UserAgentHelper.iphone6plusAgent());
         client.setProxy(proxy);
+        debug("GETTING P=" + page);
         String json = client.wget(url);
-
+        debug("PARSING P=" + page);
         client.close();
         if (json == null) {
             throw new Exception("wget null");
@@ -171,14 +170,14 @@ public class MBlogCrawler extends Worker {
             doc = ((JSONObject) parser.parse(json));
 
         } catch (Exception ex) {
-            System.out.println(" - -  - - - -Parse ERROR - - - - ");
+            //System.out.println(" - -  - - - -Parse ERROR - - - - ");
             //System.out.println(json);
             throw ex;
         }
 
         int count = Integer.parseInt(doc.get("count").toString());
         if (count == 0) {
-            System.out.println("--------------ERROR");
+            //System.out.println("--------------ERROR");
             //System.out.println(doc.toJSONString());
         }
         JSONArray cards = (JSONArray) doc.get("cards");
@@ -202,15 +201,22 @@ public class MBlogCrawler extends Worker {
 
     }
 
+    private void debug(String s) {
+        Debug a = Debug.getInstance();
+        a.put(this.getPID(), s);
+    }
+
     @Override
     @SuppressWarnings("empty-statement")
     public int work() {
+        debug("INIT");
         Buffer<MBlogTaskResult> outputBuffer = (Buffer<MBlogTaskResult>) getBufferStore().use("finishedtasks");
         LUBuffer<AccountDetail> taskBuffer = (LUBuffer<AccountDetail>) getBufferStore().use("tasks");
 
         AccountDetail acc;
-
+        debug("PA");
         acc = (AccountDetail) taskBuffer.poll(this);
+
         if (acc == null) {
             LUBuffer<ClientConnector.IClientProtocol> messageBuffer
                     = (LUBuffer<ClientConnector.IClientProtocol>) this.getBufferStore().use("msg");
@@ -222,7 +228,7 @@ public class MBlogCrawler extends Worker {
 
         MBlogTaskResult result = new MBlogTaskResult();
         result.setAccount(acc);
-
+        debug("STARTING");
         long id = acc.getUid();
         boolean done = false;
         switchProxy();
@@ -230,11 +236,13 @@ public class MBlogCrawler extends Worker {
         int max = 1;
         do {
             try {
+                debug("PAGE:" + k + "/" + max);
+                this.setState(WorkerStates.WORKING);
                 Pair<Integer, ArrayList<PostInfo>> p1 = analysePage(acc, String.valueOf(id), k);
                 if (p1.getSecond().size() == 0 && acc.getBlog_num() > 0) {
-                    System.out.println("********* count= " + p1.getFirst());
-                    System.out.println("******** ERROR");
-                    System.out.println(acc.toBSONDocument().toJson());
+                    //System.out.println("********* count= " + p1.getFirst());
+                    //System.out.println("******** ERROR");
+                    //System.out.println(acc.toBSONDocument().toJson());
                     //break;
                 }
                 result.getPostinfo().addAll(p1.getSecond());
@@ -254,24 +262,24 @@ public class MBlogCrawler extends Worker {
                     done = true;
                 }
                 try {
+                    debug("POS_SUC K=" + k);
                     this.setState(WorkerStates.POST_SUCCESS);
                     Thread.sleep(5000);
 
                 } catch (InterruptedException ex) {
-                    ex.printStackTrace();
+                    //ex.printStackTrace();
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
+                //ex.printStackTrace();
                 proxy = null;
                 switchProxy();
             }
         } while (!done);
-
-        if (result.getPostinfo().size() == 0 && acc.getBlog_num() > 0) {
-
-        }
+        debug("REMOVE DUP");
         result.removeDup();
+        debug("PUSH_R");
         blockedpush(outputBuffer, result);
+        debug("DONE");
         System.out.println("Get mblog info count=" + result.getPostinfo().size() + " for ID= " + result.getAccount().getUid());
         return Worker.SUCCESS;
     }

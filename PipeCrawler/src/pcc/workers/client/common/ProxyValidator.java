@@ -75,11 +75,11 @@ public class ProxyValidator extends Worker {
                     (result.contains("This request appears NOT to have come via a proxy.")
                     || false && result.contains("This request appears to have come via a proxy"))) {
                 blockedpush(outputBuffer, p);
-                System.out.println("pid="+this.getPID()+", Validated IP="+p.getHost()+","+p.getPort());
+                //System.out.println("pid="+this.getPID()+", Validated IP="+p.getHost()+","+p.getPort());
                 return Worker.SUCCESS;
             } else {
                 //System.out.println(p.toString());
-                System.out.println("pid="+this.getPID()+", Failed IP="+p.getHost()+","+p.getPort());
+                //System.out.println("pid="+this.getPID()+", Failed IP="+p.getHost()+","+p.getPort());
                 //System.out.println(result);
                 return Worker.FAIL;
             }

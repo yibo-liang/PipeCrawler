@@ -61,6 +61,7 @@ import pcc.workers.client.common.ProxyValidator;
 import pcc.workers.client.common.SignalListener;
 import pcc.workers.client.common.SignalSender;
 import pcc.workers.client.mblog.BlogResultCollector;
+import pcc.workers.client.mblog.Debug;
 import pcc.workers.client.mblog.MBlogCrawler;
 import pcc.workers.client.rawuser.UserResultCollector;
 import pcc.workers.server.DetailBatchInserter;
@@ -350,6 +351,7 @@ public class PipeCrawler {
             Thread.sleep(2000);
             System.out.println(bs1.BufferStates());
             System.out.println(mcPipe.GetSectionAnalyseResult().toString());
+            System.out.println(Debug.getInstance().toString());
             System.out.println("-----------------------------------");
 
         }

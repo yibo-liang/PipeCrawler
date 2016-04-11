@@ -47,7 +47,7 @@ import pcc.http.entity.Proxy;
 public class CrawlerClient {
 
     private final CloseableHttpClient client;
-    private int timeout = 40 * 1000;
+    private int timeout = 15 * 1000;
     private RequestConfig requestConfig;
     private final List<Header> headers = new ArrayList<>();
 
@@ -103,7 +103,7 @@ public class CrawlerClient {
         String result = null;
         try {
             HttpGet request = new HttpGet(url);
-
+            
             request.setConfig(requestConfig);
             for (Iterator<Header> h = headers.iterator(); h.hasNext();) {
                 request.setHeader(h.next());
