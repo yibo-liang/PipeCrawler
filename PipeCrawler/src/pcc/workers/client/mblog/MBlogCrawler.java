@@ -62,6 +62,8 @@ import pcc.workers.client.protocols.MBlogTaskRequest;
 public class MBlogCrawler extends Worker {
 
     private Proxy proxy = null;
+    private int proxy_num = 0;
+    private int suc = 0;
 
     private int currentTimestamp() {
         return (int) (System.currentTimeMillis() / 1000L);
@@ -127,6 +129,8 @@ public class MBlogCrawler extends Worker {
             if (proxy == null) {
 
                 proxy = (Proxy) blockedpoll(proxybuffer);
+                proxy_num++;
+
             }
             //proxy = new Proxy(proxy.getHost(), proxy.getPort());
 
@@ -203,7 +207,7 @@ public class MBlogCrawler extends Worker {
 
     private void debug(String s) {
         Debug a = Debug.getInstance();
-        a.put(this.getPID(), s);
+        a.put(this.getPID(), s + "[" + this.suc + "," + this.proxy_num + "]");
     }
 
     @Override
@@ -275,6 +279,7 @@ public class MBlogCrawler extends Worker {
                 switchProxy();
             }
         } while (!done);
+        this.suc++;
         debug("REMOVE DUP");
         result.removeDup();
         debug("PUSH_R");
