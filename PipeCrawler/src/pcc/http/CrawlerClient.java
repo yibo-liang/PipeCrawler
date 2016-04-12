@@ -29,6 +29,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.http.Header;
@@ -85,8 +87,7 @@ public class CrawlerClient {
             return;
         }
         HttpHost proxyHost = new HttpHost(proxy.getHost(), Integer.parseInt(proxy.getPort()), "http");
-        
-        
+
         requestConfig = RequestConfig.custom()
                 .setConnectionRequestTimeout(timeout)
                 .setConnectTimeout(timeout)
@@ -96,34 +97,47 @@ public class CrawlerClient {
     }
 
     public String wget(String url) {
+
         String result = null;
-        HttpGet request = null;
+        final HttpGet request = new HttpGet(url);
         InputStreamReader isr = null;
         try {
-            request = new HttpGet(url);
+            //request = new HttpGet(url);
 
             request.setConfig(requestConfig);
             for (int i = 0; i < headers.size(); i++) {
                 request.setHeader(headers.get(i));
             }
-            //request.setHeader("Connection", "close");
+            request.setHeader("Connection", "close");
+
+            int hardTimeout = 25; // seconds
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    if (request != null) {
+                        request.abort();
+                    }
+                }
+            };
+
+            new Timer(true).schedule(task, hardTimeout * 1000);
             HttpResponse response = client.execute(request);
             if (response.getStatusLine().getStatusCode() != 200) {
                 request.abort();
-                throw new Exception("ERROR "+response.getStatusLine().getStatusCode());
+                throw new Exception("ERROR " + response.getStatusLine().getStatusCode());
             }
-            
-            HttpEntity entity= response.getEntity();
-             isr=new InputStreamReader(entity.getContent());
-             BufferedReader br=new BufferedReader(isr);
-             String inputLine;
-             result="";
-            while ((inputLine=br.readLine())!=null) {                
-                result+=inputLine+"\r\n";
+
+            HttpEntity entity = response.getEntity();
+            isr = new InputStreamReader(entity.getContent());
+            BufferedReader br = new BufferedReader(isr);
+            String inputLine;
+            result = "";
+            while ((inputLine = br.readLine()) != null) {
+                result += inputLine + "\r\n";
             }
             br.close();
             EntityUtils.consumeQuietly(response.getEntity());
-            
+
             return result;
         } catch (IOException ex) {
             request.abort();

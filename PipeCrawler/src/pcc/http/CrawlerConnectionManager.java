@@ -31,6 +31,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import pcc.http.entity.Proxy;
 
 /**
  *
@@ -72,7 +73,11 @@ public class CrawlerConnectionManager {
     }
 
     public static CrawlerClient getNewClient() {
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(15 * 1000).build();
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(15 * 1000)
+                .setSocketTimeout(15 * 1000)
+                .setConnectionRequestTimeout(15 * 1000)
+                .build();
 
         return new CrawlerClient(
                 HttpClients

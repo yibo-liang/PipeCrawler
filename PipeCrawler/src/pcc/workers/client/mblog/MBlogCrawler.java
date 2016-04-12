@@ -149,7 +149,7 @@ public class MBlogCrawler extends Worker {
         client.addHeader("X-Requested-With", "XMLHttpRequest");
         client.addHeader(UserAgentHelper.iphone6plusAgent());
         client.setProxy(proxy);
-        debug("GETTING P=" + page);
+        debug("GETTING P=" + page+","+acc.getUid());
         String json = client.wget(url);
         debug("PARSING P=" + page);
         client.close();
