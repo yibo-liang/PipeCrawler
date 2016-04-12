@@ -316,7 +316,7 @@ public class ServerProtocol implements ServerConnector.IServerProtocol {
         return new MessageCarrier("ACK", "");
     }
 
-    private MessageCarrier _handleMBlogTaskRequest(MessageCarrier mc) {
+    private synchronized MessageCarrier _handleMBlogTaskRequest(MessageCarrier mc) {
 
         int num = (Integer) mc.getObj();
 
