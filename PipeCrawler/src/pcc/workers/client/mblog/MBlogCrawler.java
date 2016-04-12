@@ -238,6 +238,7 @@ public class MBlogCrawler extends Worker {
         switchProxy();
         int k = 1;
         int max = 1;
+        int fail=0;
         do {
             try {
                 debug("PAGE:" + k + "/" + max);
@@ -274,6 +275,12 @@ public class MBlogCrawler extends Worker {
                     //ex.printStackTrace();
                 }
             } catch (Exception ex) {
+                if (k==1){
+                    fail++;
+                    if (fail>45){
+                        return Worker.FAIL;
+                    }
+                }
                 debug("POST_FAIL K="+k);
                 //ex.printStackTrace();
                 proxy = null;
