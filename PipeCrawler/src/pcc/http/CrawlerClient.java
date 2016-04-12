@@ -128,12 +128,12 @@ public class CrawlerClient {
         } catch (IOException ex) {
             request.abort();
             //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
-            ex.printStackTrace();
+            //ex.printStackTrace();
             return null;
         } catch (Exception ex) {
             request.abort();
-            Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
-            ex.printStackTrace();
+            //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
+            //ex.printStackTrace();
             return null;
         } finally {
             request.releaseConnection();
@@ -151,7 +151,7 @@ public class CrawlerClient {
         try {
             client.close();
         } catch (IOException ex) {
-            Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
