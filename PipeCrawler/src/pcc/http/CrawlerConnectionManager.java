@@ -24,6 +24,7 @@
 package pcc.http;
 
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.params.BasicHttpParams;
@@ -41,13 +42,15 @@ public class CrawlerConnectionManager {
     private static final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
 
     public static void StartConnectionMonitor() {
+        setMaxConnection(600);
         IdleConnectionMonitorThread staleMonitor = new IdleConnectionMonitorThread(connManager);
+
         staleMonitor.start();
     }
 
     public static void setMaxConnection(int num) {
         connManager.setMaxTotal(num);
-        connManager.setDefaultMaxPerRoute(50);
+        connManager.setDefaultMaxPerRoute(400);
 
     }
 
@@ -68,12 +71,13 @@ public class CrawlerConnectionManager {
         return connManager;
     }
 
-     public static CrawlerClient getNewClient() {
-          RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(15 * 1000).build();
-        
+    public static CrawlerClient getNewClient() {
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(15 * 1000).build();
+
         return new CrawlerClient(
                 HttpClients
                 .custom()
+                .setSSLHostnameVerifier(new NoopHostnameVerifier())
                 .setDefaultRequestConfig(requestConfig)
                 .setConnectionManager(connManager)
                 .setConnectionManagerShared(true)

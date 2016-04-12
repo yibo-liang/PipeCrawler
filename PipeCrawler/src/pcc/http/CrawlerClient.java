@@ -35,6 +35,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -50,7 +51,7 @@ import pcc.http.entity.Proxy;
 public class CrawlerClient {
 
     private final CloseableHttpClient client;
-    private int timeout = 5 * 1000;
+    private int timeout = 20 * 1000;
     private RequestConfig requestConfig;
     private final List<Header> headers = new ArrayList<>();
 
@@ -72,11 +73,6 @@ public class CrawlerClient {
 
     public CrawlerClient(CloseableHttpClient client) {
         this.client = client;
-        requestConfig = RequestConfig.custom()
-                .setConnectionRequestTimeout(timeout)
-                .setConnectTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .build();
     }
 
     /**
@@ -86,14 +82,11 @@ public class CrawlerClient {
      */
     public void setProxy(Proxy proxy) {
         if (proxy == null) {
-            requestConfig = RequestConfig.custom()
-                    .setConnectionRequestTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setSocketTimeout(timeout)
-                    .build();
             return;
         }
         HttpHost proxyHost = new HttpHost(proxy.getHost(), Integer.parseInt(proxy.getPort()), "http");
+        
+        
         requestConfig = RequestConfig.custom()
                 .setConnectionRequestTimeout(timeout)
                 .setConnectTimeout(timeout)
@@ -104,8 +97,10 @@ public class CrawlerClient {
 
     public String wget(String url) {
         String result = null;
+        HttpGet request = null;
+        InputStreamReader isr = null;
         try {
-            HttpGet request = new HttpGet(url);
+            request = new HttpGet(url);
 
             request.setConfig(requestConfig);
             for (int i = 0; i < headers.size(); i++) {
@@ -113,30 +108,50 @@ public class CrawlerClient {
             }
             //request.setHeader("Connection", "close");
             HttpResponse response = client.execute(request);
-
-            BufferedReader rd = new BufferedReader(
-                    new InputStreamReader(response.getEntity().getContent()));
-
-            StringBuffer rbuffer = new StringBuffer();
-            String line = "";
-            while ((line = rd.readLine()) != null) {
-                rbuffer.append(line);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                request.abort();
+                throw new Exception("ERROR "+response.getStatusLine().getStatusCode());
             }
-            result = rbuffer.toString();
-
+            
+            HttpEntity entity= response.getEntity();
+             isr=new InputStreamReader(entity.getContent());
+             BufferedReader br=new BufferedReader(isr);
+             String inputLine;
+             result="";
+            while ((inputLine=br.readLine())!=null) {                
+                result+=inputLine+"\r\n";
+            }
+            br.close();
+            EntityUtils.consumeQuietly(response.getEntity());
+            
             return result;
         } catch (IOException ex) {
+            request.abort();
             //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
-            // ex.printStackTrace();
-            return result;
+            ex.printStackTrace();
+            return null;
+        } catch (Exception ex) {
+            request.abort();
+            Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            return null;
+        } finally {
+            request.releaseConnection();
+            if (isr != null) {
+                try {
+                    isr.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
         }
     }
 
     public void close() {
         try {
-            this.client.close();
+            client.close();
         } catch (IOException ex) {
-            //Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CrawlerClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

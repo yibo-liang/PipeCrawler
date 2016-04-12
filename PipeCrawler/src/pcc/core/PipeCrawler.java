@@ -83,7 +83,6 @@ public class PipeCrawler {
      */
     private static void ClientRawUserCrawler() throws InterruptedException {
 
-        CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
         LUBuffer<String> containeridbuffer = new LUBuffer<>(15);
         LUBuffer<String> Failedcontaineridbuffer = new LUBuffer<>(200);
@@ -177,7 +176,6 @@ public class PipeCrawler {
 
     public static void ServerCrawler() throws InterruptedException {
         //buffer store 
-        CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
 
         BufferStore bs1 = new BufferStore();
@@ -263,7 +261,6 @@ public class PipeCrawler {
 
     public static void DetailCrawler() throws InterruptedException {
 
-        CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
 
         LUBuffer<RawAccount> rawUserBuffer = new LUBuffer<>(0);
@@ -311,7 +308,6 @@ public class PipeCrawler {
     }
 
     public static void MBlogCrawler() throws InterruptedException {
-        CrawlerConnectionManager.setMaxConnection(1000);
         CrawlerConnectionManager.StartConnectionMonitor();
         LUBuffer<Proxy> proxysbuffer = new LUBuffer<>(20);
         LUBuffer<Proxy> rawproxysbuffer = new LUBuffer<>(0);

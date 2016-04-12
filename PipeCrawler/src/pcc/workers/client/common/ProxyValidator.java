@@ -79,8 +79,8 @@ public class ProxyValidator extends Worker {
                 return Worker.SUCCESS;
             } else {
                 //System.out.println(p.toString());
-                //System.out.println("pid="+this.getPID()+", Failed IP="+p.getHost()+","+p.getPort());
-                //System.out.println(result);
+                System.out.println("pid="+this.getPID()+", Failed IP="+p.getHost()+","+p.getPort());
+                System.out.println(result);
                 return Worker.FAIL;
             }
         } catch (Exception ex) {

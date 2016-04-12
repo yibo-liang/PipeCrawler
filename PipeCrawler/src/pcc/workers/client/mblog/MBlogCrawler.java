@@ -141,7 +141,7 @@ public class MBlogCrawler extends Worker {
     private Pair<Integer, ArrayList<PostInfo>> analysePage(AccountDetail acc, String userid, int page) throws Exception {
         ArrayList<PostInfo> results = new ArrayList<>();
 
-        String url = "http://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
+        String url = "https://m.weibo.cn/page/json?containerid=100505" + userid + "_-_WEIBO_SECOND_PROFILE_WEIBO&page=" + page;
 
         CrawlerClient client = CrawlerConnectionManager.getNewClient();
         client.addHeader("Accept", "application/json, text/javascript, */*; q=0.01");
@@ -162,7 +162,7 @@ public class MBlogCrawler extends Worker {
                 return new Pair<>(new Integer(0), results);
             } else {
 
-                System.out.println("************* found empty id=" + userid);
+                //System.out.println("************* found empty id=" + userid);
                 //System.out.println(json);
                 throw new Exception("Proxy expired or not valid");
             }
@@ -268,12 +268,13 @@ public class MBlogCrawler extends Worker {
                 try {
                     debug("POS_SUC K=" + k);
                     this.setState(WorkerStates.POST_SUCCESS);
-                    Thread.sleep(5000);
+                    Thread.sleep(4000);
 
                 } catch (InterruptedException ex) {
                     //ex.printStackTrace();
                 }
             } catch (Exception ex) {
+                debug("POST_FAIL K="+k);
                 //ex.printStackTrace();
                 proxy = null;
                 switchProxy();
